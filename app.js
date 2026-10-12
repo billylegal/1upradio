@@ -27,8 +27,10 @@
     paintSave();
     paintLists();
   }
+  function hb(p) { var on = isSaved(p); return '<button class="hb' + (on ? ' on' : '') + '" type="button" data-t="' + p.t + '" aria-pressed="' + on + '" title="' + (on ? 'Remove from saved songs' : 'Save song') + '">' + (on ? '♥' : '♡') + '</button>'; }
+  function paintHearts() { document.querySelectorAll('.hb').forEach(function (b) { var p = S.plays.find(function (x) { return x.t === +b.dataset.t; }), on = isSaved(p); b.classList.toggle('on', on); b.textContent = on ? '♥' : '♡'; b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.title = on ? 'Remove from saved songs' : 'Save song'; }); }
   function paintLists() {
-    var row = function (p, cls) { var a = split(p.title); return '<li class="' + (cls || '') + '"><time>' + fmtT(p.t) + '</time><span>' + esc(a[0] ? a[0] + ' — ' + a[1] : a[1]) + '</span></li>'; };
+    var row = function (p, cls) { var a = split(p.title); return '<li class="' + (cls || '') + '"><time>' + fmtT(p.t) + '</time><span>' + esc(a[0] ? a[0] + ' — ' + a[1] : a[1]) + '</span>' + hb(p) + '</li>'; };
     var ref = idx >= 0 ? idx : (S.plays.length ? findNow() : -1);
     $('next').innerHTML = ref >= 0 ? S.plays.slice(ref + 1, ref + 7).map(function (p) { return row(p); }).join('') : '';
     $('prev').innerHTML = ref >= 0 ? S.plays.slice(Math.max(0, ref - 6), ref).reverse().map(function (p) { return row(p); }).join('') : '';
@@ -45,7 +47,7 @@
     b.textContent = on ? '♥ Saved' : '♡ Save song'; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
   }
   function paintSaved() {
-    var el = $('saved'); if (!el) return;
+    var el = $('saved'); if (!el) return; paintHearts();
     $('savedn').textContent = saved.length ? '(' + saved.length + ')' : '';
     $('savedhint').style.display = saved.length ? 'none' : '';
     el.innerHTML = saved.map(function (s, i) {
@@ -60,6 +62,13 @@
     persistSaved(); paintSave(); paintSaved();
   });
   $('saved').addEventListener('click', function (e) { var b = e.target.closest('.sdel'); if (!b) return; saved.splice(+b.dataset.i, 1); persistSaved(); paintSave(); paintSaved(); });
+  document.addEventListener('click', function (e) {   // heart on any track row (week list, up next, just played)
+    var b = e.target.closest('.hb'); if (!b) return;
+    var p = S.plays.find(function (x) { return x.t === +b.dataset.t; }); if (!p) return;
+    var n = saved.findIndex(function (s) { return s.id === p.id; });
+    if (n >= 0) saved.splice(n, 1); else saved.unshift({ id: p.id, title: p.title, at: Date.now() });
+    persistSaved(); paintSave(); paintSaved();
+  });
   paintSaved();
 
   // ---- color themes: every tap on THEME switches to the next of 8 colors ----
@@ -82,7 +91,7 @@
     $('days').innerHTML = keys.map(function (k) { var d = new Date(k + 'T12:00:00Z'); return '<button data-k="' + k + '" class="' + (k === selDay ? 'on' : '') + '">' + d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }) + '</button>'; }).join('');
     var list = S.plays.filter(function (p) { return dayKey(p.t) === selDay; });
     var curT = idx >= 0 && S.plays[idx] ? S.plays[idx].t : -1;
-    $('daylist').innerHTML = list.map(function (p) { var a = split(p.title); return '<li class="' + (p.t === curT ? 'now' : '') + '"><time>' + fmtT(p.t) + '</time><span>' + esc(a[0] ? a[0] + ' — ' + a[1] : a[1]) + '</span></li>'; }).join('');
+    $('daylist').innerHTML = list.map(function (p) { var a = split(p.title); return '<li class="' + (p.t === curT ? 'now' : '') + '"><time>' + fmtT(p.t) + '</time><span>' + esc(a[0] ? a[0] + ' — ' + a[1] : a[1]) + '</span>' + hb(p) + '</li>'; }).join('');
     $('tznote').textContent = 'Keep the volume up. Times are shown in your local time (' + new Date().toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop() + ').';
   }
   $('days').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; selDay = b.dataset.k; paintDays(); });
@@ -167,3 +176,4 @@
 })();
 
 ;(function(){var g=document.getElementById("tapgate");if(!g)return;function go(e){if(!g||!e.isTrusted)return;if(e.type==="click"){e.preventDefault();e.stopPropagation()}g.remove();g=null}window.addEventListener("click",go,true);window.addEventListener("keydown",go,true)})();
+
