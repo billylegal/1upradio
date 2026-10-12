@@ -13,5 +13,27 @@ for p in sorted(plays, key=lambda p: p['t']):
     if (day, p['oid']) in seen: skipped += 1; continue          # never play the same song twice in one (Athens) day
     seen.add((day, p['oid']))
     out.append({'t': p['t'], 'id': tr['id'], 'title': p['title'], 'dur': tr.get('dur') or 240})
+
+# --- fill the schedule's holes (songs the station aired that we could not match) with real songs, picked the same way for every listener ---
+import bisect
+final = []
+times = [q['t'] for q in out]
+for i, q in enumerate(out):
+    final.append(q)
+    if i + 1 >= len(out): break
+    cur = q['t'] + q['dur']; remaining = out[i + 1]['t'] - cur
+    if remaining < 45: continue
+    lo = bisect.bisect_left(times, q["t"] - 72 * 3600); hi = bisect.bisect_right(times, q['t'] - 3 * 3600)
+    recent = {x['id'] for x in out[max(0, i - 40):i + 1]}
+    pool = [x for x in out[lo:hi] if x['id'] not in recent]
+    used = set(); k = 0
+    while remaining >= 45 and pool:
+        fits = [x for x in pool if x['dur'] <= remaining + 3 and x['id'] not in used]
+        if not fits: break
+        top = sorted(fits, key=lambda x: -x['dur'])[:8]
+        pick = top[((q['t'] * 2654435761) + k * 40503) % len(top)]
+        final.append({'t': cur, 'id': pick['id'], 'title': pick['title'], 'dur': pick['dur'], 'f': 1})
+        used.add(pick['id']); cur += pick['dur']; remaining -= pick['dur']; k += 1
+out = final
 json.dump({'built': int(datetime.datetime.now().timestamp()), 'delay': DELAY, 'plays': out}, open('schedule.json', 'w'), ensure_ascii=False, separators=(',', ':'))
 print(len(out), 'scheduled;', skipped, 'same-day repeats dropped;', miss, 'unresolved skipped')
