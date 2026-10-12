@@ -73,15 +73,27 @@
   }
   $('days').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; selDay = b.dataset.k; paintDays(); });
 
+  var nextTimer = null;
+  function clearNext() { if (nextTimer) { clearTimeout(nextTimer); nextTimer = null; } }
   function playIdx(i, offset) {
+    clearNext();
     if (!S.plays.length) return;
     if (i >= S.plays.length) i = Math.max(0, S.plays.length - 40 + Math.floor(Math.random() * 30));   // out of schedule: loop back over recent music
     idx = i; var p = S.plays[i]; offset = Math.max(0, Math.floor(offset || 0));
-    if (offset > p.dur - 25) { offset = 0; idx = Math.min(i + 1, S.plays.length - 1); p = S.plays[idx]; }
     paintNP();
+    if (offset > p.dur - 5 && i + 1 < S.plays.length) { next(); return; }       // this song is basically over: wait for the next slot
     yt.loadVideoById({ videoId: p.id, startSeconds: offset });
   }
-  function next() { if (!started) return; playIdx(idx + 1, 0); }
+  // after a song ends, the next one starts exactly when the schedule says it begins (never early), so every listener hears the same thing
+  function next() {
+    if (!started) return;
+    var n = idx + 1;
+    if (n >= S.plays.length) { playIdx(n, 0); return; }
+    var wait = (S.plays[n].t + S.delay) - Date.now() / 1000;
+    clearNext();
+    if (wait > 1) nextTimer = setTimeout(function () { nextTimer = null; playIdx(n, 0); }, wait * 1000);
+    else playIdx(n, Math.max(0, -wait));
+  }
   function setOn(on) {
     playing = on; $('play').classList.toggle('on', on); $('eq').classList.toggle('on', on); $('onair').classList.toggle('on', on);
     $('onairtxt').textContent = on ? 'ON AIR' : (started ? 'PAUSED' : 'OFF AIR'); $('play').setAttribute('aria-label', on ? 'Pause 1UP Radio' : 'Play 1UP Radio'); paintNP();
@@ -109,12 +121,14 @@
   // keep exactly in step with the live schedule: after a pause, a stall or a schedule change, jump back to the live position
   var lastSync = 0;
   setInterval(function () {
-    if (!started || !playing || !yt || !ready || idx < 0 || !S.plays[idx] || Date.now() - lastSync < 20000) return;
+    if (!started || !playing || !yt || !ready || idx < 0 || !S.plays[idx] || nextTimer || Date.now() - lastSync < 20000) return;
     try {
-      var expected = Date.now() / 1000 - S.delay, actual = S.plays[idx].t + yt.getCurrentTime();
-      if (Math.abs(actual - expected) > 30) { var k = findNow(); lastSync = Date.now(); playIdx(k, expected - S.plays[k].t); }
+      var now = Date.now() / 1000 - S.delay, k = findNow();
+      if (k !== idx) { lastSync = Date.now(); playIdx(k, now - S.plays[k].t); return; }          // wrong song for this moment: jump to what is on air
+      var expected = now - S.plays[idx].t, cur = yt.getCurrentTime(), dur = yt.getDuration();
+      if (dur && expected < dur - 5 && Math.abs(cur - expected) > 20) { lastSync = Date.now(); yt.seekTo(expected, true); }   // paused or stalled: catch up to live
     } catch (x) {}
-  }, 8000);
+  }, 6000);
   setInterval(function () { if (!playing || !yt || !ready) return; try { var d = yt.getDuration(), c = yt.getCurrentTime(); if (d) $('npFill').style.width = Math.min(100, c / d * 100) + '%'; } catch (x) {} }, 500);
   // open playing: start on load; browsers block sound before the first tap, so fall back to silent autoplay and unmute on the first touch
   var mutedAuto = false;
