@@ -6,5 +6,5 @@ python3 tools/resolve.py >/dev/null 2>&1
 python3 tools/build.py >/dev/null 2>&1
 if git remote get-url origin >/dev/null 2>&1; then
   git add schedule.json data/plays.json data/tracks.json 2>/dev/null
-  git diff --cached --quiet || { git -c user.name="1UP Radio bot" -c user.email="bot@1upradio.com" commit -qm "schedule update" && git -c credential.helper= -c credential.helper='!gh auth git-credential' push -q origin HEAD 2>/dev/null; }
+  git diff --cached --quiet || { git -c user.name="1UP Radio bot" -c user.email="bot@1upradio.com" commit -qm "schedule update" && git -c credential.helper= -c credential.helper='!gh auth git-credential' pull -q --rebase origin main 2>/dev/null; git -c credential.helper= -c credential.helper='!gh auth git-credential' push -q origin HEAD 2>/dev/null; }
 fi

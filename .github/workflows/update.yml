@@ -1,0 +1,32 @@
+name: update-schedule
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+concurrency:
+  group: update-schedule
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -q yt-dlp
+      - name: Rebuild schedule
+        run: |
+          python3 tools/scrape.py 2 || true
+          python3 tools/resolve.py || true
+          python3 tools/build.py
+      - name: Publish if changed
+        run: |
+          git add schedule.json data/plays.json data/tracks.json
+          git diff --cached --quiet && exit 0
+          git -c user.name="1UP Radio bot" -c user.email="bot@1upradio.com" commit -qm "schedule update (cloud)"
+          git pull -q --rebase origin main || true
+          git push -q origin HEAD
