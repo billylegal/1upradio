@@ -88,3 +88,7 @@ footer .stk{display:inline-flex;text-decoration:none}footer .stk img{height:42px
 @keyframes shx{from{transform:translateX(0)}to{transform:translateX(calc(100vw - 96px))}}
 @keyframes shy{from{transform:translateY(0)}to{transform:translateY(calc(100vh - 70px))}}
 @media(prefers-reduced-motion:reduce){.shx,.shy{animation:none}}
+
+#tapgate{position:fixed;inset:0;z-index:99;background:radial-gradient(900px 500px at 50% 40%,#0f2a0c 0,#050805 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#tapgate .one{font-size:clamp(40px,12vw,84px)}#tapgate .rad{font-size:clamp(22px,6vw,44px);margin-left:14px}
+#tapgate p{margin:0;font:400 clamp(14px,3.6vw,22px) 'Press Start 2P',monospace;color:var(--g2);letter-spacing:.08em;animation:bl 1.4s steps(2) infinite}
