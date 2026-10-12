@@ -1,8 +1,9 @@
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var S = { plays: [], delay: 420 }, yt = null, ready = false, started = false, playing = false, idx = -1, errs = 0, skipped = 0;
-  var fmtT = function (t) { return new Date(t * 1000).toLocaleTimeString('en-GB', { timeZone: 'Europe/Athens', hour: '2-digit', minute: '2-digit' }); };
-  var dayKey = function (t) { return new Date(t * 1000).toLocaleDateString('en-CA', { timeZone: 'Europe/Athens' }); };
+  // times shown are when each song plays for you: the same clock time it aired in Athens, on your local clock
+  var fmtT = function (t) { return new Date((t + S.delay) * 1000).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); };
+  var dayKey = function (t) { return new Date((t + S.delay) * 1000).toLocaleDateString('en-CA'); };
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   function split(t) { var i = t.indexOf(' - '); return i > 0 ? [t.slice(0, i), t.slice(i + 3)] : ['', t]; }
 
@@ -39,7 +40,7 @@
     var list = S.plays.filter(function (p) { return dayKey(p.t) === selDay; });
     var curT = idx >= 0 && S.plays[idx] ? S.plays[idx].t : -1;
     $('daylist').innerHTML = list.map(function (p) { var a = split(p.title); return '<li class="' + (p.t === curT ? 'now' : '') + '"><time>' + fmtT(p.t) + '</time><span>' + esc(a[0] ? a[0] + ' — ' + a[1] : a[1]) + '</span></li>'; }).join('');
-    $('tznote').textContent = 'Times are Athens time (' + new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/Athens', timeZoneName: 'short' }).split(' ').pop() + ').';
+    $('tznote').textContent = 'Every song plays at the same clock time it aired on UP Radio Athens, on your local clock (' + new Date().toLocaleTimeString('en-GB', { timeZoneName: 'short' }).split(' ').pop() + ').';
   }
   $('days').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; selDay = b.dataset.k; paintDays(); });
 
