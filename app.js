@@ -165,3 +165,5 @@
   });
   setInterval(load, 3 * 60 * 1000);
 })();
+
+;(function(){var g=document.getElementById("tapgate");if(!g)return;function go(){if(g){g.remove();g=null}}["pointerdown","mousedown","touchstart","click","keydown"].forEach(function(e){window.addEventListener(e,go,true)})})();
