@@ -84,6 +84,16 @@
   }
   try { applyTheme(+(localStorage.getItem('up1-theme') || 0)); } catch (e) {}
   $('themeBtn').addEventListener('click', function () { applyTheme(themeI + 1); });
+  // skins: complete looks (retro is the original); the colour THEME still applies to retro and stream
+  var SKINS = ['retro', 'stream', 'glass', 'mono'], skinI = 0;
+  function applySkin(i) {
+    skinI = ((i % SKINS.length) + SKINS.length) % SKINS.length;
+    if (SKINS[skinI] === 'retro') document.documentElement.removeAttribute('data-skin'); else document.documentElement.setAttribute('data-skin', SKINS[skinI]);
+    try { localStorage.setItem('up1-skin', String(skinI)); } catch (e) {}
+  }
+  try { applySkin(+(localStorage.getItem('up1-skin') || 0)); } catch (e) {}
+  if ($('skinBtn')) $('skinBtn').addEventListener('click', function () { applySkin(skinI + 1); });
+
   window.__up1 = { chimeNow: function (h) { chimeNow(h); }, get chimeOn() { return chimeOn; }, get chimeT() { return chime.currentTime; }, get chimeErr() { return chime.error && chime.error.code; }, get idx() { return idx; }, get curP() { return curP; }, get S() { return S; }, get badIds() { return badIds; }, replay: function () { playIdx(idx, Date.now() / 1000 - S.delay - S.plays[idx].t, 0); } };
   var selDay = null;
   function paintDays() {
