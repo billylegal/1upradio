@@ -26,6 +26,7 @@
     document.title = (playing ? '▶ ' : '') + (a[1] || p.title) + ' · 1UP Radio';
     paintSave();
     paintLists();
+    if (typeof msMeta === 'function') msMeta();
   }
   function hb(p) { var on = isSaved(p); return '<button class="hb' + (on ? ' on' : '') + '" type="button" data-t="' + p.t + '" aria-pressed="' + on + '" title="' + (on ? 'Remove from saved songs' : 'Save song') + '">' + (on ? '♥' : '♡') + '</button>'; }
   function paintHearts() { document.querySelectorAll('.hb').forEach(function (b) { var p = S.plays.find(function (x) { return x.t === +b.dataset.t; }), on = isSaved(p); b.classList.toggle('on', on); b.textContent = on ? '♥' : '♡'; b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.title = on ? 'Remove from saved songs' : 'Save song'; }); }
@@ -188,12 +189,32 @@
     if (d.getMinutes() === 59 && d.getSeconds() > 30) chimePrep((h + 1) % 24);
     if (d.getMinutes() === 0 && d.getSeconds() < 4) { var key = d.toDateString() + h; if (key !== chimeKey) { chimeKey = key; chimeNow(h); } }
   }, 500);
+
+  // ---- phone lock screen / background: Media Session (title, artwork, play/pause buttons) + a silent looping sound that keeps the page's audio session alive, and a jump back to live whenever the phone wakes the page up ----
+  var userPaused = false, keep = new Audio('assets/silence.mp3'); keep.loop = true; keep.setAttribute('playsinline', '');
+  $('play').addEventListener('click', function () { userPaused = playing; }, true);
+  function keepSync() { try { if (started && gestured && !userPaused) { var pr = keep.play(); if (pr && pr.catch) pr.catch(function () {}); } else keep.pause(); } catch (e) {} }
+  function goLive() { if (!started || !ready || !S.plays.length) return; userPaused = false; try { var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } catch (e) {} keepSync(); }
+  var MS = 'mediaSession' in navigator ? navigator.mediaSession : null;
+  function msMeta() {
+    if (!MS || typeof MediaMetadata === 'undefined') return; var p = curP || S.plays[idx]; if (!p) return; var a = split(p.title);
+    try { MS.metadata = new MediaMetadata({ title: a[1] || p.title, artist: a[0] || '1UP Radio', album: '1UP Radio · Keep the volume up', artwork: [{ src: 'assets/logo.png', sizes: '512x512', type: 'image/png' }] }); MS.playbackState = playing ? 'playing' : 'paused'; } catch (e) {}
+  }
+  if (MS) {
+    try { MS.setActionHandler('play', function () { if (!started) { $('play').click(); return; } goLive(); }); } catch (e) {}
+    try { MS.setActionHandler('pause', function () { userPaused = true; try { yt.pauseVideo(); } catch (e) {} keepSync(); }); } catch (e) {}
+    try { MS.setActionHandler('stop', function () { userPaused = true; try { yt.pauseVideo(); } catch (e) {} keepSync(); }); } catch (e) {}
+    try { MS.setActionHandler('nexttrack', null); MS.setActionHandler('previoustrack', null); } catch (e) {}
+  }
+  setInterval(function () { msMeta(); keepSync(); }, 2000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && started && !playing && !userPaused && !chimeOn) goLive(); });
+  addEventListener('pageshow', function () { if (started && !playing && !userPaused && !chimeOn) goLive(); });
   // open playing: start on load; browsers block sound before the first tap, so fall back to silent autoplay and unmute on the first touch
   var mutedAuto = false;
   function unmuteNow(ev) {
     var t = ev && ev.type, tap = !!(ev && ev.isTrusted) && (t === 'click' || t === 'touchend' || t === 'pointerup' || t === 'keydown');
     if (ev && ev.isTrusted) gestured = true;
-    if (tap) unlockChime();
+    if (tap) { unlockChime(); if (typeof keepSync === 'function') keepSync(); }
     if (tap && yt && ready) {                                   // phones only allow sound inside a real tap: unmute / (re)start right here, in the tap
       try { if (yt.isMuted()) { yt.unMute(); yt.setVolume(+$('vol').value); } } catch (e) {}
       if (started && !playing && Date.now() - lastKick > 1500) { lastKick = Date.now(); try { yt.unMute(); var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } catch (e) {} }
