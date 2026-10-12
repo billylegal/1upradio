@@ -83,7 +83,7 @@
   }
   try { applyTheme(+(localStorage.getItem('up1-theme') || 0)); } catch (e) {}
   $('themeBtn').addEventListener('click', function () { applyTheme(themeI + 1); });
-  window.__up1 = { get idx() { return idx; }, get curP() { return curP; }, get S() { return S; }, get badIds() { return badIds; }, replay: function () { playIdx(idx, Date.now() / 1000 - S.delay - S.plays[idx].t, 0); } };
+  window.__up1 = { chimeNow: function (h) { chimeNow(h); }, get chimeOn() { return chimeOn; }, get chimeT() { return chime.currentTime; }, get chimeErr() { return chime.error && chime.error.code; }, get idx() { return idx; }, get curP() { return curP; }, get S() { return S; }, get badIds() { return badIds; }, replay: function () { playIdx(idx, Date.now() / 1000 - S.delay - S.plays[idx].t, 0); } };
   var selDay = null;
   function paintDays() {
     var keys = []; S.plays.forEach(function (p) { var k = dayKey(p.t); if (keys.indexOf(k) < 0) keys.push(k); });
@@ -161,11 +161,39 @@
     } catch (x) {}
   }, 6000);
   setInterval(function () { if (!playing || !yt || !ready) return; try { var d = yt.getDuration(), c = yt.getCurrentTime(); if (d) $('npFill').style.width = Math.min(100, c / d * 100) + '%'; } catch (x) {} }, 500);
+
+  // ---- hourly station ID: church bell, "The time is now ...", "One Up Radio. Keep the volume up." on the listener's local hour ----
+  var chime = new Audio(), chimeOn = false, chimeUnlocked = false, chimeHour = -1, chimeKey = '', IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  chime.preload = 'auto';
+  function chimeSrc(h) { return 'assets/chimes/chime-' + (h % 12 || 12) + '.mp3'; }   // 12 clips: the bell, "the time is now N o'clock", the station ID
+  function chimePrep(h) { if (chimeHour !== h) { chimeHour = h; chime.src = chimeSrc(h); try { chime.load(); } catch (e) {} } }
+  function unlockChime() {            // phones only let a sound play later if one was started inside a real tap: start it silently once
+    if (chimeUnlocked) return; chimeUnlocked = true;
+    try { chimePrep((new Date().getHours() + 1) % 24); chime.muted = true; var pr = chime.play(); var done = function () { try { chime.pause(); chime.currentTime = 0; } catch (e) {} chime.muted = false; }; if (pr && pr.then) pr.then(done, function () { chime.muted = false; chimeUnlocked = false; }); else done(); } catch (e) { chime.muted = false; }
+  }
+  function chimeEnd() {
+    if (!chimeOn) return; chimeOn = false;
+    try { if (IOS) { var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } else yt.setVolume(+$('vol').value); } catch (e) {}
+  }
+  function chimeNow(h) {
+    if (chimeOn || !started || !playing || !yt || !ready) return;
+    chimeOn = true; chimePrep(h); chime.muted = false; chime.currentTime = 0; chime.volume = 1;
+    try { if (IOS) yt.pauseVideo(); else yt.setVolume(Math.max(6, Math.round(+$('vol').value * 0.12))); } catch (e) {}
+    var pr = chime.play(); if (pr && pr.catch) pr.catch(chimeEnd);
+    setTimeout(chimeEnd, 16000);
+  }
+  chime.addEventListener('ended', chimeEnd); chime.addEventListener('error', chimeEnd);
+  setInterval(function () {
+    var d = new Date(), h = d.getHours();
+    if (d.getMinutes() === 59 && d.getSeconds() > 30) chimePrep((h + 1) % 24);
+    if (d.getMinutes() === 0 && d.getSeconds() < 4) { var key = d.toDateString() + h; if (key !== chimeKey) { chimeKey = key; chimeNow(h); } }
+  }, 500);
   // open playing: start on load; browsers block sound before the first tap, so fall back to silent autoplay and unmute on the first touch
   var mutedAuto = false;
   function unmuteNow(ev) {
     var t = ev && ev.type, tap = !!(ev && ev.isTrusted) && (t === 'click' || t === 'touchend' || t === 'pointerup' || t === 'keydown');
     if (ev && ev.isTrusted) gestured = true;
+    if (tap) unlockChime();
     if (tap && yt && ready) {                                   // phones only allow sound inside a real tap: unmute / (re)start right here, in the tap
       try { if (yt.isMuted()) { yt.unMute(); yt.setVolume(+$('vol').value); } } catch (e) {}
       if (started && !playing && Date.now() - lastKick > 1500) { lastKick = Date.now(); try { yt.unMute(); var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } catch (e) {} }
