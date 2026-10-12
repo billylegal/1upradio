@@ -10,5 +10,5 @@ for p in sorted(plays, key=lambda p: p['t']):
     if (day, p['oid']) in seen: skipped += 1; continue          # never play the same song twice in one (Athens) day
     seen.add((day, p['oid']))
     out.append({'t': p['t'], 'id': tr['id'], 'title': p['title'], 'dur': tr.get('dur') or 240})
-json.dump({'built': int(datetime.datetime.now().timestamp()), 'delay': 420, 'plays': out}, open('schedule.json', 'w'), ensure_ascii=False, separators=(',', ':'))
+json.dump({'built': int(datetime.datetime.now().timestamp()), 'delay': 900, 'plays': out}, open('schedule.json', 'w'), ensure_ascii=False, separators=(',', ':'))
 print(len(out), 'scheduled;', skipped, 'same-day repeats dropped;', miss, 'unresolved skipped')

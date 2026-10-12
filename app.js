@@ -27,9 +27,9 @@
   }
   function paintLists() {
     var row = function (p, cls) { var a = split(p.title); return '<li class="' + (cls || '') + '"><time>' + fmtT(p.t) + '</time><span>' + esc(a[0] ? a[0] + ' — ' + a[1] : a[1]) + '</span></li>'; };
-    $('next').innerHTML = idx >= 0 ? S.plays.slice(idx + 1, idx + 7).map(function (p) { return row(p); }).join('') : '';
-    $('prev').innerHTML = idx >= 0 ? S.plays.slice(Math.max(0, idx - 6), idx).reverse().map(function (p) { return row(p); }).join('') : '';
-    if (idx < 0) { $('next').innerHTML = S.plays.slice(-6).map(function (p) { return row(p); }).join(''); }
+    var ref = idx >= 0 ? idx : (S.plays.length ? findNow() : -1);
+    $('next').innerHTML = ref >= 0 ? S.plays.slice(ref + 1, ref + 7).map(function (p) { return row(p); }).join('') : '';
+    $('prev').innerHTML = ref >= 0 ? S.plays.slice(Math.max(0, ref - 6), ref).reverse().map(function (p) { return row(p); }).join('') : '';
   }
   var selDay = null;
   function paintDays() {

@@ -43,3 +43,4 @@ footer{border-top:1px solid var(--line);margin-top:34px;padding-block:22px;color
 @media(max-width:720px){.cols{grid-template-columns:1fr}.tag{display:none}.rad{letter-spacing:.2em}}
 @media(prefers-reduced-motion:reduce){.eq.on i,.blink,.onair.on i{animation:none}}
 .logo img{width:52px;height:52px;border-radius:50%;align-self:center;box-shadow:0 0 0 2px var(--g),0 0 18px rgba(57,255,20,.4)}.logo{align-items:center!important}.one{font-size:22px!important}
+footer a{color:inherit;text-decoration:underline;text-underline-offset:3px}footer a:hover{color:var(--fg,#fff)}
