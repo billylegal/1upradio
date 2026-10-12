@@ -166,4 +166,4 @@
   setInterval(load, 3 * 60 * 1000);
 })();
 
-;(function(){var g=document.getElementById("tapgate");if(!g)return;function go(){if(g){g.remove();g=null}}["pointerdown","mousedown","touchstart","click","keydown"].forEach(function(e){window.addEventListener(e,go,true)})})();
+;(function(){var g=document.getElementById("tapgate");if(!g)return;function go(e){if(!g)return;if(e&&e.type==="click"){e.preventDefault();e.stopPropagation()}g.remove();g=null}window.addEventListener("click",go,true);window.addEventListener("keydown",go,true)})();
