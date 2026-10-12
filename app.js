@@ -21,7 +21,7 @@
     return k < 0 ? 0 : k;
   }
   function paintNP() {
-    var p = S.plays[idx]; if (!p) return; var a = split(p.title);
+    var p = curP || S.plays[idx]; if (!p) return; var a = split(p.title);
     $('npTitle').textContent = a[1] || p.title; $('npArtist').textContent = a[0];
     document.title = (playing ? '▶ ' : '') + (a[1] || p.title) + ' · 1UP Radio';
     paintSave();
@@ -40,7 +40,7 @@
   function persistSaved() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(saved)); } catch (e) {} }
   function isSaved(p) { return !!p && saved.some(function (s) { return s.id === p.id; }); }
   function paintSave() {
-    var p = S.plays[idx], b = $('saveBtn'); if (!b) return;
+    var p = curP || S.plays[idx], b = $('saveBtn'); if (!b) return;
     b.disabled = !p; var on = isSaved(p);
     b.textContent = on ? '♥ Saved' : '♡ Save song'; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
   }
@@ -54,13 +54,27 @@
     }).join('');
   }
   $('saveBtn').addEventListener('click', function () {
-    var p = S.plays[idx]; if (!p) return;
+    var p = curP || S.plays[idx]; if (!p) return;
     var k = saved.findIndex(function (s) { return s.id === p.id; });
     if (k >= 0) saved.splice(k, 1); else saved.unshift({ id: p.id, title: p.title, at: Date.now() });
     persistSaved(); paintSave(); paintSaved();
   });
   $('saved').addEventListener('click', function (e) { var b = e.target.closest('.sdel'); if (!b) return; saved.splice(+b.dataset.i, 1); persistSaved(); paintSave(); paintSaved(); });
   paintSaved();
+
+  // ---- color themes: every tap on THEME switches to the next of 8 colors ----
+  var THEMES = ['#39ff14', '#ffb000', '#ff3b3b', '#00e5ff', '#b4ff3c', '#ffe066', '#ff6a00', '#d946ff'], themeI = 0;
+  function applyTheme(i) {
+    themeI = ((i % THEMES.length) + THEMES.length) % THEMES.length;
+    var hex = THEMES[themeI], r = parseInt(hex.substr(1, 2), 16), g = parseInt(hex.substr(3, 2), 16), b = parseInt(hex.substr(5, 2), 16), st = document.documentElement.style;
+    var mix = function (k, base) { return 'rgb(' + [r, g, b].map(function (v) { return Math.round(v * k + base); }).join(',') + ')'; };
+    st.setProperty('--g', hex); st.setProperty('--gr', r + ',' + g + ',' + b);
+    st.setProperty('--g2', mix(0.45, 140)); st.setProperty('--line', mix(0.16, 6)); st.setProperty('--bg2', mix(0.035, 9));
+    try { localStorage.setItem('up1-theme', String(themeI)); } catch (e) {}
+  }
+  try { applyTheme(+(localStorage.getItem('up1-theme') || 0)); } catch (e) {}
+  $('themeBtn').addEventListener('click', function () { applyTheme(themeI + 1); });
+  window.__up1 = { get idx() { return idx; }, get curP() { return curP; }, get S() { return S; }, get badIds() { return badIds; }, replay: function () { playIdx(idx, Date.now() / 1000 - S.delay - S.plays[idx].t, 0); } };
   var selDay = null;
   function paintDays() {
     var keys = []; S.plays.forEach(function (p) { var k = dayKey(p.t); if (keys.indexOf(k) < 0) keys.push(k); });
@@ -73,13 +87,18 @@
   }
   $('days').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; selDay = b.dataset.k; paintDays(); });
 
-  var nextTimer = null;
+  var nextTimer = null, badIds = {}, curAlt = 0, curP = null;
   function clearNext() { if (nextTimer) { clearTimeout(nextTimer); nextTimer = null; } }
-  function playIdx(i, offset) {
+  // If YouTube will not play a song here, EVERY listener swaps in the same replacement for that slot (picked from the schedule by a fixed rule), so everyone stays in step.
+  function altIdx(i, n) { var lo = Math.max(0, i - 900), hi = Math.max(lo + 1, i - 40), len = hi - lo; return lo + ((((i * 2654435761 + n * 40503 + 7) % len) + len) % len); }
+  function slotPlay(i, n) { return n === 0 ? S.plays[i] : S.plays[altIdx(i, n)]; }
+  function playIdx(i, offset, n) {
     clearNext();
     if (!S.plays.length) return;
-    if (i >= S.plays.length) i = Math.max(0, S.plays.length - 40 + Math.floor(Math.random() * 30));   // out of schedule: loop back over recent music
-    idx = i; var p = S.plays[i]; offset = Math.max(0, Math.floor(offset || 0));
+    if (i >= S.plays.length) { i = Math.max(0, S.plays.length - 40 + Math.floor(Math.random() * 30)); offset = 0; n = 0; }   // out of schedule: loop back over recent music
+    n = n || 0; var p = slotPlay(i, n);
+    while (n < 8 && badIds[p.id]) { n++; p = slotPlay(i, n); }
+    idx = i; curAlt = n; curP = p; offset = Math.max(0, Math.floor(offset || 0));
     paintNP();
     if (offset > p.dur - 5 && i + 1 < S.plays.length) { next(); return; }       // this song is basically over: wait for the next slot
     yt.loadVideoById({ videoId: p.id, startSeconds: offset });
@@ -102,7 +121,7 @@
     yt = new YT.Player('ytp', { width: 200, height: 200, host: 'https://www.youtube-nocookie.com', playerVars: { playsinline: 1, rel: 0, controls: 0, disablekb: 1, origin: location.origin }, events: {
       onReady: function () { ready = true; yt.setVolume(+$('vol').value); if (started) playIdx(findNow(), (Date.now() / 1000 - S.delay) - S.plays[findNow()].t); },
       onStateChange: function (e) { var st = YT.PlayerState; if (e.data === st.PLAYING) { errs = 0; setOn(true); } else if (e.data === st.PAUSED) setOn(false); else if (e.data === st.ENDED) next(); },
-      onError: function () { if (++errs < 8) next(); else { setOn(false); $('hint').textContent = 'Having trouble reaching the music. Please try again in a minute.'; } } } });
+      onError: function () { if (curP) badIds[curP.id] = 1; if (++errs < 8) playIdx(idx, Date.now() / 1000 - S.delay - S.plays[idx].t, curAlt + 1); else { setOn(false); $('hint').textContent = 'Having trouble reaching the music. Please try again in a minute.'; } } } });
   }
   var unmutedAt = 0;
   $('play').addEventListener('click', function () {
