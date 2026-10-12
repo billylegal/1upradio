@@ -70,3 +70,12 @@ footer .stk{display:inline-flex;text-decoration:none}footer .stk img{height:42px
 .themebtn i{width:12px;height:12px;background:var(--g);box-shadow:0 0 8px var(--g);display:block}
 .themebtn:hover{background:var(--g);color:#031200}.themebtn:hover i{background:#031200;box-shadow:none}
 @media(max-width:900px){.themebtn{position:static;transform:none}}
+
+/* the BEATS head floats around the page; tap it to visit billylegal.com */
+.bh{position:fixed;inset:0;pointer-events:none;z-index:40;overflow:hidden}
+.bhx{position:absolute;left:0;top:0;animation:bhx 19s linear infinite alternate}
+.bhy{display:block;width:62px;pointer-events:auto;cursor:pointer;animation:bhy 13s linear infinite alternate;filter:drop-shadow(0 4px 10px rgba(0,0,0,.55))}
+.bhy img{display:block;width:100%;height:auto}
+@keyframes bhx{from{transform:translateX(0)}to{transform:translateX(calc(100vw - 62px))}}
+@keyframes bhy{from{transform:translateY(0)}to{transform:translateY(calc(100vh - 88px))}}
+@media(prefers-reduced-motion:reduce){.bhx,.bhy{animation:none}}
