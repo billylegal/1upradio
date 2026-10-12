@@ -14,13 +14,8 @@ for p in sorted(plays, key=lambda p: p['t']):
     seen.add((day, p['oid']))
     out.append({'t': p['t'], 'id': tr['id'], 'title': p['title'], 'dur': tr.get('dur') or 240})
 
-# --- every half hour (Toronto and Athens clocks agree on :00/:30) swap the song nearest the mark for one of Billy Legal's own, lengths permitting so the next slot still starts on time ---
-BILLY = [('Do4kWzTEIfY', 'A Better Life', 202), ('zk5pgOMZARA', 'Empire Strikes', 274), ('4INyMzMkoAo', 'Juicy Red Lips (Sugar Mix)', 172),
-         ('ArS9GkO2K0s', 'Pick Me Up (Sunset Mix)', 213), ('cE0zQ8UJx8c', 'I Need Love (Twin Tech Mix)', 254), ('epkHYYY3ZKo', 'Money Power Respect (Dirty Tape Mix)', 280),
-         ('PNKO_D8xS3g', 'Money Power Respect (Original Mix)', 325), ('qRPjl63-ZDc', 'Money Power Respect (Tik Tok Mix)', 240), ('yiUSZmrr51Y', 'Beautiful Life (Jade Mix)', 290),
-         ('dUTnFzDKCuY', 'Yes The People', 239)]
-MPR = [x for x in BILLY if x[1].startswith('Money Power Respect')]
-GROUPS = [[x] for x in BILLY if x not in MPR] + [MPR]
+# --- every half hour, from ALL of Billy's releases (Toronto and Athens clocks agree on :00/:30) swap the song nearest the mark for one of Billy Legal's own, lengths permitting so the next slot still starts on time ---
+GROUPS = json.load(open('tools/billy.json'))   # one list per release (EP/album) of [youtube id, title, seconds]; releases take turns
 out.sort(key=lambda p: p['t']); win = {}
 for i, p in enumerate(out[:-1]): win.setdefault(p['t'] // 1800, []).append(i)
 n = len(GROUPS); swaps = {}
