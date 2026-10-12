@@ -128,18 +128,21 @@
   }
   function init() {
     yt = new YT.Player('ytp', { width: 200, height: 200, host: 'https://www.youtube-nocookie.com', playerVars: { playsinline: 1, rel: 0, controls: 0, disablekb: 1, origin: location.origin }, events: {
-      onReady: function () { ready = true; yt.setVolume(+$('vol').value); if (started) playIdx(findNow(), (Date.now() / 1000 - S.delay) - S.plays[findNow()].t); },
+      onReady: function () { ready = true; yt.setVolume(+$('vol').value); if (started) playIdx(findNow(), (Date.now() / 1000 - S.delay) - S.plays[findNow()].t); if (gestured) { try { yt.unMute(); } catch (e) {} } },
       onStateChange: function (e) { var st = YT.PlayerState; if (e.data === st.PLAYING) { errs = 0; setOn(true); } else if (e.data === st.PAUSED) setOn(false); else if (e.data === st.ENDED) next(); },
       onError: function () { if (curP) badIds[curP.id] = 1; if (++errs < 8) playIdx(idx, Date.now() / 1000 - S.delay - S.plays[idx].t, curAlt + 1); else { setOn(false); $('hint').textContent = 'Having trouble reaching the music. Please try again in a minute.'; } } } });
   }
-  var unmutedAt = 0;
+  var unmutedAt = 0, gestured = false, lastKick = 0, apiTag = null;
+  function loadApi() { if (apiTag || (window.YT && YT.Player)) return; apiTag = document.createElement('script'); apiTag.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(apiTag); }
+  window.onYouTubeIframeAPIReady = function () { if (started && !yt) init(); };
+  loadApi();
   $('play').addEventListener('click', function () {
     if (Date.now() - unmutedAt < 700) return;
     if (!S.plays.length) return;
     if (!started) {
       started = true; $('hint').textContent = 'You are live with the station. Keep the volume up.'; $('npTitle').textContent = 'Tuning in…';
       if (window.YT && YT.Player) { if (!yt) init(); else { var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } }
-      else { window.onYouTubeIframeAPIReady = init; var s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s); }
+      else { window.onYouTubeIframeAPIReady = function () { if (!yt) init(); }; loadApi(); }
       return;
     }
     if (!ready) return; if (playing) yt.pauseVideo(); else yt.playVideo();
@@ -160,14 +163,23 @@
   setInterval(function () { if (!playing || !yt || !ready) return; try { var d = yt.getDuration(), c = yt.getCurrentTime(); if (d) $('npFill').style.width = Math.min(100, c / d * 100) + '%'; } catch (x) {} }, 500);
   // open playing: start on load; browsers block sound before the first tap, so fall back to silent autoplay and unmute on the first touch
   var mutedAuto = false;
-  function unmuteNow() { if (!mutedAuto) { if (started && ready && !playing) { try { yt.playVideo(); } catch (e) {} } return; } mutedAuto = false; unmutedAt = Date.now(); try { yt.unMute(); yt.setVolume(+$('vol').value); if (yt.getPlayerState() !== 1) yt.playVideo(); } catch (e) {} $('hint').textContent = 'You are live with the station. Keep the volume up.'; }
-  ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) { addEventListener(ev, unmuteNow, { passive: true, capture: true }); });
+  function unmuteNow(ev) {
+    var t = ev && ev.type, tap = !!(ev && ev.isTrusted) && (t === 'click' || t === 'touchend' || t === 'pointerup' || t === 'keydown');
+    if (ev && ev.isTrusted) gestured = true;
+    if (tap && yt && ready) {                                   // phones only allow sound inside a real tap: unmute / (re)start right here, in the tap
+      try { if (yt.isMuted()) { yt.unMute(); yt.setVolume(+$('vol').value); } } catch (e) {}
+      if (started && !playing && Date.now() - lastKick > 1500) { lastKick = Date.now(); try { yt.unMute(); var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } catch (e) {} }
+    }
+    if (!mutedAuto) { if (started && ready && !playing && !tap) { try { yt.playVideo(); } catch (e) {} } return; }
+    mutedAuto = false; unmutedAt = Date.now(); try { yt.unMute(); yt.setVolume(+$('vol').value); if (yt.getPlayerState() !== 1) yt.playVideo(); } catch (e) {} $('hint').textContent = 'You are live with the station. Keep the volume up.';
+  }
+  ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click', 'keydown'].forEach(function (ev) { addEventListener(ev, unmuteNow, { passive: true, capture: true }); });
   load().then(function () {
     var k = findNow(); idx = -1; paintLists();
     $('play').click();
     [3500, 8000].forEach(function (ms) {
       setTimeout(function () {
-        if (playing || mutedAuto || !yt || !ready) return;
+        if (playing || mutedAuto || !yt || !ready) return; if (gestured) { try { yt.unMute(); yt.playVideo(); } catch (e) {} return; }
         try { yt.mute(); yt.playVideo(); mutedAuto = true; $('hint').textContent = 'Tap anywhere to turn the sound on.'; } catch (e) {}
       }, ms);
     });
