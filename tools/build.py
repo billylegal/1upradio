@@ -14,6 +14,23 @@ for p in sorted(plays, key=lambda p: p['t']):
     seen.add((day, p['oid']))
     out.append({'t': p['t'], 'id': tr['id'], 'title': p['title'], 'dur': tr.get('dur') or 240})
 
+# --- every half hour (Toronto and Athens clocks agree on :00/:30) swap the song nearest the mark for one of Billy Legal's own, lengths permitting so the next slot still starts on time ---
+BILLY = [('Do4kWzTEIfY', 'A Better Life', 202), ('zk5pgOMZARA', 'Empire Strikes', 274), ('4INyMzMkoAo', 'Juicy Red Lips (Sugar Mix)', 172),
+         ('ArS9GkO2K0s', 'Pick Me Up (Sunset Mix)', 213), ('cE0zQ8UJx8c', 'I Need Love (Twin Tech Mix)', 254), ('epkHYYY3ZKo', 'Money Power Respect (Dirty Tape Mix)', 280),
+         ('PNKO_D8xS3g', 'Money Power Respect (Original Mix)', 325), ('qRPjl63-ZDc', 'Money Power Respect (Tik Tok Mix)', 240), ('yiUSZmrr51Y', 'Beautiful Life (Jade Mix)', 290),
+         ('dUTnFzDKCuY', 'Yes The People', 239)]
+out.sort(key=lambda p: p['t']); best = {}
+for i, p in enumerate(out):
+    k = p['t'] // 1800
+    if k not in best or p['t'] - k * 1800 < out[best[k]]['t'] - k * 1800: best[k] = i
+for k, i in sorted(best.items()):
+    if i + 1 >= len(out): continue                       # newest song: its slot length is not known yet
+    slot = out[i + 1]['t'] - out[i]['t']
+    fits = [x for x in BILLY if x[2] <= slot + 3]
+    if not fits: continue
+    vid, ttl, d = fits[(k * 7 + k // 10) % len(fits)]
+    out[i] = {'t': out[i]['t'], 'id': vid, 'title': 'Billy Legal - ' + ttl, 'dur': d, 'bl': 1}
+
 # --- fill the schedule's holes (songs the station aired that we could not match) with real songs, picked the same way for every listener ---
 import bisect
 final = []
