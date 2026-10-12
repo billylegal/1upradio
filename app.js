@@ -2,7 +2,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var S = { plays: [], delay: 420 }, yt = null, ready = false, started = false, playing = false, idx = -1, errs = 0, skipped = 0;
   // times shown are when each song plays for you: the same clock time it aired in Athens, on your local clock
-  var fmtT = function (t) { return new Date((t + S.delay) * 1000).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); };
+  var fmtT = function (t) { return new Date((t + S.delay) * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); };
   var dayKey = function (t) { return new Date((t + S.delay) * 1000).toLocaleDateString('en-CA'); };
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   function split(t) { var i = t.indexOf(' - '); return i > 0 ? [t.slice(0, i), t.slice(i + 3)] : ['', t]; }
@@ -36,11 +36,11 @@
   function paintDays() {
     var keys = []; S.plays.forEach(function (p) { var k = dayKey(p.t); if (keys.indexOf(k) < 0) keys.push(k); });
     if (!selDay || keys.indexOf(selDay) < 0) selDay = keys[keys.length - 1];
-    $('days').innerHTML = keys.map(function (k) { var d = new Date(k + 'T12:00:00Z'); return '<button data-k="' + k + '" class="' + (k === selDay ? 'on' : '') + '">' + d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }) + '</button>'; }).join('');
+    $('days').innerHTML = keys.map(function (k) { var d = new Date(k + 'T12:00:00Z'); return '<button data-k="' + k + '" class="' + (k === selDay ? 'on' : '') + '">' + d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }) + '</button>'; }).join('');
     var list = S.plays.filter(function (p) { return dayKey(p.t) === selDay; });
     var curT = idx >= 0 && S.plays[idx] ? S.plays[idx].t : -1;
     $('daylist').innerHTML = list.map(function (p) { var a = split(p.title); return '<li class="' + (p.t === curT ? 'now' : '') + '"><time>' + fmtT(p.t) + '</time><span>' + esc(a[0] ? a[0] + ' — ' + a[1] : a[1]) + '</span></li>'; }).join('');
-    $('tznote').textContent = 'Every song plays at the same clock time it aired on UP Radio Athens, on your local clock (' + new Date().toLocaleTimeString('en-GB', { timeZoneName: 'short' }).split(' ').pop() + ').';
+    $('tznote').textContent = 'Keep the volume up. Times are shown in your local time (' + new Date().toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop() + ').';
   }
   $('days').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; selDay = b.dataset.k; paintDays(); });
 
