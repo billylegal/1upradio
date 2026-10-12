@@ -44,3 +44,13 @@ footer{border-top:1px solid var(--line);margin-top:34px;padding-block:22px;color
 @media(prefers-reduced-motion:reduce){.eq.on i,.blink,.onair.on i{animation:none}}
 .logo img{width:56px;height:56px;border-radius:12px;align-self:center;box-shadow:0 0 0 2px var(--g),0 0 18px rgba(57,255,20,.4)}.logo{align-items:center!important}.one{font-size:22px!important}
 footer a{color:inherit;text-decoration:underline;text-underline-offset:3px}footer a:hover{color:var(--fg,#fff)}
+
+.savebtn{margin-top:10px;background:transparent;border:2px solid var(--g);color:var(--g);font:700 12px 'Press Start 2P',monospace;padding:11px 14px;cursor:pointer;letter-spacing:.04em;transition:background .15s,color .15s}
+.savebtn:hover:not(:disabled){background:var(--g);color:#031200}
+.savebtn.on{background:var(--g);color:#031200}
+.savebtn:disabled{opacity:.35;cursor:default}
+.saved .srow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.saved .srow span{flex:1;min-width:0;overflow-wrap:anywhere}
+.saved .sgo,.saved .sdel{flex:none;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);color:var(--g);background:transparent;text-decoration:none;cursor:pointer;font:inherit}
+.saved .sgo:hover,.saved .sdel:hover{border-color:var(--g)}
+#savedn{color:var(--dim)}

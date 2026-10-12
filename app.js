@@ -24,6 +24,7 @@
     var p = S.plays[idx]; if (!p) return; var a = split(p.title);
     $('npTitle').textContent = a[1] || p.title; $('npArtist').textContent = a[0];
     document.title = (playing ? '▶ ' : '') + (a[1] || p.title) + ' · 1UP Radio';
+    paintSave();
     paintLists();
   }
   function paintLists() {
@@ -32,6 +33,34 @@
     $('next').innerHTML = ref >= 0 ? S.plays.slice(ref + 1, ref + 7).map(function (p) { return row(p); }).join('') : '';
     $('prev').innerHTML = ref >= 0 ? S.plays.slice(Math.max(0, ref - 6), ref).reverse().map(function (p) { return row(p); }).join('') : '';
   }
+
+  // ---- saved songs (kept in this browser) ----
+  var SAVE_KEY = 'up1-saved', saved = [];
+  try { saved = JSON.parse(localStorage.getItem(SAVE_KEY) || '[]') || []; } catch (e) { saved = []; }
+  function persistSaved() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(saved)); } catch (e) {} }
+  function isSaved(p) { return !!p && saved.some(function (s) { return s.id === p.id; }); }
+  function paintSave() {
+    var p = S.plays[idx], b = $('saveBtn'); if (!b) return;
+    b.disabled = !p; var on = isSaved(p);
+    b.textContent = on ? '♥ Saved' : '♡ Save song'; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+  function paintSaved() {
+    var el = $('saved'); if (!el) return;
+    $('savedn').textContent = saved.length ? '(' + saved.length + ')' : '';
+    $('savedhint').style.display = saved.length ? 'none' : '';
+    el.innerHTML = saved.map(function (s, i) {
+      var a = split(s.title);
+      return '<li class="srow"><span>' + esc(a[0] ? a[0] + ' — ' + a[1] : a[1]) + '</span><a class="sgo" href="https://www.youtube.com/watch?v=' + encodeURIComponent(s.id) + '" target="_blank" rel="noopener" title="Open on YouTube">▶</a><button class="sdel" data-i="' + i + '" type="button" aria-label="Remove from saved songs" title="Remove">✕</button></li>';
+    }).join('');
+  }
+  $('saveBtn').addEventListener('click', function () {
+    var p = S.plays[idx]; if (!p) return;
+    var k = saved.findIndex(function (s) { return s.id === p.id; });
+    if (k >= 0) saved.splice(k, 1); else saved.unshift({ id: p.id, title: p.title, at: Date.now() });
+    persistSaved(); paintSave(); paintSaved();
+  });
+  $('saved').addEventListener('click', function (e) { var b = e.target.closest('.sdel'); if (!b) return; saved.splice(+b.dataset.i, 1); persistSaved(); paintSave(); paintSaved(); });
+  paintSaved();
   var selDay = null;
   function paintDays() {
     var keys = []; S.plays.forEach(function (p) { var k = dayKey(p.t); if (keys.indexOf(k) < 0) keys.push(k); });

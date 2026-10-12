@@ -27,6 +27,7 @@
       <div class="lab">NOW PLAYING</div>
       <div class="title" id="npTitle">Press play to tune in</div>
       <div class="artist" id="npArtist">Deep house · melodic · electronic, all day</div>
+      <button id="saveBtn" class="savebtn" type="button" disabled aria-pressed="false">♡ Save song</button>
       <div class="bar"><div class="fill" id="npFill"></div></div>
     </div>
     <div class="ctl">
@@ -39,6 +40,11 @@
   <section class="cols">
     <div class="card"><h2>Up next</h2><ol class="list" id="next"></ol></div>
     <div class="card"><h2>Just played</h2><ol class="list" id="prev"></ol></div>
+  </section>
+
+  <section class="card saved" id="savedcard"><h2>Your saved songs <span id="savedn"></span></h2>
+    <ol class="list" id="saved"></ol>
+    <div class="note" id="savedhint">Press “Save song” while a track plays and it shows up here. Saved on this device.</div>
   </section>
 
   <section class="card sched"><h2>The week on 1UP</h2>
