@@ -56,13 +56,12 @@ footer a{color:inherit;text-decoration:underline;text-underline-offset:3px}foote
 #savedn{color:var(--dim)}
 
 
-/* header: solid lettering, everything centred */
-.top .wrap{flex-direction:column;justify-content:center;gap:4px;position:relative;padding-block:12px}
+/* header: retro lettering, centred on one line, blinking underscore */
+.top .wrap{flex-direction:row;justify-content:center;align-items:center;gap:6px 22px;position:relative;padding-block:12px;flex-wrap:wrap}
 .logo{justify-content:center}
-.one{font:700 36px 'Barlow Condensed',sans-serif!important;letter-spacing:.05em;color:var(--g);text-shadow:0 0 14px rgba(57,255,20,.55)}
-.rad{font:700 28px 'Barlow Condensed',sans-serif!important;letter-spacing:.3em}
-.tag{display:block!important;text-align:center;font-size:17px;letter-spacing:.24em}
+.tag{display:block!important;margin:0;text-align:center}
 .onair{position:absolute;right:20px;top:50%;transform:translateY(-50%);margin-left:0}
-@media(max-width:720px){.onair{position:static;transform:none;margin:2px 0 0}.one{font-size:30px!important}.rad{font-size:22px!important;letter-spacing:.2em}.tag{font-size:14px}}
+@media(max-width:900px){.onair{position:static;transform:none;margin:0}}
+@media(max-width:720px){.rad{letter-spacing:.2em}.tag{font-size:14px}}
 footer #credit{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
 footer .stk{display:inline-flex;text-decoration:none}footer .stk img{height:42px;width:auto;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))}
