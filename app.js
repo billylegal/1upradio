@@ -74,6 +74,15 @@
   });
   $('vol').addEventListener('input', function (e) { $('volv').textContent = e.target.value; if (yt && ready) yt.setVolume(+e.target.value); try { localStorage.setItem('up1-vol', e.target.value); } catch (x) {} });
   try { var v = localStorage.getItem('up1-vol'); if (v) { $('vol').value = v; $('volv').textContent = v; } } catch (x) {}
+  // keep exactly in step with the live schedule: after a pause, a stall or a schedule change, jump back to the live position
+  var lastSync = 0;
+  setInterval(function () {
+    if (!started || !playing || !yt || !ready || idx < 0 || !S.plays[idx] || Date.now() - lastSync < 20000) return;
+    try {
+      var expected = Date.now() / 1000 - S.delay, actual = S.plays[idx].t + yt.getCurrentTime();
+      if (Math.abs(actual - expected) > 30) { var k = findNow(); lastSync = Date.now(); playIdx(k, expected - S.plays[k].t); }
+    } catch (x) {}
+  }, 8000);
   setInterval(function () { if (!playing || !yt || !ready) return; try { var d = yt.getDuration(), c = yt.getCurrentTime(); if (d) $('npFill').style.width = Math.min(100, c / d * 100) + '%'; } catch (x) {} }, 500);
   load().then(function () { var k = findNow(); idx = -1; paintLists(); });
   setInterval(load, 3 * 60 * 1000);
