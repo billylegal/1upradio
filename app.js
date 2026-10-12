@@ -92,7 +92,9 @@
       onStateChange: function (e) { var st = YT.PlayerState; if (e.data === st.PLAYING) { errs = 0; setOn(true); } else if (e.data === st.PAUSED) setOn(false); else if (e.data === st.ENDED) next(); },
       onError: function () { if (++errs < 8) next(); else { setOn(false); $('hint').textContent = 'Having trouble reaching the music. Please try again in a minute.'; } } } });
   }
+  var unmutedAt = 0;
   $('play').addEventListener('click', function () {
+    if (Date.now() - unmutedAt < 700) return;
     if (!S.plays.length) return;
     if (!started) {
       started = true; $('hint').textContent = 'You are live with the station. Keep the volume up.'; $('npTitle').textContent = 'Tuning in…';
@@ -114,6 +116,19 @@
     } catch (x) {}
   }, 8000);
   setInterval(function () { if (!playing || !yt || !ready) return; try { var d = yt.getDuration(), c = yt.getCurrentTime(); if (d) $('npFill').style.width = Math.min(100, c / d * 100) + '%'; } catch (x) {} }, 500);
-  load().then(function () { var k = findNow(); idx = -1; paintLists(); });
+  // open playing: start on load; browsers block sound before the first tap, so fall back to silent autoplay and unmute on the first touch
+  var mutedAuto = false;
+  function unmuteNow() { if (!mutedAuto) { if (started && ready && !playing) { try { yt.playVideo(); } catch (e) {} } return; } mutedAuto = false; unmutedAt = Date.now(); try { yt.unMute(); yt.setVolume(+$('vol').value); if (yt.getPlayerState() !== 1) yt.playVideo(); } catch (e) {} $('hint').textContent = 'You are live with the station. Keep the volume up.'; }
+  ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) { addEventListener(ev, unmuteNow, { passive: true, capture: true }); });
+  load().then(function () {
+    var k = findNow(); idx = -1; paintLists();
+    $('play').click();
+    [3500, 8000].forEach(function (ms) {
+      setTimeout(function () {
+        if (playing || mutedAuto || !yt || !ready) return;
+        try { yt.mute(); yt.playVideo(); mutedAuto = true; $('hint').textContent = 'Tap anywhere to turn the sound on.'; } catch (e) {}
+      }, ms);
+    });
+  });
   setInterval(load, 3 * 60 * 1000);
 })();

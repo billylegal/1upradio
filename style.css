@@ -55,6 +55,14 @@ footer a{color:inherit;text-decoration:underline;text-underline-offset:3px}foote
 .saved .sgo:hover,.saved .sdel:hover{border-color:var(--g)}
 #savedn{color:var(--dim)}
 
-.headbadge{position:absolute;right:22px;top:92px;width:auto;height:78px;z-index:2;pointer-events:none;filter:drop-shadow(0 3px 8px rgba(0,0,0,.6))}
-.np{padding-right:74px}
-@media(max-width:560px){.headbadge{right:14px;top:84px;height:62px}.np{padding-right:56px}}
+
+/* header: solid lettering, everything centred */
+.top .wrap{flex-direction:column;justify-content:center;gap:4px;position:relative;padding-block:12px}
+.logo{justify-content:center}
+.one{font:700 36px 'Barlow Condensed',sans-serif!important;letter-spacing:.05em;color:var(--g);text-shadow:0 0 14px rgba(57,255,20,.55)}
+.rad{font:700 28px 'Barlow Condensed',sans-serif!important;letter-spacing:.3em}
+.tag{display:block!important;text-align:center;font-size:17px;letter-spacing:.24em}
+.onair{position:absolute;right:20px;top:50%;transform:translateY(-50%);margin-left:0}
+@media(max-width:720px){.onair{position:static;transform:none;margin:2px 0 0}.one{font-size:30px!important}.rad{font-size:22px!important;letter-spacing:.2em}.tag{font-size:14px}}
+footer #credit{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+footer .stk{display:inline-flex;text-decoration:none}footer .stk img{height:42px;width:auto;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))}
