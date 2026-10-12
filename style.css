@@ -54,3 +54,7 @@ footer a{color:inherit;text-decoration:underline;text-underline-offset:3px}foote
 .saved .sgo,.saved .sdel{flex:none;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);color:var(--g);background:transparent;text-decoration:none;cursor:pointer;font:inherit}
 .saved .sgo:hover,.saved .sdel:hover{border-color:var(--g)}
 #savedn{color:var(--dim)}
+
+.headbadge{position:absolute;right:22px;top:92px;width:auto;height:78px;z-index:2;pointer-events:none;filter:drop-shadow(0 3px 8px rgba(0,0,0,.6))}
+.np{padding-right:74px}
+@media(max-width:560px){.headbadge{right:14px;top:84px;height:62px}.np{padding-right:56px}}
