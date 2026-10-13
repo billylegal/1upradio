@@ -310,3 +310,123 @@ html[data-skin=brutal] .list li{border-bottom:2px solid #000;align-items:center;
 html[data-skin=brutal] .list li .hb{background:#fff;border:2px solid #000;border-radius:0;color:#000;height:30px}html[data-skin=brutal] .list li .hb.on{background:#ff5c39}
 html[data-skin=brutal] .days button{background:#fff;border:3px solid #000;border-radius:0;color:#000;font-weight:900;font-size:13px;letter-spacing:.04em;box-shadow:3px 3px 0 #000}html[data-skin=brutal] .days button.on{background:#ff5c39;color:#000}
 html[data-skin=brutal] footer{border-top:4px solid #000;color:#000;font-weight:600}html[data-skin=brutal] footer a{color:#000}
+
+/* ============ skins 9-12 ============ */
+/* --- aegean: Greek-islands blue & white --- */
+html[data-skin=aegean]{--bg:#f4f9ff;--bg2:#fff!important;--line:#c4dcf6!important;--txt:#0b2a55;--dim:#4f6f99;--g:#0d5eaf!important;--gr:13,94,175!important;--g2:#0b2a55!important;--red:#e0483e}
+html[data-skin=aegean] body{background:linear-gradient(180deg,#cfe8ff 0,#f4f9ff 360px,#fff);color:#0b2a55}
+html[data-skin=aegean] *{font-family:'Barlow',system-ui,sans-serif!important}
+html[data-skin=aegean] .one,html[data-skin=aegean] .title,html[data-skin=aegean] h2,html[data-skin=aegean] .rad{font-family:'Fraunces',Georgia,serif!important}
+html[data-skin=aegean] .top{background:#fff;border-bottom:4px double #0d5eaf;backdrop-filter:none}
+html[data-skin=aegean] .one{color:#0d5eaf;font-weight:700;font-size:26px!important;text-shadow:none!important}html[data-skin=aegean] .rad{color:#0b2a55;font-weight:700;letter-spacing:.14em;font-size:17px}
+html[data-skin=aegean] .tag{color:#4f6f99;text-transform:none;font-style:italic;letter-spacing:.02em;font-size:14px}
+html[data-skin=aegean] .logo img{border-radius:50%;box-shadow:0 0 0 3px #0d5eaf}
+html[data-skin=aegean] .themebtn,html[data-skin=aegean] .skinbtn{background:#fff;border:2px solid #0d5eaf;color:#0d5eaf;border-radius:999px;font-weight:700;font-size:12px;letter-spacing:.12em;padding:7px 14px}
+html[data-skin=aegean] .themebtn i{display:none}html[data-skin=aegean] .themebtn:hover,html[data-skin=aegean] .skinbtn:hover{background:#0d5eaf;color:#fff}
+html[data-skin=aegean] .onair{font-size:12px;font-weight:700;letter-spacing:.12em;color:#4f6f99}html[data-skin=aegean] .onair i{border-radius:50%;background:#c4dcf6}html[data-skin=aegean] .onair.on{color:#e0483e}html[data-skin=aegean] .onair.on i{background:#e0483e;box-shadow:none}
+html[data-skin=aegean] .player{border:2px solid #0d5eaf;border-radius:8px;background:#fff;box-shadow:0 14px 40px rgba(13,94,175,.18);padding:34px 28px 24px}
+html[data-skin=aegean] .player::before{inset:0 0 auto 0;height:10px;background:repeating-linear-gradient(90deg,#0d5eaf 0 26px,#fff 26px 52px);border-bottom:2px solid #0d5eaf}
+html[data-skin=aegean] .eq i{background:#0d5eaf;box-shadow:none;opacity:.85;border-radius:2px 2px 0 0}
+html[data-skin=aegean] .lab{color:#4f6f99;font-weight:700;font-size:11px;letter-spacing:.3em}
+html[data-skin=aegean] .title{color:#0b2a55;text-transform:none;font-weight:700;font-size:clamp(28px,5vw,50px);line-height:1.08}
+html[data-skin=aegean] .artist{color:#0d5eaf;font-weight:600;font-size:17px}
+html[data-skin=aegean] .savebtn{border:2px solid #0d5eaf;color:#0d5eaf;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:.06em;padding:9px 18px}
+html[data-skin=aegean] .savebtn:hover:not(:disabled),html[data-skin=aegean] .savebtn.on{background:#0d5eaf;color:#fff}
+html[data-skin=aegean] .bar{height:6px;border-radius:3px;background:#dcebfb}html[data-skin=aegean] .fill{background:#0d5eaf;box-shadow:none;border-radius:3px}
+html[data-skin=aegean] .play{width:70px;height:70px;border-radius:50%;background:#0d5eaf;color:#fff;box-shadow:0 8px 22px rgba(13,94,175,.4),0 0 0 5px #fff,0 0 0 7px #0d5eaf}
+html[data-skin=aegean] .vol span,html[data-skin=aegean] .vol b{font-size:12px;font-weight:700;letter-spacing:.12em;color:#0d5eaf}html[data-skin=aegean] .vol input{accent-color:#0d5eaf}
+html[data-skin=aegean] .hint,html[data-skin=aegean] .note{color:#4f6f99}
+html[data-skin=aegean] .card{border:2px solid #c4dcf6;border-radius:8px;box-shadow:0 8px 26px rgba(13,94,175,.1)}
+html[data-skin=aegean] h2{color:#0d5eaf;font-size:21px;font-weight:700;text-transform:none;letter-spacing:.01em}
+html[data-skin=aegean] .list li{border-bottom:1px solid #e1eefb;align-items:center;color:#0b2a55}html[data-skin=aegean] .list li time{color:#4f6f99;font-size:12px;font-weight:600}html[data-skin=aegean] .list li.now{color:#0d5eaf;font-weight:700}
+html[data-skin=aegean] .list li .hb{border:1px solid #c4dcf6;border-radius:50%;color:#0d5eaf}html[data-skin=aegean] .list li .hb.on{background:#0d5eaf;color:#fff}
+html[data-skin=aegean] .days button{border:2px solid #c4dcf6;border-radius:999px;color:#0b2a55;font-weight:700;font-size:13px;letter-spacing:.04em;background:#fff}html[data-skin=aegean] .days button.on{background:#0d5eaf;border-color:#0d5eaf;color:#fff}
+html[data-skin=aegean] footer{border-top:4px double #0d5eaf;color:#4f6f99}
+
+/* --- gameboy: four shades of green, chunky pixels --- */
+html[data-skin=gameboy]{--bg:#8bac0f;--bg2:#9bbc0f!important;--line:#306230!important;--txt:#0f380f;--dim:#306230;--g:#0f380f!important;--gr:15,56,15!important;--g2:#0f380f!important;--red:#0f380f}
+html[data-skin=gameboy] body{background:#8bac0f;color:#0f380f;font-size:11px;line-height:1.9}
+html[data-skin=gameboy] *{font-family:'Press Start 2P',monospace!important;border-radius:0!important;text-shadow:none!important}
+html[data-skin=gameboy] .top{background:#9bbc0f;border-bottom:4px solid #0f380f;backdrop-filter:none}
+html[data-skin=gameboy] .one{font-size:20px!important;color:#0f380f}html[data-skin=gameboy] .rad{font-size:13px;letter-spacing:.2em;color:#0f380f}
+html[data-skin=gameboy] .tag{font-size:9px;letter-spacing:.1em;color:#306230;text-transform:uppercase}
+html[data-skin=gameboy] .logo img{box-shadow:0 0 0 3px #0f380f;filter:grayscale(1) contrast(1.4) sepia(1) hue-rotate(40deg)}
+html[data-skin=gameboy] .themebtn,html[data-skin=gameboy] .skinbtn{border:3px solid #0f380f;color:#0f380f;background:#9bbc0f;font-size:9px;letter-spacing:.1em;padding:8px 10px;box-shadow:3px 3px 0 #306230}
+html[data-skin=gameboy] .themebtn i{display:none}html[data-skin=gameboy] .themebtn:hover,html[data-skin=gameboy] .skinbtn:hover{background:#0f380f;color:#9bbc0f}
+html[data-skin=gameboy] .onair{font-size:9px;color:#306230}html[data-skin=gameboy] .onair i{background:#306230;box-shadow:none}html[data-skin=gameboy] .onair.on{color:#0f380f}html[data-skin=gameboy] .onair.on i{background:#0f380f}
+html[data-skin=gameboy] .player{border:4px solid #0f380f;background:#9bbc0f;box-shadow:6px 6px 0 #306230}html[data-skin=gameboy] .player::before{background:repeating-linear-gradient(0deg,rgba(15,56,15,.07) 0 2px,transparent 2px 4px)}
+html[data-skin=gameboy] .eq i{background:#0f380f;box-shadow:none;opacity:1}
+html[data-skin=gameboy] .lab{font-size:9px;color:#306230;letter-spacing:.1em}
+html[data-skin=gameboy] .title{color:#0f380f;text-transform:uppercase;font-size:clamp(14px,3.2vw,26px);line-height:1.5;letter-spacing:0}
+html[data-skin=gameboy] .artist{color:#306230;font-size:11px;font-weight:400}
+html[data-skin=gameboy] .savebtn{border:3px solid #0f380f;color:#0f380f;font-size:10px;padding:10px 12px;box-shadow:3px 3px 0 #306230}
+html[data-skin=gameboy] .savebtn:hover:not(:disabled),html[data-skin=gameboy] .savebtn.on{background:#0f380f;color:#9bbc0f}
+html[data-skin=gameboy] .bar{height:12px;background:#8bac0f;border:3px solid #0f380f}html[data-skin=gameboy] .fill{background:#0f380f;box-shadow:none}
+html[data-skin=gameboy] .play{width:64px;height:64px;background:#0f380f;color:#9bbc0f;border:0;box-shadow:4px 4px 0 #306230}html[data-skin=gameboy] .play:hover{transform:translate(2px,2px);box-shadow:2px 2px 0 #306230}
+html[data-skin=gameboy] .vol span,html[data-skin=gameboy] .vol b{font-size:9px;color:#0f380f}html[data-skin=gameboy] .vol input{accent-color:#0f380f}
+html[data-skin=gameboy] .hint,html[data-skin=gameboy] .note{color:#306230;font-size:9px;line-height:1.9}
+html[data-skin=gameboy] .card{border:4px solid #0f380f;background:#9bbc0f;box-shadow:6px 6px 0 #306230}
+html[data-skin=gameboy] h2{font-size:12px;color:#0f380f;letter-spacing:.1em;text-transform:uppercase}
+html[data-skin=gameboy] .list li{border-bottom:2px dotted #306230;font-size:10px;line-height:1.7;color:#0f380f;align-items:center}html[data-skin=gameboy] .list li time{font-size:8px;color:#306230}html[data-skin=gameboy] .list li.now{background:#0f380f;color:#9bbc0f;padding:2px 6px}html[data-skin=gameboy] .list li.now time{color:#9bbc0f}
+html[data-skin=gameboy] .list li .hb{border:2px solid #0f380f;color:#0f380f;font-size:12px}html[data-skin=gameboy] .list li .hb.on{background:#0f380f;color:#9bbc0f}html[data-skin=gameboy] .list li.now .hb{border-color:#9bbc0f;color:#9bbc0f}
+html[data-skin=gameboy] .days button{border:3px solid #0f380f;color:#0f380f;font-size:9px;letter-spacing:.04em;background:#9bbc0f}html[data-skin=gameboy] .days button.on{background:#0f380f;color:#9bbc0f}
+html[data-skin=gameboy] footer{border-top:4px solid #0f380f;color:#306230;font-size:9px}html[data-skin=gameboy] footer a{color:#0f380f}
+
+/* --- cassette: beige deck plastic, orange key buttons, typed labels --- */
+html[data-skin=cassette]{--bg:#d8cdb4;--bg2:#efe6cf!important;--line:#2b2118!important;--txt:#2b2118;--dim:#6b5a45;--g:#e8541e!important;--gr:232,84,30!important;--g2:#2b2118!important;--red:#c4301a}
+html[data-skin=cassette] body{background:#d8cdb4 repeating-linear-gradient(90deg,rgba(0,0,0,.025) 0 1px,transparent 1px 3px);color:#2b2118}
+html[data-skin=cassette] *{font-family:'IBM Plex Mono',ui-monospace,monospace!important}
+html[data-skin=cassette] .one,html[data-skin=cassette] .title,html[data-skin=cassette] h2,html[data-skin=cassette] .rad{font-family:'Archivo Black','IBM Plex Mono',sans-serif!important}
+html[data-skin=cassette] .top{background:#efe6cf;border-bottom:4px solid #2b2118;backdrop-filter:none;box-shadow:inset 0 -8px 0 #e8541e}
+html[data-skin=cassette] .one{color:#e8541e;font-size:24px!important;text-shadow:2px 2px 0 #2b2118!important}html[data-skin=cassette] .rad{color:#2b2118;font-size:16px;letter-spacing:.14em}
+html[data-skin=cassette] .tag{color:#6b5a45;text-transform:uppercase;font-weight:700;letter-spacing:.1em;font-size:12px}
+html[data-skin=cassette] .logo img{border-radius:6px;box-shadow:0 0 0 3px #2b2118}
+html[data-skin=cassette] .themebtn,html[data-skin=cassette] .skinbtn{background:#d8cdb4;border:2px solid #2b2118;color:#2b2118;border-radius:5px;font-weight:700;font-size:12px;letter-spacing:.08em;box-shadow:0 4px 0 #2b2118;padding:7px 12px;margin-top:-2px}
+html[data-skin=cassette] .themebtn i{display:none}html[data-skin=cassette] .themebtn:hover,html[data-skin=cassette] .skinbtn:hover{background:#e8541e;color:#fff}
+html[data-skin=cassette] .onair{font-weight:700;font-size:12px;color:#6b5a45;letter-spacing:.1em}html[data-skin=cassette] .onair i{border-radius:50%;background:#8c7b64}html[data-skin=cassette] .onair.on{color:#c4301a}html[data-skin=cassette] .onair.on i{background:#c4301a;box-shadow:0 0 8px #c4301a}
+html[data-skin=cassette] .player{border:4px solid #2b2118;border-radius:16px;background:#efe6cf;box-shadow:0 8px 0 #2b2118;padding:36px 28px 22px}
+html[data-skin=cassette] .player::before{inset:0 0 auto 0;height:14px;background:linear-gradient(90deg,#e8541e 0 33%,#f2a81d 33% 66%,#2b2118 66%)}
+html[data-skin=cassette] .eq i{background:#2b2118;box-shadow:none;opacity:1;border-radius:1px}
+html[data-skin=cassette] .lab{color:#6b5a45;font-weight:700;font-size:11px;letter-spacing:.2em}
+html[data-skin=cassette] .title{color:#2b2118;text-transform:uppercase;font-size:clamp(24px,4.6vw,44px);line-height:1.05;letter-spacing:-.01em}
+html[data-skin=cassette] .artist{color:#e8541e;font-weight:700;font-size:16px}
+html[data-skin=cassette] .savebtn{background:#d8cdb4;border:2px solid #2b2118;color:#2b2118;border-radius:5px;font-weight:700;font-size:12px;letter-spacing:.06em;box-shadow:0 4px 0 #2b2118;padding:9px 14px}
+html[data-skin=cassette] .savebtn:hover:not(:disabled){background:#f2a81d;color:#2b2118}html[data-skin=cassette] .savebtn.on{background:#e8541e;color:#fff}
+html[data-skin=cassette] .bar{height:10px;background:#d8cdb4;border:2px solid #2b2118;border-radius:5px}html[data-skin=cassette] .fill{background:#e8541e;box-shadow:none;border-radius:3px}
+html[data-skin=cassette] .play{width:84px;height:68px;border-radius:8px;background:#e8541e;color:#fff;border:3px solid #2b2118;box-shadow:0 7px 0 #2b2118}html[data-skin=cassette] .play:hover{transform:none}html[data-skin=cassette] .play:active,html[data-skin=cassette] .play.on{transform:translateY(5px);box-shadow:0 2px 0 #2b2118}
+html[data-skin=cassette] .vol span,html[data-skin=cassette] .vol b{font-weight:700;font-size:12px;letter-spacing:.1em;color:#2b2118}html[data-skin=cassette] .vol input{accent-color:#e8541e}
+html[data-skin=cassette] .hint,html[data-skin=cassette] .note{color:#6b5a45}
+html[data-skin=cassette] .card{border:3px solid #2b2118;border-radius:12px;box-shadow:0 6px 0 #2b2118}
+html[data-skin=cassette] h2{color:#2b2118;font-size:20px;text-transform:uppercase;letter-spacing:.02em}
+html[data-skin=cassette] .list li{border-bottom:1px dashed #8c7b64;align-items:center;color:#2b2118}html[data-skin=cassette] .list li time{color:#6b5a45;font-weight:700;font-size:12px}html[data-skin=cassette] .list li.now{background:#f2a81d;padding:0 6px}
+html[data-skin=cassette] .list li .hb{background:#d8cdb4;border:2px solid #2b2118;border-radius:4px;color:#2b2118}html[data-skin=cassette] .list li .hb.on{background:#e8541e;color:#fff}
+html[data-skin=cassette] .days button{background:#d8cdb4;border:2px solid #2b2118;border-radius:5px;color:#2b2118;font-weight:700;font-size:12px;letter-spacing:.04em;box-shadow:0 3px 0 #2b2118}html[data-skin=cassette] .days button.on{background:#e8541e;color:#fff}
+html[data-skin=cassette] footer{border-top:4px solid #2b2118;color:#6b5a45}
+
+/* --- dash: night-drive dashboard, carbon texture, orange gauge ring --- */
+html[data-skin=dash]{--bg:#090b0e;--bg2:#101419!important;--line:#262c34!important;--txt:#e8eef6;--dim:#8a95a5;--g:#ff6a00!important;--gr:255,106,0!important;--g2:#ffd2a8!important;--red:#ff3b30}
+html[data-skin=dash] body{background:repeating-linear-gradient(45deg,#0d0f13 0 4px,#0a0c10 4px 8px),#090b0e}
+html[data-skin=dash] *{font-family:'Orbitron','Barlow',system-ui,sans-serif!important}
+html[data-skin=dash] .top{background:linear-gradient(180deg,#171b21,#0d0f13);border-bottom:2px solid #ff6a00;box-shadow:0 0 22px rgba(255,106,0,.25)}
+html[data-skin=dash] .one{color:#ff6a00;font-weight:900;font-size:24px!important;text-shadow:0 0 14px rgba(255,106,0,.7)!important}html[data-skin=dash] .rad{font-weight:700;letter-spacing:.3em;font-size:14px}
+html[data-skin=dash] .tag{font-size:11px;letter-spacing:.22em;color:#8a95a5}
+html[data-skin=dash] .logo img{border-radius:50%;box-shadow:0 0 0 2px #ff6a00,0 0 16px rgba(255,106,0,.5)}
+html[data-skin=dash] .themebtn,html[data-skin=dash] .skinbtn{border:1px solid #ff6a00;color:#ff6a00;border-radius:999px;font-weight:700;font-size:10px;letter-spacing:.2em;padding:8px 14px;box-shadow:inset 0 0 8px rgba(255,106,0,.25)}
+html[data-skin=dash] .themebtn i{display:none}html[data-skin=dash] .themebtn:hover,html[data-skin=dash] .skinbtn:hover{background:#ff6a00;color:#090b0e}
+html[data-skin=dash] .onair{font-size:11px;letter-spacing:.2em}html[data-skin=dash] .onair i{border-radius:50%;background:#2c333c;box-shadow:none}html[data-skin=dash] .onair.on{color:#2dff8a}html[data-skin=dash] .onair.on i{background:#2dff8a;box-shadow:0 0 12px #2dff8a}
+html[data-skin=dash] .player{border:2px solid #262c34;border-radius:18px;background:radial-gradient(600px 220px at 20% 0,rgba(255,106,0,.14),transparent 70%),linear-gradient(180deg,#141920,#0d1015);box-shadow:inset 0 0 40px rgba(0,0,0,.6),0 10px 30px rgba(0,0,0,.6)}html[data-skin=dash] .player::before{display:none}
+html[data-skin=dash] .eq i{background:linear-gradient(0deg,#ff6a00,#ffd23f);box-shadow:0 0 8px rgba(255,106,0,.6);opacity:.95;border-radius:1px}
+html[data-skin=dash] .lab{font-size:10px;letter-spacing:.35em;color:#8a95a5}
+html[data-skin=dash] .title{font-weight:900;font-size:clamp(22px,4.4vw,42px);letter-spacing:.03em;color:#fff;text-shadow:0 0 18px rgba(255,106,0,.35)}
+html[data-skin=dash] .artist{color:#ffb070;font-weight:700;letter-spacing:.1em;font-size:14px}
+html[data-skin=dash] .savebtn{border:1px solid #ff6a00;color:#ff6a00;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.14em;padding:10px 16px}
+html[data-skin=dash] .savebtn:hover:not(:disabled),html[data-skin=dash] .savebtn.on{background:#ff6a00;color:#090b0e}
+html[data-skin=dash] .bar{height:6px;border-radius:3px;background:#222831}html[data-skin=dash] .fill{background:linear-gradient(90deg,#ff6a00,#ffd23f);box-shadow:0 0 12px rgba(255,106,0,.7);border-radius:3px}
+html[data-skin=dash] .play{width:78px;height:78px;border-radius:50%;background:radial-gradient(circle,#1c222a,#0d1015);color:#ff6a00;border:3px solid #ff6a00;box-shadow:0 0 0 6px #0d1015,0 0 0 8px #262c34,0 0 26px rgba(255,106,0,.5)}
+html[data-skin=dash] .vol span,html[data-skin=dash] .vol b{font-size:10px;font-weight:700;color:#ff6a00}html[data-skin=dash] .vol input{accent-color:#ff6a00}
+html[data-skin=dash] .card{border:1px solid #262c34;border-radius:14px;box-shadow:inset 0 0 30px rgba(0,0,0,.5)}
+html[data-skin=dash] h2{color:#ff6a00;font-size:14px;font-weight:700;letter-spacing:.3em;text-transform:uppercase}
+html[data-skin=dash] .list li{border-bottom:1px solid #1d232b;align-items:center}html[data-skin=dash] .list li time{color:#8a95a5;font-size:10px;font-weight:700}html[data-skin=dash] .list li.now{color:#ff6a00;text-shadow:0 0 10px rgba(255,106,0,.6)}
+html[data-skin=dash] .list li .hb{border:1px solid #ff6a00;border-radius:50%;color:#ff6a00}html[data-skin=dash] .list li .hb.on{background:#ff6a00;color:#090b0e}
+html[data-skin=dash] .days button{border:1px solid #262c34;border-radius:999px;color:#e8eef6;font-size:10px;font-weight:700;letter-spacing:.12em}html[data-skin=dash] .days button.on{background:#ff6a00;border-color:#ff6a00;color:#090b0e}
+html[data-skin=dash] footer{border-top:2px solid #ff6a00}

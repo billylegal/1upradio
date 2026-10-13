@@ -85,7 +85,7 @@
   try { applyTheme(+(localStorage.getItem('up1-theme') || 0)); } catch (e) {}
   $('themeBtn').addEventListener('click', function () { applyTheme(themeI + 1); });
   // skins: complete looks (retro is the original); the colour THEME still applies to retro and stream
-  var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal'], skinI = 0;
+  var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash'], skinI = 0;
   function applySkin(i) {
     skinI = ((i % SKINS.length) + SKINS.length) % SKINS.length;
     if (SKINS[skinI] === 'retro') document.documentElement.removeAttribute('data-skin'); else document.documentElement.setAttribute('data-skin', SKINS[skinI]);
