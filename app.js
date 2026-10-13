@@ -46,7 +46,7 @@
   function paintSave() {
     var p = curP || S.plays[idx], b = $('saveBtn'); if (!b) return;
     b.disabled = !p; var on = isSaved(p);
-    b.textContent = on ? '♥ Saved' : '♡ Save song'; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.textContent = on ? '♥ Saved' : '♡ Save Song'; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
   }
   function paintSaved() {
     var el = $('saved'); if (!el) return; paintHearts();

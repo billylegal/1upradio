@@ -774,3 +774,5 @@ html[data-skin]:not([data-skin=meters]):not([data-skin=wormhole]) .play svg{widt
 #lyrics.sync .ll{padding:5px 0;opacity:.38;transition:opacity .25s,transform .25s,color .25s;cursor:pointer;line-height:1.35}
 #lyrics.sync .ll.on{opacity:1;color:var(--g);transform:scale(1.04);font-weight:800}
 html[data-skin=meters] .lyrbtn{display:none!important}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:330px}
+.btnrow .savebtn{box-sizing:border-box;width:100%;min-width:0;margin:0;padding:9px 6px!important;font-size:11px!important;line-height:1.2;text-align:center;white-space:nowrap;display:block!important}
