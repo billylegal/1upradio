@@ -685,3 +685,11 @@ html[data-skin=wormhole] .vol{min-width:0}html[data-skin=wormhole] .vol span,htm
 .themebtn.pulse,.skinbtn.pulse{animation:pulsebtn 1.2s ease-in-out infinite}
 @keyframes pulsebtn{0%{box-shadow:0 0 0 0 rgba(var(--gr),.7)}70%{box-shadow:0 0 0 12px rgba(var(--gr),0)}100%{box-shadow:0 0 0 0 rgba(var(--gr),0)}}
 @media(prefers-reduced-motion:reduce){#tip,#tip i,.themebtn.pulse,.skinbtn.pulse{animation:none}}
+
+/* skin button: [ < | SKIN name ] - the arrow goes back one skin, the rest goes forward */
+.skinbtn{flex-direction:row!important;gap:8px!important;left:134px}
+.skinbtn .sk-t{display:flex;flex-direction:column;align-items:center;gap:3px;line-height:1.1}
+.skinbtn .sk-b{font-style:normal;font-size:1.9em;line-height:.8;padding:2px 9px 4px 2px;margin-right:1px;border-right:1px solid currentColor;opacity:.95;cursor:pointer}
+.skinbtn .sk-b:hover{transform:scale(1.25)}
+@media(max-width:900px){.skinbtn{left:auto}}
+html[data-skin=mono] .skinbtn{left:20px}@media(max-width:900px){html[data-skin=mono] .skinbtn{left:auto}}

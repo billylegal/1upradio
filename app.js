@@ -196,7 +196,7 @@
   try { skinI = +(localStorage.getItem('up1-skin') || 0) || 0; } catch (e) {}
   applySkin(skinI);
   $('themeBtn').addEventListener('click', function () { var n = themeI + 1; if (n >= THEMES.length) n = (skinName() in NATIVE_OK) ? 0 : -1; applyTheme(n); });
-  if ($('skinBtn')) $('skinBtn').addEventListener('click', function () { applySkin(skinI + 1); });
+  if ($('skinBtn')) $('skinBtn').addEventListener('click', function (e) { applySkin(skinI + ((e.target && e.target.closest && e.target.closest('.sk-b')) ? -1 : 1)); });
 
   window.__up1 = { chimeNow: function (h) { chimeNow(h); }, get chimeOn() { return chimeOn; }, get chimeT() { return chime.currentTime; }, get chimeErr() { return chime.error && chime.error.code; }, get idx() { return idx; }, get curP() { return curP; }, get S() { return S; }, get badIds() { return badIds; }, replay: function () { playIdx(idx, Date.now() / 1000 - S.delay - S.plays[idx].t, 0); } };
   var selDay = null;
