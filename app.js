@@ -436,18 +436,21 @@
   ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click', 'keydown'].forEach(function (ev) { addEventListener(ev, unmuteNow, { passive: true, capture: true }); });
   load().then(function () {
     var k = findNow(); idx = -1; paintLists();
-    $('play').click();
-    [3500, 8000].forEach(function (ms) {
-      setTimeout(function () {
-        if (playing || mutedAuto || !yt || !ready) return; if (gestured) { try { yt.unMute(); yt.playVideo(); } catch (e) {} return; }
-        try { yt.mute(); yt.playVideo(); mutedAuto = true; $('hint').textContent = 'Tap anywhere to turn the sound on.'; } catch (e) {}
-      }, ms);
-    });
+    function begin() {   // nothing plays until the TAP TO START gate has been tapped; then start right inside that tap
+      $('play').click();
+      [3500, 8000].forEach(function (ms) {
+        setTimeout(function () {
+          if (playing || mutedAuto || !yt || !ready) return; if (gestured) { try { yt.unMute(); yt.playVideo(); } catch (e) {} return; }
+          try { yt.mute(); yt.playVideo(); mutedAuto = true; $('hint').textContent = 'Tap anywhere to turn the sound on.'; } catch (e) {}
+        }, ms);
+      });
+    }
+    if (document.getElementById('tapgate')) window.addEventListener('up1-start', begin, { once: true }); else begin();
   });
   setInterval(load, 3 * 60 * 1000);
 })();
 
-;(function(){var g=document.getElementById("tapgate");if(!g)return;function go(e){if(!g||!e.isTrusted)return;if(e.type==="click"){e.preventDefault();e.stopPropagation()}g.remove();g=null}window.addEventListener("click",go,true);window.addEventListener("keydown",go,true)})();
+;(function(){var g=document.getElementById("tapgate");if(!g)return;function go(e){if(!g||!e.isTrusted)return;if(e.type==="click"){e.preventDefault();e.stopPropagation()}g.remove();g=null;window.dispatchEvent(new Event("up1-start"))}window.addEventListener("click",go,true);window.addEventListener("keydown",go,true)})();
 
 
 ;(function(){   // one-time pop-up: "try our new skins and themes", pointing at the buttons
