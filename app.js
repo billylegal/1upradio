@@ -213,23 +213,25 @@
 
   var nextTimer = null, badIds = {}, curAlt = 0, curP = null;
   // ---- dead-air filler: when a song ends and the next slot is still a few seconds away, play station-ID jingles that finish before the next song starts ----
-  var JINGLES = [{"f": "assets/jingles/j1.mp3", "d": 5.39}, {"f": "assets/jingles/j2.mp3", "d": 5.2}, {"f": "assets/jingles/j3.mp3", "d": 6.04}, {"f": "assets/jingles/j4.mp3", "d": 3.39}, {"f": "assets/jingles/j5.mp3", "d": 4.94}, {"f": "assets/jingles/j6.mp3", "d": 3.5}], jing = new Audio(), jingOn = false, jingUnlocked = false;
+  var JINGLES = [{"f": "assets/jingles/j1.mp3", "d": 5.64}, {"f": "assets/jingles/j2.mp3", "d": 5.4}, {"f": "assets/jingles/j3.mp3", "d": 6.11}, {"f": "assets/jingles/j4.mp3", "d": 3.23}, {"f": "assets/jingles/j5.mp3", "d": 4.95}, {"f": "assets/jingles/j6.mp3", "d": 3.5}, {"f": "assets/jingles/j7.mp3", "d": 8.14, "msg": "Try out our new features: tap SKIN to change the whole look, and THEME to change the colors."}, {"f": "assets/jingles/j8.mp3", "d": 7.72, "msg": "New: tap SKIN for a new look, tap THEME for new colors."}], jing = new Audio(), jingOn = false, jingUnlocked = false;
   jing.preload = 'auto';
-  function stopJingle() { if (!jingOn) return; jingOn = false; try { jing.pause(); } catch (e) {} }
+  var hintWas = null;
+  function showPromo(msg) { var h = $('hint'); if (!h) return; if (msg) { if (hintWas === null) hintWas = h.textContent; h.textContent = msg; h.classList.add('promo'); } else if (hintWas !== null) { h.textContent = hintWas; hintWas = null; h.classList.remove('promo'); } }
+  function stopJingle() { showPromo(null); if (!jingOn) return; jingOn = false; try { jing.pause(); } catch (e) {} }
   function unlockJingle() {
     if (jingUnlocked || !JINGLES.length) return; jingUnlocked = true;
     try { jing.src = JINGLES[0].f; jing.muted = true; var pr = jing.play(); var done = function () { try { jing.pause(); jing.currentTime = 0; } catch (e) {} jing.muted = false; }; if (pr && pr.then) pr.then(done, function () { jing.muted = false; jingUnlocked = false; }); else done(); } catch (e) { jing.muted = false; }
   }
   function fillGap(wait, n) {
     if (!JINGLES.length || !gestured || chimeOn || jingOn || wait < 3.4) return;
-    var left = wait - 0.5, seed = ((n * 2654435761) >>> 0), list = [], k = 0;
-    while (left >= 3.2 && k < 3) { var fit = JINGLES.filter(function (j) { return j.d <= left; }); if (!fit.length) break; var pick = fit[(seed + k * 7) % fit.length]; list.push(pick); left -= pick.d + 0.4; k++; }
+    var left = wait - 0.5, seed = (Math.imul(n + 0x9e3779b9, 0x85ebca6b) >>> 0), list = [], k = 0; seed ^= seed >>> 13; seed = (Math.imul(seed, 0xc2b2ae35) >>> 0); seed ^= seed >>> 16; seed = seed >>> 0;
+    while (left >= 3.2 && k < 3) { var fit = JINGLES.filter(function (j) { return j.d <= left; }); if (!fit.length) break; var promos = fit.filter(function (j) { return j.msg; }), plain = fit.filter(function (j) { return !j.msg; }), pick = (k === 0 && promos.length && seed % 4 === 0) ? promos[(seed >>> 4) % promos.length] : (plain.length ? plain : fit)[((seed >>> 2) + k * 5) % (plain.length || fit.length)]; list.push(pick); left -= pick.d + 0.4; k++; }
     if (!list.length) return;
     jingOn = true; var i = 0;
     (function step() {
-      if (!jingOn || i >= list.length) { jingOn = false; return; }
-      jing.onended = function () { if (jingOn) setTimeout(step, 300); }; jing.onerror = function () { jingOn = false; };
-      jing.src = list[i++].f; jing.volume = 1; var pr = jing.play(); if (pr && pr.catch) pr.catch(function () { jingOn = false; });
+      if (!jingOn || i >= list.length) { jingOn = false; showPromo(null); return; }
+      jing.onended = function () { if (jingOn) setTimeout(step, 300); }; jing.onerror = function () { jingOn = false; showPromo(null); };
+      var cur = list[i++]; showPromo(cur.msg || null); jing.src = cur.f; jing.volume = 1; var pr = jing.play(); if (pr && pr.catch) pr.catch(function () { jingOn = false; });
     })();
   }
 
