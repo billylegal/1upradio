@@ -695,3 +695,21 @@ html[data-skin=wormhole] .vol{min-width:0}html[data-skin=wormhole] .vol span,htm
 html[data-skin=mono] .skinbtn{left:20px}@media(max-width:900px){html[data-skin=mono] .skinbtn{left:auto}}
 
 @media(max-height:560px){html[data-skin=wormhole] .np{top:76px}html[data-skin=wormhole] .title{font-size:clamp(16px,3.4vw,26px)}html[data-skin=wormhole] .artist{font-size:11px;margin-top:3px}}
+
+/* ============ phones: a tidy two-row header with big thumb-sized THEME / SKIN buttons (desktop unchanged) ============ */
+@media(max-width:900px){
+  .top{position:static!important}
+  .top .wrap{display:grid!important;grid-template-columns:1fr 1fr;gap:8px 10px;padding:8px 12px 10px!important;align-items:center;justify-items:stretch;position:static!important}
+  .top .logo{grid-column:1;grid-row:1;justify-self:start}.top .logo img{width:44px!important;height:44px!important}
+  .top .logo .one{font-size:19px!important}.top .logo .rad{font-size:12px!important;letter-spacing:.14em!important}
+  .top .tag{display:none!important}
+  .top .onair{grid-column:2;grid-row:1;justify-self:end;position:static!important;transform:none!important;margin:0!important}
+  .top .themebtn,.top .skinbtn{position:static!important;transform:none!important;left:auto!important;right:auto!important;top:auto!important;margin:0!important;width:100%;min-height:48px;display:flex!important;align-items:center;justify-content:center;box-sizing:border-box;font-size:12px!important;letter-spacing:.1em!important;padding:6px 8px!important}
+  .top .themebtn{grid-column:1;grid-row:2}
+  .top .skinbtn{grid-column:2;grid-row:2;gap:4px!important}
+  .skinbtn .sk-b{font-size:2.3em!important;padding:0 10px 2px 2px!important;min-width:42px;text-align:center;display:inline-flex;align-items:center;justify-content:center}
+  .skinbtn .sk-t small{font-size:.85em}
+  html[data-skin=mono] .themebtn{display:none!important}html[data-skin=mono] .top .skinbtn{grid-column:1 / 3}
+  html[data-skin=meters] .eq{top:120px}
+  html[data-skin=wormhole] .np{top:128px!important}
+}
