@@ -212,12 +212,33 @@
   $('days').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; selDay = b.dataset.k; paintDays(); });
 
   var nextTimer = null, badIds = {}, curAlt = 0, curP = null;
+  // ---- dead-air filler: when a song ends and the next slot is still a few seconds away, play station-ID jingles that finish before the next song starts ----
+  var JINGLES = [{"f": "assets/jingles/j1.mp3", "d": 5.39}, {"f": "assets/jingles/j2.mp3", "d": 5.2}, {"f": "assets/jingles/j3.mp3", "d": 6.04}, {"f": "assets/jingles/j4.mp3", "d": 3.39}, {"f": "assets/jingles/j5.mp3", "d": 4.94}, {"f": "assets/jingles/j6.mp3", "d": 3.5}], jing = new Audio(), jingOn = false, jingUnlocked = false;
+  jing.preload = 'auto';
+  function stopJingle() { if (!jingOn) return; jingOn = false; try { jing.pause(); } catch (e) {} }
+  function unlockJingle() {
+    if (jingUnlocked || !JINGLES.length) return; jingUnlocked = true;
+    try { jing.src = JINGLES[0].f; jing.muted = true; var pr = jing.play(); var done = function () { try { jing.pause(); jing.currentTime = 0; } catch (e) {} jing.muted = false; }; if (pr && pr.then) pr.then(done, function () { jing.muted = false; jingUnlocked = false; }); else done(); } catch (e) { jing.muted = false; }
+  }
+  function fillGap(wait, n) {
+    if (!JINGLES.length || !gestured || chimeOn || jingOn || wait < 3.4) return;
+    var left = wait - 0.5, seed = ((n * 2654435761) >>> 0), list = [], k = 0;
+    while (left >= 3.2 && k < 3) { var fit = JINGLES.filter(function (j) { return j.d <= left; }); if (!fit.length) break; var pick = fit[(seed + k * 7) % fit.length]; list.push(pick); left -= pick.d + 0.4; k++; }
+    if (!list.length) return;
+    jingOn = true; var i = 0;
+    (function step() {
+      if (!jingOn || i >= list.length) { jingOn = false; return; }
+      jing.onended = function () { if (jingOn) setTimeout(step, 300); }; jing.onerror = function () { jingOn = false; };
+      jing.src = list[i++].f; jing.volume = 1; var pr = jing.play(); if (pr && pr.catch) pr.catch(function () { jingOn = false; });
+    })();
+  }
+
   function clearNext() { if (nextTimer) { clearTimeout(nextTimer); nextTimer = null; } }
   // If YouTube will not play a song here, EVERY listener swaps in the same replacement for that slot (picked from the schedule by a fixed rule), so everyone stays in step.
   function altIdx(i, n) { var lo = Math.max(0, i - 900), hi = Math.max(lo + 1, i - 40), len = hi - lo; return lo + ((((i * 2654435761 + n * 40503 + 7) % len) + len) % len); }
   function slotPlay(i, n) { return n === 0 ? S.plays[i] : S.plays[altIdx(i, n)]; }
   function playIdx(i, offset, n) {
-    clearNext();
+    clearNext(); stopJingle();
     if (!S.plays.length) return;
     if (i >= S.plays.length) { i = Math.max(0, S.plays.length - 40 + Math.floor(Math.random() * 30)); offset = 0; n = 0; }   // out of schedule: loop back over recent music
     n = n || 0; var p = slotPlay(i, n);
@@ -234,7 +255,8 @@
     if (n >= S.plays.length) { playIdx(n, 0); return; }
     var wait = (S.plays[n].t + S.delay) - Date.now() / 1000;
     clearNext();
-    if (wait > 1) nextTimer = setTimeout(function () { nextTimer = null; playIdx(n, 0); }, wait * 1000);
+    if (wait > 3.4) fillGap(wait, n);
+    if (wait > 1) nextTimer = setTimeout(function () { nextTimer = null; stopJingle(); playIdx(n, 0); }, wait * 1000);
     else playIdx(n, Math.max(0, -wait));
   }
   function setOn(on) {
@@ -328,7 +350,7 @@
   function unmuteNow(ev) {
     var t = ev && ev.type, tap = !!(ev && ev.isTrusted) && (t === 'click' || t === 'touchend' || t === 'pointerup' || t === 'keydown');
     if (ev && ev.isTrusted) gestured = true;
-    if (tap) { unlockChime(); if (typeof keepSync === 'function') keepSync(); }
+    if (tap) { unlockChime(); unlockJingle(); if (typeof keepSync === 'function') keepSync(); }
     if (tap && yt && ready) {                                   // phones only allow sound inside a real tap: unmute / (re)start right here, in the tap
       try { if (yt.isMuted()) { yt.unMute(); yt.setVolume(+$('vol').value); } } catch (e) {}
       if (started && !playing && Date.now() - lastKick > 1500) { lastKick = Date.now(); try { yt.unMute(); var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } catch (e) {} }
