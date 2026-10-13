@@ -713,3 +713,11 @@ html[data-skin=mono] .skinbtn{left:20px}@media(max-width:900px){html[data-skin=m
   html[data-skin=meters] .eq{top:120px}
   html[data-skin=wormhole] .np{top:128px!important}
 }
+/* compact controls: small play button + short volume slider */
+.ctl{gap:14px;margin-top:14px}
+.play{width:52px;height:52px}.play svg{width:22px;height:22px}
+html[data-skin]:not([data-skin=meters]):not([data-skin=wormhole]) .play{width:52px!important;height:52px!important}
+html[data-skin=cassette] .play{width:60px!important;height:48px!important}
+html[data-skin]:not([data-skin=meters]):not([data-skin=wormhole]) .play svg{width:22px!important;height:22px!important}
+.vol{flex:none;min-width:0;gap:8px}.vol input[type=range]{flex:none;width:110px;height:22px}
+.vol span{font-size:9px}.vol b{font-size:10px}
