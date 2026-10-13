@@ -74,24 +74,38 @@
 
   // ---- color themes: every tap on THEME switches to the next of 8 colors ----
   var THEMES = ['#39ff14', '#ffb000', '#ff3b3b', '#00e5ff', '#b4ff3c', '#ffe066', '#ff6a00', '#d946ff'], themeI = 0;
+  var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash', 'space'], skinI = 0;
+  var LIGHT = { glass: 1, aegean: 1, cassette: 1 }, NATIVE_OK = { retro: 0, stream: 0 };   // light skins get a darker tint of the colour; every other skin can also go back to its own native colours (-1)
+  function skinName() { return SKINS[skinI]; }
+  function themeKey() { return skinName() === 'retro' ? 'up1-theme' : 'up1-theme-' + skinName(); }
   function applyTheme(i) {
-    themeI = ((i % THEMES.length) + THEMES.length) % THEMES.length;
-    var hex = THEMES[themeI], r = parseInt(hex.substr(1, 2), 16), g = parseInt(hex.substr(3, 2), 16), b = parseInt(hex.substr(5, 2), 16), st = document.documentElement.style;
-    var mix = function (k, base) { return 'rgb(' + [r, g, b].map(function (v) { return Math.round(v * k + base); }).join(',') + ')'; };
-    st.setProperty('--g', hex); st.setProperty('--gr', r + ',' + g + ',' + b);
-    st.setProperty('--g2', mix(0.45, 140)); st.setProperty('--line', mix(0.16, 6)); st.setProperty('--bg2', mix(0.035, 9));
-    try { localStorage.setItem('up1-theme', String(themeI)); } catch (e) {}
+    var sk = skinName(), canNative = !(sk in NATIVE_OK), st = document.documentElement.style;
+    ['--g', '--gr', '--g2', '--line', '--bg2', '--ga', '--gb', '--gc', '--gd2'].forEach(function (p) { st.removeProperty(p); });
+    if (i < 0 && canNative) themeI = -1; else themeI = ((i % THEMES.length) + THEMES.length) % THEMES.length;
+    if (themeI >= 0) {
+      var hex = THEMES[themeI], r = parseInt(hex.substr(1, 2), 16), g = parseInt(hex.substr(3, 2), 16), b = parseInt(hex.substr(5, 2), 16);
+      var mix = function (k, base) { return 'rgb(' + [r, g, b].map(function (v) { return Math.min(255, Math.round(v * k + base)); }).join(',') + ')'; };
+      if (sk === 'gameboy') {     // the four Game Boy tones, rebuilt from the chosen colour
+        st.setProperty('--ga', mix(0.16, 0)); st.setProperty('--gb', mix(0.38, 0)); st.setProperty('--gc', mix(0.62, 40)); st.setProperty('--gd2', mix(0.66, 55));
+      } else {
+        var k = LIGHT[sk] ? 0.62 : 1, rr = Math.round(r * k), gg = Math.round(g * k), bb = Math.round(b * k);
+        st.setProperty('--g', 'rgb(' + rr + ',' + gg + ',' + bb + ')'); st.setProperty('--gr', rr + ',' + gg + ',' + bb);
+        if (!LIGHT[sk] && (sk === 'retro' || sk === 'stream' || sk === 'synth' || sk === 'vinyl' || sk === 'terminal' || sk === 'dash' || sk === 'space')) st.setProperty('--g2', mix(0.45, 140));
+        if (sk === 'retro' || sk === 'stream') { st.setProperty('--line', mix(0.16, 6)); st.setProperty('--bg2', mix(0.035, 9)); }
+      }
+    }
+    try { localStorage.setItem(themeKey(), String(themeI)); } catch (e) {}
   }
-  try { applyTheme(+(localStorage.getItem('up1-theme') || 0)); } catch (e) {}
-  $('themeBtn').addEventListener('click', function () { applyTheme(themeI + 1); });
-  // skins: complete looks (retro is the original); the colour THEME still applies to retro and stream
-  var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash'], skinI = 0;
+  function storedTheme() { try { var v = localStorage.getItem(themeKey()); if (v !== null) return +v; } catch (e) {} return (skinName() in NATIVE_OK) ? 0 : -1; }
   function applySkin(i) {
     skinI = ((i % SKINS.length) + SKINS.length) % SKINS.length;
     if (SKINS[skinI] === 'retro') document.documentElement.removeAttribute('data-skin'); else document.documentElement.setAttribute('data-skin', SKINS[skinI]);
     try { localStorage.setItem('up1-skin', String(skinI)); } catch (e) {}
+    applyTheme(storedTheme());
   }
-  try { applySkin(+(localStorage.getItem('up1-skin') || 0)); } catch (e) {}
+  try { skinI = +(localStorage.getItem('up1-skin') || 0) || 0; } catch (e) {}
+  applySkin(skinI);
+  $('themeBtn').addEventListener('click', function () { var n = themeI + 1; if (n >= THEMES.length) n = (skinName() in NATIVE_OK) ? 0 : -1; applyTheme(n); });
   if ($('skinBtn')) $('skinBtn').addEventListener('click', function () { applySkin(skinI + 1); });
 
   window.__up1 = { chimeNow: function (h) { chimeNow(h); }, get chimeOn() { return chimeOn; }, get chimeT() { return chime.currentTime; }, get chimeErr() { return chime.error && chime.error.code; }, get idx() { return idx; }, get curP() { return curP; }, get S() { return S; }, get badIds() { return badIds; }, replay: function () { playIdx(idx, Date.now() / 1000 - S.delay - S.plays[idx].t, 0); } };
