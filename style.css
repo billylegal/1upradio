@@ -49,8 +49,8 @@ footer a{color:inherit;text-decoration:underline;text-underline-offset:3px}foote
 .savebtn:hover:not(:disabled){background:var(--g);color:#031200}
 .savebtn.on{background:var(--g);color:#031200}
 .savebtn:disabled{opacity:.35;cursor:default}
-.saved .srow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
-.saved .srow span{flex:1;min-width:0;overflow-wrap:anywhere}
+.saved .srow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.saved .srow .st{flex:1;min-width:0;overflow-wrap:anywhere}
 .saved .sgo,.saved .sdel{flex:none;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);color:var(--g);background:transparent;text-decoration:none;cursor:pointer;font:inherit}
 .saved .sgo:hover,.saved .sdel:hover{border-color:var(--g)}
 #savedn{color:var(--dim)}
@@ -737,3 +737,11 @@ html[data-skin]:not([data-skin=meters]):not([data-skin=wormhole]) .play svg{widt
 }
 @media(max-width:380px){.top .tag{font-size:9px!important}.top .logo .rad{letter-spacing:.06em!important;font-size:11px!important}}
 @media(max-width:900px){.hint .kvu{display:none}}
+
+/* streaming-service links under each saved song */
+.saved .slinks{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.saved .chip{font-size:12px;line-height:1;padding:7px 10px;border:1px solid var(--line);color:inherit;text-decoration:none;border-radius:999px;white-space:nowrap}
+.saved .chip:hover{border-color:var(--g)}
+.saved .chip.found{border-color:var(--g);color:var(--g);font-weight:700}
+.saved .chip.srch{border-style:dashed;opacity:.7}
+.saved .snf{font-size:11px;opacity:.65}

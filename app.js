@@ -53,9 +53,49 @@
     $('savedn').textContent = saved.length ? '(' + saved.length + ')' : '';
     $('savedhint').style.display = saved.length ? 'none' : '';
     el.innerHTML = saved.map(function (s, i) {
-      var a = split(s.title);
-      return '<li class="srow"><span>' + esc(a[0] ? a[0] + ' — ' + a[1] : a[1]) + '</span><a class="sgo" href="https://www.youtube.com/watch?v=' + encodeURIComponent(s.id) + '" target="_blank" rel="noopener" title="Open on YouTube">▶</a><button class="sdel" data-i="' + i + '" type="button" aria-label="Remove from saved songs" title="Remove">✕</button></li>';
+      var a = split(s.title), q = encodeURIComponent(a[0] ? a[0] + ' ' + a[1] : a[1]), L = s.links || null, lk = '';
+      lk += '<a class="chip" href="https://www.youtube.com/watch?v=' + encodeURIComponent(s.id) + '" target="_blank" rel="noopener">YouTube</a>';
+      if (L && L.apple) lk += '<a class="chip found" href="' + esc(L.apple) + '" target="_blank" rel="noopener">Apple Music</a>';
+      if (L && L.deezer) lk += '<a class="chip found" href="' + esc(L.deezer) + '" target="_blank" rel="noopener">Deezer</a>';
+      lk += '<a class="chip srch" href="https://open.spotify.com/search/' + q + '" target="_blank" rel="noopener" title="Search Spotify">Spotify ⌕</a>' +
+        '<a class="chip srch" href="https://music.youtube.com/search?q=' + q + '" target="_blank" rel="noopener" title="Search YouTube Music">YT Music ⌕</a>' +
+        '<a class="chip srch" href="https://music.amazon.com/search/' + q + '" target="_blank" rel="noopener" title="Search Amazon Music">Amazon ⌕</a>' +
+        '<a class="chip srch" href="https://listen.tidal.com/search?q=' + q + '" target="_blank" rel="noopener" title="Search Tidal">Tidal ⌕</a>';
+      lk += !L ? '<span class="snf">checking Apple Music &amp; Deezer…</span>' : (L.apple || L.deezer ? '' : '<span class="snf">not found on Apple Music or Deezer</span>');
+      return '<li class="srow"><span class="st">' + esc(a[0] ? a[0] + ' — ' + a[1] : a[1]) + '</span><button class="sdel" data-i="' + i + '" type="button" aria-label="Remove from saved songs" title="Remove">✕</button><div class="slinks">' + lk + '</div></li>';
     }).join('');
+    lookupMissing();
+  }
+  // ---- which services carry a saved song: Apple Music (iTunes search) and Deezer (search, via JSONP) ----
+  function sw(t) { return (t || '').toLowerCase().replace(/\(.*?\)|\[.*?\]/g, ' ').replace(/\b(feat|ft|featuring|remaster(ed)?|radio edit|original mix|mix|version|edit|official|video|audio|lyrics?)\b/g, ' ').replace(/[^\p{L}\p{N}]+/gu, ' ').trim().split(' ').filter(Boolean); }
+  function sameSong(saved, cand) {
+    var a = sw(saved), b = sw(cand); if (!a.length || !b.length) return false;
+    var hitA = a.filter(function (x) { return b.indexOf(x) >= 0; }).length / a.length, hitB = b.filter(function (x) { return a.indexOf(x) >= 0; }).length / b.length;
+    return hitA >= 0.8 && hitB >= 0.5;
+  }
+  function jsonp(u) {
+    return new Promise(function (res) {
+      var cb = 'up1jp' + Math.random().toString(36).slice(2), s = document.createElement('script'), tm;
+      function done(d) { clearTimeout(tm); try { delete window[cb]; } catch (e) { window[cb] = undefined; } s.remove(); res(d); }
+      tm = setTimeout(function () { done(null); }, 7000); window[cb] = done; s.onerror = function () { done(null); };
+      s.src = u + '&output=jsonp&callback=' + cb; document.head.appendChild(s);
+    });
+  }
+  function findLinks(title) {
+    var parts = split(title), plain = parts[0] ? parts[0] + ' ' + parts[1] : parts[1], links = {}, ok = false, qq = encodeURIComponent(plain);
+    return fetch('https://itunes.apple.com/search?media=music&entity=song&limit=6&term=' + qq).then(function (r) { return r.json(); }).then(function (r) {
+      ok = true; var m = (r.results || []).find(function (x) { return sameSong(title, x.artistName + ' ' + x.trackName); });
+      if (m) links.apple = m.trackViewUrl.replace(/[?&]uo=\d+/, '');
+    }).catch(function () {}).then(function () { return jsonp('https://api.deezer.com/search?limit=6&q=' + qq); }).then(function (d) {
+      if (d && d.data) { ok = true; var m = d.data.find(function (x) { return sameSong(title, x.artist.name + ' ' + (x.title_short || x.title)); }); if (m) links.deezer = m.link; }
+      return ok ? links : null;   // null = services unreachable, try again later
+    });
+  }
+  var lookingUp = false;
+  function lookupMissing() {
+    if (lookingUp) return; var x = saved.find(function (s) { return !s.links && !s.tried; }); if (!x) return;
+    lookingUp = true;
+    findLinks(x.title).then(function (l) { if (l) x.links = l; else x.tried = 1; persistSaved(); lookingUp = false; paintSaved(); }).catch(function () { x.tried = 1; lookingUp = false; });
   }
   $('saveBtn').addEventListener('click', function () {
     var p = curP || S.plays[idx]; if (!p) return;
