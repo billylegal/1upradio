@@ -693,3 +693,5 @@ html[data-skin=wormhole] .vol{min-width:0}html[data-skin=wormhole] .vol span,htm
 .skinbtn .sk-b:hover{transform:scale(1.25)}
 @media(max-width:900px){.skinbtn{left:auto}}
 html[data-skin=mono] .skinbtn{left:20px}@media(max-width:900px){html[data-skin=mono] .skinbtn{left:auto}}
+
+@media(max-height:560px){html[data-skin=wormhole] .np{top:76px}html[data-skin=wormhole] .title{font-size:clamp(16px,3.4vw,26px)}html[data-skin=wormhole] .artist{font-size:11px;margin-top:3px}}

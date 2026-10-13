@@ -112,7 +112,7 @@
     if (t - wHueAt > 0.5) { wHueAt = t; if (document.documentElement.hasAttribute('data-themed')) { var gr = (getComputedStyle(document.documentElement).getPropertyValue('--gr') || '169,139,255').split(',').map(Number), r = gr[0] / 255, g = gr[1] / 255, b = gr[2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, h = 0; if (d) { h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h = (h * 60 + 360) % 360; } wHue = h; wThemed = true; } else { wThemed = false; } }
     return wHue;
   }
-  var wThemed = false;
+  var wThemed = false, wLogo = null, wLogoOk = false;
   function wormSize() { if (!wc) return; wDpr = Math.min(window.devicePixelRatio || 1, 1.5); wc.width = Math.round(innerWidth * wDpr); wc.height = Math.round(innerHeight * wDpr); }
   function wLevel(i, t, n) {   // fake spectrum (the YouTube player will not let the page hear the sound): lively while playing, calm when paused
     var p = playing ? 1 : 0.18, v = 0.35 + 0.3 * Math.sin(t * (1.4 + i * 0.11) + i * 1.7) + 0.25 * Math.abs(Math.sin(t * 2.3 + i * 0.63));
@@ -152,6 +152,15 @@
     }
     var gl = ctx.createRadialGradient(cx, cy, 0, cx, cy, M * 0.2); gl.addColorStop(0, 'rgba(255,255,255,0.95)'); gl.addColorStop(0.25, 'hsla(' + hue0 + ',100%,65%,0.55)'); gl.addColorStop(1, 'hsla(' + hue0 + ',100%,50%,0)');
     ctx.fillStyle = gl; ctx.fillRect(cx - M * 0.2, cy - M * 0.2, M * 0.4, M * 0.4);
+    var pulse = playing ? Math.pow(Math.abs(Math.sin(t * 2.15)), 8) : 0.2 * (0.5 + 0.5 * Math.sin(t * 1.2)), rl = M * 0.115 * (1 + 0.05 * pulse);
+    var lg = ctx.createRadialGradient(cx, cy, rl * 0.8, cx, cy, rl * 3.2); lg.addColorStop(0, 'hsla(' + hue0 + ',100%,70%,' + (0.5 + 0.35 * pulse) + ')'); lg.addColorStop(0.35, 'hsla(' + hue0 + ',100%,60%,' + (0.2 + 0.2 * pulse) + ')'); lg.addColorStop(1, 'hsla(' + hue0 + ',100%,50%,0)');
+    ctx.fillStyle = lg; ctx.fillRect(cx - rl * 3.2, cy - rl * 3.2, rl * 6.4, rl * 6.4);
+    ctx.lineWidth = Math.max(1, wDpr * 1.4); ctx.lineCap = 'round';
+    for (k = 0; k < 36; k++) {                      // light rays streaming out of the logo
+      var ra = k / 36 * 6.2832 + t * 0.12, rs = 0.5 + 0.5 * Math.sin(t * 1.7 + k * 2.1), r0 = rl * 1.08, r1 = rl * (1.35 + rs * (0.7 + pulse * 0.9));
+      ctx.strokeStyle = 'hsla(' + ((hue0 + k * 4) % 360) + ',100%,78%,' + (0.18 + 0.4 * rs) + ')';
+      ctx.beginPath(); ctx.moveTo(cx + Math.cos(ra) * r0, cy + Math.sin(ra) * r0); ctx.lineTo(cx + Math.cos(ra) * r1, cy + Math.sin(ra) * r1); ctx.stroke();
+    }
     var NB = 56, R0 = M * 0.2;                      // meter ring around the tunnel mouth
     ctx.lineWidth = Math.max(2, M * 0.009);
     for (k = 0; k < NB; k++) {
@@ -165,6 +174,12 @@
       var gb = ctx.createLinearGradient(0, H, 0, H - bh); var hh = (wThemed ? hue0 + (k % 6) * 6 : k / NF * 360 + t * 20) % 360; gb.addColorStop(0, 'hsla(' + hh + ',100%,55%,0.65)'); gb.addColorStop(1, 'hsla(' + hh + ',100%,65%,0.05)');
       ctx.fillStyle = gb; ctx.fillRect(k * bw + bw * 0.12, H - bh, bw * 0.76, bh);
     }
+    ctx.globalCompositeOperation = 'source-over';   // the 1UP logo, in a glowing circle at the heart of the tunnel
+    if (wLogoOk) {
+      ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, rl, 0, 6.2832); ctx.closePath(); ctx.clip(); ctx.drawImage(wLogo, cx - rl, cy - rl, rl * 2, rl * 2); ctx.restore();
+    }
+    ctx.shadowColor = 'hsl(' + hue0 + ',100%,70%)'; ctx.shadowBlur = M * 0.04 * (1 + pulse); ctx.lineWidth = Math.max(2, M * 0.007); ctx.strokeStyle = 'hsla(' + hue0 + ',100%,88%,0.95)';
+    ctx.beginPath(); ctx.arc(cx, cy, rl, 0, 6.2832); ctx.stroke(); ctx.shadowBlur = 0;
     ctx.globalCompositeOperation = 'source-over';   // the ship, seen from behind, banking gently
     var sx = cx + Math.sin(t * 0.8) * W * 0.05, sy = H * 0.66 + Math.sin(t * 1.3) * H * 0.012, s = M / 480 * wDpr / wDpr * 1, bank = Math.sin(t * 0.8) * 0.16;
     ctx.save(); ctx.translate(sx, sy); ctx.rotate(bank); ctx.scale(s * 1.15, s * 1.15);
@@ -179,6 +194,7 @@
   function wormhole(on) {
     if (on) {
       wc = $('wh'); if (!wc) return; if (!wx) wx = wc.getContext('2d'); wormSize();
+      if (!wLogo) { wLogo = new Image(); wLogo.onload = function () { wLogoOk = true; }; wLogo.src = 'assets/logo.png'; }
       if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { wLast = 0; wormFrame(1000); cancelAnimationFrame(wRaf); return; }
       if (!wRaf) wRaf = requestAnimationFrame(wormFrame);
     } else if (wRaf) { cancelAnimationFrame(wRaf); wRaf = 0; }
