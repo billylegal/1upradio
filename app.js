@@ -128,6 +128,75 @@
   });
   paintSaved();
 
+  // ---- lyrics: LRCLIB (free, no key) timed lyrics that follow the song on the YouTube clock ----
+  var lyr = { key: '', data: null, tok: 0, adj: 0, idx: -1, manual: 0, looking: false, cache: {} };
+  var lyBox = $('lyrics');
+  function fold(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
+  function parseSong(t) {
+    var s = String(t || '').replace(/\s*[\(\[][^)\]]*(remaster|version|edit|mix|live|feat|ft\.?|official|video|radio|explicit|lyrics?|audio)[^)\]]*[\)\]]/ig, '').replace(/\s+/g, ' ').trim(), m = s.split(/\s[-–—]\s/);
+    return m.length >= 2 ? { artist: m[0].trim(), track: m.slice(1).join(' - ').trim() } : { artist: '', track: s };
+  }
+  function parseLRC(s) {
+    if (!s) return null; var out = [];
+    s.split('\n').forEach(function (row) { var m = /^\s*((?:\[\d+:\d+(?:\.\d+)?\]\s*)+)(.*)$/.exec(row); if (!m) return; (m[1].match(/\[(\d+):(\d+(?:\.\d+)?)\]/g) || []).forEach(function (ts) { var mm = /\[(\d+):(\d+(?:\.\d+)?)\]/.exec(ts); out.push({ t: +mm[1] * 60 + +mm[2], l: m[2].trim() }); }); });
+    out.sort(function (x, y) { return x.t - y.t; }); return out.length > 4 ? out : null;
+  }
+  function fetchLyrics(t) {
+    var p = parseSong(t); if (!p.track || p.track.length < 2) return Promise.resolve(null);
+    function J(u) { return fetch(u).then(function (r) { return r.ok ? r.json() : null; }); }
+    function good(d) { return d && (d.plainLyrics || '').trim().length > 40 && !d.instrumental; }
+    function pack(d) { return { t: d.trackName, a: d.artistName, text: d.plainLyrics.trim(), sync: parseLRC(d.syncedLyrics) }; }
+    var enc = encodeURIComponent, first = p.artist ? J('https://lrclib.net/api/get?artist_name=' + enc(p.artist) + '&track_name=' + enc(p.track)).catch(function () { return null; }) : Promise.resolve(null);
+    return first.then(function (d) {
+      if (good(d)) return pack(d);
+      return J('https://lrclib.net/api/search?q=' + enc((p.artist + ' ' + p.track).trim())).then(function (res) {
+        var ft = fold(p.track), fa = fold(p.artist);
+        var hit = (res || []).find(function (d) { return good(d) && (fold(d.trackName).indexOf(ft) >= 0 || ft.indexOf(fold(d.trackName)) >= 0) && (!fa || fold(d.artistName).indexOf(fa.split(' ')[0]) >= 0 || fa.indexOf(fold(d.artistName).split(' ')[0]) >= 0); });
+        return hit ? pack(hit) : null;
+      });
+    }).catch(function () { return null; });
+  }
+  function lyrCheck() {   // the song on air changed -> look its lyrics up
+    var p = curP, key = p ? p.id + '|' + p.title : '';
+    if (key === lyr.key) return; lyr.key = key; lyr.data = null; lyr.idx = -1; lyr.adj = 0; lyr.manual = 0; var tok = ++lyr.tok;
+    var b = $('lyrBtn'); b.disabled = true; b.classList.remove('on'); if (!p) return;
+    if (lyr.cache[key] !== undefined) { lyr.data = lyr.cache[key]; b.disabled = !lyr.data; b.classList.toggle('on', !!lyr.data); return; }
+    lyr.looking = true;
+    fetchLyrics(p.title).then(function (d) { lyr.cache[key] = d; if (tok !== lyr.tok) return; lyr.data = d; lyr.looking = false; b.disabled = !d; b.classList.toggle('on', !!d); });
+  }
+  function lyrPaint() {
+    var d = lyr.data; if (!d) return; $('lyT').textContent = d.t; $('lyA').textContent = d.a; lyr.idx = -1; lyBox.dataset.k = lyr.key;
+    if (d.sync) { $('lyB').innerHTML = d.sync.map(function (r, i) { return '<div class="ll" data-i="' + i + '">' + (r.l ? esc(r.l) : '♪') + '</div>'; }).join(''); lyBox.classList.add('sync'); }
+    else { $('lyB').textContent = d.text; lyBox.classList.remove('sync'); }
+    $('lyB').scrollTop = 0;
+  }
+  function lyrPos() { if (!yt || !ready) return null; try { return yt.getCurrentTime() + lyr.adj; } catch (e) { return null; } }
+  $('lyrBtn').addEventListener('click', function () { if (!lyr.data) return; if (lyBox.classList.contains('hidden')) { lyrPaint(); lyBox.classList.remove('hidden'); } else lyBox.classList.add('hidden'); });
+  $('lyX').addEventListener('click', function () { lyBox.classList.add('hidden'); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') lyBox.classList.add('hidden'); });
+  $('lyM').addEventListener('click', function () { lyr.adj -= 0.5; }); $('lyP').addEventListener('click', function () { lyr.adj += 0.5; });
+  $('lyB').addEventListener('click', function (e) {   // tap the line you hear -> lock the timing to it
+    var ln = e.target.closest('.ll'); if (!ln || !lyr.data || !lyr.data.sync || !yt || !ready) return;
+    try { lyr.adj = lyr.data.sync[+ln.dataset.i].t - yt.getCurrentTime(); } catch (x) {} lyr.manual = performance.now();
+  });
+  $('lyB').addEventListener('wheel', function () { lyr.manual = performance.now(); }, { passive: true });
+  $('lyB').addEventListener('touchmove', function () { lyr.manual = performance.now(); }, { passive: true });
+  setInterval(lyrCheck, 1000);
+  (function follow() {
+    requestAnimationFrame(follow);
+    if (lyBox.classList.contains('hidden')) return;
+    if (!lyr.data) { lyBox.classList.add('hidden'); return; }
+    if (lyBox.dataset.k !== lyr.key) lyrPaint();   // next song started while the window was open
+    var d = lyr.data, hint = $('lyH'); if (!d.sync) { hint.textContent = 'Words only · no timing for this song'; return; }
+    var p = lyrPos(); if (p == null) { hint.textContent = 'Press play and the words will follow'; return; }
+    hint.textContent = 'Following the song · tap a line to re-sync' + (lyr.adj ? ' · ' + (lyr.adj > 0 ? '+' : '') + lyr.adj.toFixed(1) + 's' : '');
+    var i = -1; for (var k = 0; k < d.sync.length; k++) { if (d.sync[k].t <= p + 0.15) i = k; else break; }
+    if (i !== lyr.idx) {
+      var rows = $('lyB').children; if (rows[lyr.idx]) rows[lyr.idx].classList.remove('on'); lyr.idx = i;
+      if (rows[i]) { rows[i].classList.add('on'); if (performance.now() - lyr.manual > 4000) { var b = $('lyB'), r = rows[i]; b.scrollTo({ top: r.offsetTop - b.clientHeight / 2 + r.offsetHeight / 2, behavior: 'smooth' }); } }
+    }
+  })();
+
   // ---- color themes: every tap on THEME switches to the next of 8 colors ----
   var THEMES = ['#39ff14', '#ffb000', '#ff3b3b', '#00e5ff', '#b4ff3c', '#ffe066', '#ff6a00', '#d946ff'], themeI = 0;
   var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash', 'space', 'marquee', 'blueprint', 'candy', 'glitch', 'press', 'meters', 'wormhole'], skinI = 0;
