@@ -141,20 +141,51 @@
     s.split('\n').forEach(function (row) { var m = /^\s*((?:\[\d+:\d+(?:\.\d+)?\]\s*)+)(.*)$/.exec(row); if (!m) return; (m[1].match(/\[(\d+):(\d+(?:\.\d+)?)\]/g) || []).forEach(function (ts) { var mm = /\[(\d+):(\d+(?:\.\d+)?)\]/.exec(ts); out.push({ t: +mm[1] * 60 + +mm[2], l: m[2].trim() }); }); });
     out.sort(function (x, y) { return x.t - y.t; }); return out.length > 4 ? out : null;
   }
-  function fetchLyrics(t) {
-    var p = parseSong(t); if (!p.track || p.track.length < 2) return Promise.resolve(null);
-    function J(u) { return fetch(u).then(function (r) { return r.ok ? r.json() : null; }); }
-    function good(d) { return d && (d.plainLyrics || '').trim().length > 40 && !d.instrumental; }
-    function pack(d) { return { t: d.trackName, a: d.artistName, text: d.plainLyrics.trim(), sync: parseLRC(d.syncedLyrics) }; }
-    var enc = encodeURIComponent, first = p.artist ? J('https://lrclib.net/api/get?artist_name=' + enc(p.artist) + '&track_name=' + enc(p.track)).catch(function () { return null; }) : Promise.resolve(null);
-    return first.then(function (d) {
-      if (good(d)) return pack(d);
-      return J('https://lrclib.net/api/search?q=' + enc((p.artist + ' ' + p.track).trim())).then(function (res) {
-        var ft = fold(p.track), fa = fold(p.artist);
-        var hit = (res || []).find(function (d) { return good(d) && (fold(d.trackName).indexOf(ft) >= 0 || ft.indexOf(fold(d.trackName)) >= 0) && (!fa || fold(d.artistName).indexOf(fa.split(' ')[0]) >= 0 || fa.indexOf(fold(d.artistName).split(' ')[0]) >= 0); });
-        return hit ? pack(hit) : null;
+  var STRIP = /\b(remix|mix|edit|version|remaster(?:ed)?|dub|rework|bootleg|vip)\b/i;
+  function variants(t) {   // the station's title -> (artist, track) guesses: drop (brackets), feat., trailing "- X Remix"; first of "A/B", "A, B"
+    var s = String(t || '').replace(/\s*[\(\[][^)\]]*[\)\]]/g, '').replace(/\b(feat|ft|featuring)\.?\s.*$/i, ''), parts = s.split(/\s[-–—]\s/).map(function (x) { return x.trim(); }).filter(Boolean);
+    while (parts.length > 2 && STRIP.test(parts[parts.length - 1])) parts.pop();
+    if (parts.length >= 2 && STRIP.test(parts[parts.length - 1])) parts.pop();
+    if (parts.length < 2) return [{ artist: '', track: parts[0] || s }];
+    var tr = parts.slice(1).join(' - '), first = parts[0].split(/\s*[\/,&]\s*/)[0].trim(), out = [{ artist: first, track: tr }];
+    if (first !== parts[0]) out.push({ artist: parts[0], track: tr }); return out;
+  }
+  var AI_URL = 'https://aviewfromspace.com/data/', aiIdx = null;
+  function aiKey(t) { var f = String(t || '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim(); return crypto.subtle.digest('SHA-1', new TextEncoder().encode(f)).then(function (b) { return Array.prototype.slice.call(new Uint8Array(b), 0, 6).map(function (x) { return x.toString(16).padStart(2, '0'); }).join(''); }); }
+  function aiLyrics(titles) {   // lyrics transcribed from the audio on the PC (Radio Globe's library) for songs LRCLIB lacks
+    var go = aiIdx ? Promise.resolve() : fetch(AI_URL + 'ai_lyrics_index.json').then(function (r) { return r.json(); }).then(function (j) { aiIdx = j.items || {}; setTimeout(function () { aiIdx = null; }, 300000); });
+    return go.then(function () { return Promise.all(titles.filter(Boolean).map(aiKey)); }).then(function (ks) {
+      var k = ks.find(function (x) { return aiIdx[x]; }); if (!k) return null;
+      return fetch(AI_URL + 'ai_lyrics/' + k + '.json').then(function (r) { return r.json(); }).then(function (d) {
+        if (!d.lines || !d.lines.length) return null; var p = parseSong(d.title || titles[0]);
+        return { t: p.track || d.title, a: p.artist, ai: true, text: d.lines.map(function (x) { return x.l; }).join('\n'), sync: d.lines.map(function (x) { return { t: x.t, l: x.l }; }) };
       });
     }).catch(function () { return null; });
+  }
+  function fetchLyrics(titles, dur) {   // titles: the station's title + YouTube's own; best LRCLIB match (closest in length, timed preferred) else the AI library
+    var enc = encodeURIComponent, seen = {}, vs = [];
+    titles.forEach(function (t) { variants(t).forEach(function (v) { var k = fold(v.artist + '|' + v.track); if (v.track && v.track.length > 1 && !seen[k]) { seen[k] = 1; vs.push(v); } }); });
+    function J(u) { return fetch(u).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
+    function good(d) { return d && (d.plainLyrics || '').trim().length > 40 && !d.instrumental; }
+    function pack(d) { return { t: d.trackName, a: d.artistName, text: d.plainLyrics.trim(), sync: parseLRC(d.syncedLyrics) }; }
+    function score(d) { return Math.abs((d.duration || 0) - dur) - (d.syncedLyrics ? 30 : 0); }
+    function tryV(i) {
+      if (i >= vs.length) return Promise.resolve(null);
+      var v = vs[i], ft = fold(v.track), fa = fold(v.artist), exact = v.artist ? J('https://lrclib.net/api/get?artist_name=' + enc(v.artist) + '&track_name=' + enc(v.track)) : Promise.resolve(null);
+      return exact.then(function (d) {
+        if (good(d)) return pack(d);
+        var qs = ['track_name=' + enc(v.track) + (v.artist ? '&artist_name=' + enc(v.artist) : ''), 'q=' + enc((v.artist + ' ' + v.track).trim()), 'q=' + enc(v.track)];
+        return Promise.all(qs.map(function (q) { return J('https://lrclib.net/api/search?' + q); })).then(function (rs) {
+          var c = {}; rs.forEach(function (res) { (res || []).forEach(function (d) {
+            if (!good(d)) return; var dt = fold(d.trackName), da = fold(d.artistName);
+            if (!(dt === ft || (ft.length > 3 && (dt.indexOf(ft) >= 0 || ft.indexOf(dt) >= 0)))) return;
+            if (fa && !fa.split(' ').some(function (w) { return da.split(' ').indexOf(w) >= 0; })) return; c[d.id] = d; }); });
+          var l = Object.keys(c).map(function (k) { return c[k]; }); if (!l.length) return tryV(i + 1);
+          l.sort(function (x, y) { return score(x) - score(y); }); return pack(l[0]);
+        });
+      });
+    }
+    return tryV(0).then(function (d) { return d || aiLyrics(titles); }).catch(function () { return aiLyrics(titles); });
   }
   function lyrCheck() {   // the song on air changed -> look its lyrics up
     var p = curP, key = p ? p.id + '|' + p.title : '';
@@ -162,16 +193,23 @@
     var b = $('lyrBtn'); b.disabled = true; b.classList.remove('on'); if (!p) return;
     if (lyr.cache[key] !== undefined) { lyr.data = lyr.cache[key]; b.disabled = !lyr.data; b.classList.toggle('on', !!lyr.data); return; }
     lyr.looking = true;
-    fetchLyrics(p.title).then(function (d) { lyr.cache[key] = d; if (tok !== lyr.tok) return; lyr.data = d; lyr.looking = false; b.disabled = !d; b.classList.toggle('on', !!d); });
+    var ytT = ''; try { ytT = yt.getVideoData().title || ''; } catch (e) {}
+    fetchLyrics([p.title, ytT], p.dur || 0).then(function (d) { lyr.cache[key] = d; if (tok !== lyr.tok) return; lyr.data = d; lyr.looking = false; b.disabled = !d; b.classList.toggle('on', !!d); });
   }
   function lyrPaint() {
-    var d = lyr.data; if (!d) return; $('lyT').textContent = d.t; $('lyA').textContent = d.a; lyr.idx = -1; lyBox.dataset.k = lyr.key;
+    var d = lyr.data; if (!d) return; $('lyT').textContent = d.t; $('lyA').textContent = d.a + (d.ai ? (d.a ? ' · ' : '') + '🤖 AI-transcribed, may contain mistakes' : ''); lyr.idx = -1; lyBox.dataset.k = lyr.key;
     if (d.sync) { $('lyB').innerHTML = d.sync.map(function (r, i) { return '<div class="ll" data-i="' + i + '">' + (r.l ? esc(r.l) : '♪') + '</div>'; }).join(''); lyBox.classList.add('sync'); }
     else { $('lyB').textContent = d.text; lyBox.classList.remove('sync'); }
     $('lyB').scrollTop = 0;
   }
   function lyrPos() { if (!yt || !ready) return null; try { return yt.getCurrentTime() + lyr.adj; } catch (e) { return null; } }
   $('lyrBtn').addEventListener('click', function () { if (!lyr.data) return; if (lyBox.classList.contains('hidden')) { lyrPaint(); lyBox.classList.remove('hidden'); } else lyBox.classList.add('hidden'); });
+  $('lyC').addEventListener('click', function () {   // copy the words (plain, one line per row) to the clipboard
+    var d = lyr.data; if (!d) return; var txt = (d.sync ? d.sync.map(function (r) { return r.l; }).join('\n') : d.text);
+    var b = $('lyC'); function ok() { b.textContent = '✓ Copied'; b.classList.add('done'); setTimeout(function () { b.textContent = '⧉ Copy'; b.classList.remove('done'); }, 1500); }
+    function old() { var ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); ok(); } catch (e) {} ta.remove(); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok, old); else old();
+  });
   $('lyX').addEventListener('click', function () { lyBox.classList.add('hidden'); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') lyBox.classList.add('hidden'); });
   $('lyM').addEventListener('click', function () { lyr.adj -= 0.5; }); $('lyP').addEventListener('click', function () { lyr.adj += 0.5; });

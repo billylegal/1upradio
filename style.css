@@ -776,3 +776,5 @@ html[data-skin]:not([data-skin=meters]):not([data-skin=wormhole]) .play svg{widt
 html[data-skin=meters] .lyrbtn{display:none!important}
 .btnrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:330px}
 .btnrow .savebtn{box-sizing:border-box;width:100%;min-width:0;margin:0;padding:9px 6px!important;font-size:11px!important;line-height:1.2;text-align:center;white-space:nowrap;display:block!important}
+
+#lyrics .lbt{display:flex;gap:8px;align-items:flex-start}#lyC{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:5px 10px;font:700 12px system-ui;cursor:pointer;white-space:nowrap}#lyC.done{background:var(--g);color:#000}
