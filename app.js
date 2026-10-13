@@ -1,5 +1,5 @@
 (function () {
-  var LIVE_HTML = '<span class="live">You are live with the station.<br class="mbr"> Keep the volume up.</span>';
+  var LIVE_HTML = '<span class="live">You are live with the station.<span class="kvu"><br class="mbr"> Keep the volume up.</span></span>';
   var $ = function (id) { return document.getElementById(id); };
   var S = { plays: [], delay: 420 }, yt = null, ready = false, started = false, playing = false, idx = -1, errs = 0, skipped = 0;
   // times shown are when each song plays for you: the same clock time it aired in Athens, on your local clock
