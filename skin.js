@@ -1,1 +1,1 @@
-try{var s=['retro','stream','glass','mono','synth','vinyl','terminal','brutal','aegean','gameboy','cassette','dash','space'][+(localStorage.getItem('up1-skin')||0)];if(s&&s!=='retro')document.documentElement.setAttribute('data-skin',s)}catch(e){}
+try{var s=['retro','stream','glass','mono','synth','vinyl','terminal','brutal','aegean','gameboy','cassette','dash','space','marquee','blueprint','candy','glitch','press','meters'][+(localStorage.getItem('up1-skin')||0)];if(s&&s!=='retro')document.documentElement.setAttribute('data-skin',s)}catch(e){}

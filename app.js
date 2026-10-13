@@ -74,8 +74,9 @@
 
   // ---- color themes: every tap on THEME switches to the next of 8 colors ----
   var THEMES = ['#39ff14', '#ffb000', '#ff3b3b', '#00e5ff', '#b4ff3c', '#ffe066', '#ff6a00', '#d946ff'], themeI = 0;
-  var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash', 'space'], skinI = 0;
-  var LIGHT = { glass: 1, aegean: 1, cassette: 1 }, NATIVE_OK = { retro: 0, stream: 0 };   // light skins get a darker tint of the colour; every other skin can also go back to its own native colours (-1)
+  var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash', 'space', 'marquee', 'blueprint', 'candy', 'glitch', 'press', 'meters'], skinI = 0;
+  var SKIN_NAMES = ['Retro', 'Stream', 'Glass', 'Mono', 'Synth', 'Vinyl', 'Terminal', 'Brutal', 'Aegean', 'GameBoy', 'Cassette', 'Dash', 'Space', 'Marquee', 'Blueprint', 'Candy', 'Glitch', 'Press', 'Meters'];
+  var LIGHT = { glass: 1, aegean: 1, cassette: 1, candy: 1, press: 1 }, NATIVE_OK = { retro: 0, stream: 0 };   // light skins get a darker tint of the colour; every other skin can also go back to its own native colours (-1)
   function skinName() { return SKINS[skinI]; }
   function themeKey() { return skinName() === 'retro' ? 'up1-theme' : 'up1-theme-' + skinName(); }
   function applyTheme(i) {
@@ -90,18 +91,28 @@
       } else {
         var k = LIGHT[sk] ? 0.62 : 1, rr = Math.round(r * k), gg = Math.round(g * k), bb = Math.round(b * k);
         st.setProperty('--g', 'rgb(' + rr + ',' + gg + ',' + bb + ')'); st.setProperty('--gr', rr + ',' + gg + ',' + bb);
-        if (!LIGHT[sk] && (sk === 'retro' || sk === 'stream' || sk === 'synth' || sk === 'vinyl' || sk === 'terminal' || sk === 'dash' || sk === 'space')) st.setProperty('--g2', mix(0.45, 140));
+        if (!LIGHT[sk] && (sk === 'retro' || sk === 'stream' || sk === 'synth' || sk === 'vinyl' || sk === 'terminal' || sk === 'dash' || sk === 'space' || sk === 'marquee' || sk === 'blueprint' || sk === 'glitch')) st.setProperty('--g2', mix(0.45, 140));
         if (sk === 'retro' || sk === 'stream') { st.setProperty('--line', mix(0.16, 6)); st.setProperty('--bg2', mix(0.035, 9)); }
       }
     }
+    if (themeI >= 0) document.documentElement.setAttribute('data-themed', ''); else document.documentElement.removeAttribute('data-themed');
     try { localStorage.setItem(themeKey(), String(themeI)); } catch (e) {}
   }
   function storedTheme() { try { var v = localStorage.getItem(themeKey()); if (v !== null) return +v; } catch (e) {} return (skinName() in NATIVE_OK) ? 0 : -1; }
+  function setBars(n) {   // the meter bridge: 12 bars normally, a whole wall of them in the Meters skin (each its own colour, speed and height)
+    var eq = $('eq'); if (!eq) return; var want = n || 12;
+    if (eq.children.length !== want || (n && !eq.firstChild.style.getPropertyValue('--bc')) || (!n && eq.firstChild.getAttribute('style'))) {
+      var html = ''; for (var i = 0; i < want; i++) html += n ? '<i style="--bc:hsl(' + Math.round(i * 360 / want) + ',95%,55%);--d:' + (0.45 + Math.random() * 0.9).toFixed(2) + 's;--dl:-' + (Math.random() * 1.6).toFixed(2) + 's;--hh:' + Math.round(55 + Math.random() * 45) + '%"></i>' : '<i></i>';
+      eq.innerHTML = html;
+    }
+  }
   function applySkin(i) {
     skinI = ((i % SKINS.length) + SKINS.length) % SKINS.length;
     if (SKINS[skinI] === 'retro') document.documentElement.removeAttribute('data-skin'); else document.documentElement.setAttribute('data-skin', SKINS[skinI]);
     try { localStorage.setItem('up1-skin', String(skinI)); } catch (e) {}
     applyTheme(storedTheme());
+    setBars(SKINS[skinI] === 'meters' ? 36 : 0);
+    if ($('skinName')) $('skinName').textContent = SKIN_NAMES[skinI];
   }
   try { skinI = +(localStorage.getItem('up1-skin') || 0) || 0; } catch (e) {}
   applySkin(skinI);
