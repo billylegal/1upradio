@@ -74,8 +74,8 @@
 
   // ---- color themes: every tap on THEME switches to the next of 8 colors ----
   var THEMES = ['#39ff14', '#ffb000', '#ff3b3b', '#00e5ff', '#b4ff3c', '#ffe066', '#ff6a00', '#d946ff'], themeI = 0;
-  var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash', 'space', 'marquee', 'blueprint', 'candy', 'glitch', 'press', 'meters'], skinI = 0;
-  var SKIN_NAMES = ['Retro', 'Stream', 'Glass', 'Mono', 'Synth', 'Vinyl', 'Terminal', 'Brutal', 'Aegean', 'GameBoy', 'Cassette', 'Dash', 'Space', 'Marquee', 'Blueprint', 'Candy', 'Glitch', 'Press', 'Meters'];
+  var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash', 'space', 'marquee', 'blueprint', 'candy', 'glitch', 'press', 'meters', 'wormhole'], skinI = 0;
+  var SKIN_NAMES = ['Retro', 'Stream', 'Glass', 'Mono', 'Synth', 'Vinyl', 'Terminal', 'Brutal', 'Aegean', 'GameBoy', 'Cassette', 'Dash', 'Space', 'Marquee', 'Blueprint', 'Candy', 'Glitch', 'Press', 'Meters', 'Wormhole'];
   var LIGHT = { glass: 1, aegean: 1, cassette: 1, candy: 1, press: 1 }, NATIVE_OK = { retro: 0, stream: 0 };   // light skins get a darker tint of the colour; every other skin can also go back to its own native colours (-1)
   function skinName() { return SKINS[skinI]; }
   function themeKey() { return skinName() === 'retro' ? 'up1-theme' : 'up1-theme-' + skinName(); }
@@ -91,7 +91,7 @@
       } else {
         var k = LIGHT[sk] ? 0.62 : 1, rr = Math.round(r * k), gg = Math.round(g * k), bb = Math.round(b * k);
         st.setProperty('--g', 'rgb(' + rr + ',' + gg + ',' + bb + ')'); st.setProperty('--gr', rr + ',' + gg + ',' + bb);
-        if (!LIGHT[sk] && (sk === 'retro' || sk === 'stream' || sk === 'synth' || sk === 'vinyl' || sk === 'terminal' || sk === 'dash' || sk === 'space' || sk === 'marquee' || sk === 'blueprint' || sk === 'glitch')) st.setProperty('--g2', mix(0.45, 140));
+        if (!LIGHT[sk] && (sk === 'retro' || sk === 'stream' || sk === 'synth' || sk === 'vinyl' || sk === 'terminal' || sk === 'dash' || sk === 'space' || sk === 'marquee' || sk === 'blueprint' || sk === 'glitch' || sk === 'wormhole')) st.setProperty('--g2', mix(0.45, 140));
         if (sk === 'retro' || sk === 'stream') { st.setProperty('--line', mix(0.16, 6)); st.setProperty('--bg2', mix(0.035, 9)); }
       }
     }
@@ -106,12 +106,91 @@
       eq.innerHTML = html;
     }
   }
+  // ---- wormhole skin: a canvas flight down a glowing tunnel (rings, warp streaks, a spaceship, and meter bars) ----
+  var wc = null, wx = null, wRaf = 0, wLast = 0, wZ = 0, wSpeed = 0.35, wStars = [], wHue = 270, wHueAt = 0, wDpr = 1;
+  function wormHue(t) {   // rainbow-ish violet/blue/magenta by default; the chosen THEME colour when one is picked
+    if (t - wHueAt > 0.5) { wHueAt = t; if (document.documentElement.hasAttribute('data-themed')) { var gr = (getComputedStyle(document.documentElement).getPropertyValue('--gr') || '169,139,255').split(',').map(Number), r = gr[0] / 255, g = gr[1] / 255, b = gr[2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, h = 0; if (d) { h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h = (h * 60 + 360) % 360; } wHue = h; wThemed = true; } else { wThemed = false; } }
+    return wHue;
+  }
+  var wThemed = false;
+  function wormSize() { if (!wc) return; wDpr = Math.min(window.devicePixelRatio || 1, 1.5); wc.width = Math.round(innerWidth * wDpr); wc.height = Math.round(innerHeight * wDpr); }
+  function wLevel(i, t, n) {   // fake spectrum (the YouTube player will not let the page hear the sound): lively while playing, calm when paused
+    var p = playing ? 1 : 0.18, v = 0.35 + 0.3 * Math.sin(t * (1.4 + i * 0.11) + i * 1.7) + 0.25 * Math.abs(Math.sin(t * 2.3 + i * 0.63));
+    var beat = playing ? Math.pow(Math.abs(Math.sin(t * 2.15)), 8) * (1 - i / n * 0.6) : 0;
+    return Math.max(0.03, Math.min(1, (v * p + beat * 0.55)));
+  }
+  function wormFrame(ts) {
+    wRaf = requestAnimationFrame(wormFrame);
+    if (!wc || document.hidden) return;
+    var t = ts / 1000, dt = Math.min(0.05, (ts - wLast) / 1000 || 0.016); wLast = ts;
+    wSpeed += ((playing ? 1 : 0.35) - wSpeed) * Math.min(1, dt * 2);
+    var W = wc.width, H = wc.height, cx = W / 2, cy = H * 0.45, M = Math.min(W, H), ctx = wx, hue0 = wormHue(t), sw = wThemed ? 28 : 70;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(2,2,12,0.32)'; ctx.fillRect(0, 0, W, H);
+    wZ = (wZ + dt * 0.5 * wSpeed) % 1;
+    var ang0 = t * 0.18 * (0.5 + wSpeed), k, a;
+    ctx.globalCompositeOperation = 'lighter';
+    var N = 26, prev = null;
+    for (k = 0; k < N; k++) {                       // rings: small and far at the centre, big and near at the edge
+      var u = (k + wZ) / N, r = Math.pow(u, 2.3) * Math.hypot(W, H) * 0.62, ox = Math.sin(t * 0.7 + u * 3.2) * W * 0.07 * (1 - u), oy = Math.cos(t * 0.9 + u * 2.6) * H * 0.05 * (1 - u);
+      var hue = (hue0 + sw * Math.sin(u * 6 + t * 0.6)) % 360;
+      ctx.strokeStyle = 'hsla(' + hue + ',100%,' + (48 + u * 14) + '%,' + (0.12 + u * 0.55) + ')'; ctx.lineWidth = (1 + u * 6) * wDpr;
+      ctx.beginPath(); ctx.arc(cx + ox, cy + oy, Math.max(1, r), 0, 6.2832); ctx.stroke();
+      if (prev && k % 2 === 0) {                    // tunnel ribs between neighbouring rings
+        ctx.lineWidth = wDpr; ctx.strokeStyle = 'hsla(' + hue + ',100%,60%,' + (0.08 + u * 0.18) + ')';
+        ctx.beginPath(); for (a = 0; a < 12; a++) { var an = a / 12 * 6.2832 + ang0 * (1 + u); ctx.moveTo(prev.x + Math.cos(an) * prev.r, prev.y + Math.sin(an) * prev.r); ctx.lineTo(cx + ox + Math.cos(an) * r, cy + oy + Math.sin(an) * r); } ctx.stroke();
+      }
+      prev = { x: cx + ox, y: cy + oy, r: Math.max(1, r) };
+    }
+    if (!wStars.length) for (k = 0; k < 110; k++) wStars.push({ a: Math.random() * 6.2832, r: Math.random(), s: 0.3 + Math.random() * 0.9 });
+    ctx.lineCap = 'round';
+    for (k = 0; k < wStars.length; k++) {           // warp streaks flying past
+      var st = wStars[k]; st.r += dt * (0.25 + st.s) * (0.5 + wSpeed * 1.6) * (0.2 + st.r); if (st.r > 1.1) { st.r = 0.02; st.a = Math.random() * 6.2832; }
+      var r1 = st.r * Math.hypot(W, H) * 0.55, r2 = r1 + (4 + st.r * 38 * wSpeed) * wDpr;
+      ctx.strokeStyle = 'hsla(' + ((hue0 + k * 3) % 360) + ',90%,80%,' + Math.min(0.9, st.r * 1.2) + ')'; ctx.lineWidth = (0.6 + st.r * 2) * wDpr;
+      ctx.beginPath(); ctx.moveTo(cx + Math.cos(st.a + ang0) * r1, cy + Math.sin(st.a + ang0) * r1); ctx.lineTo(cx + Math.cos(st.a + ang0) * r2, cy + Math.sin(st.a + ang0) * r2); ctx.stroke();
+    }
+    var gl = ctx.createRadialGradient(cx, cy, 0, cx, cy, M * 0.2); gl.addColorStop(0, 'rgba(255,255,255,0.95)'); gl.addColorStop(0.25, 'hsla(' + hue0 + ',100%,65%,0.55)'); gl.addColorStop(1, 'hsla(' + hue0 + ',100%,50%,0)');
+    ctx.fillStyle = gl; ctx.fillRect(cx - M * 0.2, cy - M * 0.2, M * 0.4, M * 0.4);
+    var NB = 56, R0 = M * 0.2;                      // meter ring around the tunnel mouth
+    ctx.lineWidth = Math.max(2, M * 0.009);
+    for (k = 0; k < NB; k++) {
+      var lv = wLevel(k % 28, t, 28), an2 = k / NB * 6.2832 + ang0 * 0.5, len = M * (0.02 + lv * 0.2);
+      ctx.strokeStyle = 'hsl(' + ((wThemed ? hue0 + (k % 8) * 5 : k / NB * 360 + t * 20) % 360) + ',100%,' + (50 + lv * 18) + '%)';
+      ctx.beginPath(); ctx.moveTo(cx + Math.cos(an2) * R0, cy + Math.sin(an2) * R0 * 0.9); ctx.lineTo(cx + Math.cos(an2) * (R0 + len), cy + Math.sin(an2) * (R0 + len) * 0.9); ctx.stroke();
+    }
+    var NF = 44, bw = W / NF;                       // meter bars along the bottom edge
+    for (k = 0; k < NF; k++) {
+      var lf = wLevel(k % 22, t + k * 0.05, 22), bh = lf * H * 0.3;
+      var gb = ctx.createLinearGradient(0, H, 0, H - bh); var hh = (wThemed ? hue0 + (k % 6) * 6 : k / NF * 360 + t * 20) % 360; gb.addColorStop(0, 'hsla(' + hh + ',100%,55%,0.65)'); gb.addColorStop(1, 'hsla(' + hh + ',100%,65%,0.05)');
+      ctx.fillStyle = gb; ctx.fillRect(k * bw + bw * 0.12, H - bh, bw * 0.76, bh);
+    }
+    ctx.globalCompositeOperation = 'source-over';   // the ship, seen from behind, banking gently
+    var sx = cx + Math.sin(t * 0.8) * W * 0.05, sy = H * 0.66 + Math.sin(t * 1.3) * H * 0.012, s = M / 480 * wDpr / wDpr * 1, bank = Math.sin(t * 0.8) * 0.16;
+    ctx.save(); ctx.translate(sx, sy); ctx.rotate(bank); ctx.scale(s * 1.15, s * 1.15);
+    var fl = 26 + Math.random() * 14 + wSpeed * 22, fg = ctx.createLinearGradient(0, 24, 0, 24 + fl * 2); fg.addColorStop(0, 'rgba(255,255,255,.95)'); fg.addColorStop(0.3, 'hsla(' + ((hue0 + 160) % 360) + ',100%,62%,.8)'); fg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = fg; ctx.beginPath(); ctx.moveTo(-10, 24); ctx.lineTo(0, 24 + fl * 2); ctx.lineTo(10, 24); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0, -40); ctx.lineTo(11, -10); ctx.lineTo(44, 20); ctx.lineTo(15, 16); ctx.lineTo(9, 28); ctx.lineTo(-9, 28); ctx.lineTo(-15, 16); ctx.lineTo(-44, 20); ctx.lineTo(-11, -10); ctx.closePath();
+    var bg = ctx.createLinearGradient(-40, -40, 40, 30); bg.addColorStop(0, '#f3f6ff'); bg.addColorStop(1, '#6a77a6'); ctx.fillStyle = bg; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = 'hsla(' + hue0 + ',100%,75%,.9)'; ctx.stroke();
+    ctx.fillStyle = 'hsl(' + ((hue0 + 160) % 360) + ',100%,60%)'; ctx.beginPath(); ctx.ellipse(0, -8, 5, 11, 0, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = 'hsla(' + hue0 + ',100%,70%,.9)'; ctx.fillRect(-30, 18, 8, 3); ctx.fillRect(22, 18, 8, 3);
+    ctx.restore();
+  }
+  function wormhole(on) {
+    if (on) {
+      wc = $('wh'); if (!wc) return; if (!wx) wx = wc.getContext('2d'); wormSize();
+      if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { wLast = 0; wormFrame(1000); cancelAnimationFrame(wRaf); return; }
+      if (!wRaf) wRaf = requestAnimationFrame(wormFrame);
+    } else if (wRaf) { cancelAnimationFrame(wRaf); wRaf = 0; }
+  }
+  addEventListener('resize', function () { if (wRaf) wormSize(); });
   function applySkin(i) {
     skinI = ((i % SKINS.length) + SKINS.length) % SKINS.length;
     if (SKINS[skinI] === 'retro') document.documentElement.removeAttribute('data-skin'); else document.documentElement.setAttribute('data-skin', SKINS[skinI]);
     try { localStorage.setItem('up1-skin', String(skinI)); } catch (e) {}
     applyTheme(storedTheme());
     setBars(SKINS[skinI] === 'meters' ? 36 : 0);
+    wormhole(SKINS[skinI] === 'wormhole');
     if ($('skinName')) $('skinName').textContent = SKIN_NAMES[skinI];
   }
   try { skinI = +(localStorage.getItem('up1-skin') || 0) || 0; } catch (e) {}

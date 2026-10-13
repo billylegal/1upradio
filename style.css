@@ -649,3 +649,26 @@ html[data-skin=meters] .ctl{position:fixed;left:50%;bottom:18px;transform:transl
 html[data-skin=meters] .play{width:56px;height:56px;border-radius:0;background:#fff;color:#000;box-shadow:none;flex:none}
 html[data-skin=meters] .vol{min-width:0}html[data-skin=meters] .vol span,html[data-skin=meters] .vol b{font-size:11px;letter-spacing:.14em;color:#fff}html[data-skin=meters] .vol input{accent-color:#fff}
 @media(prefers-reduced-motion:reduce){html[data-skin=meters] .eq i,html[data-skin=meters] .eq.on i{animation:none;height:40%}}
+
+/* --- wormhole: a spaceship flying down a glowing tunnel (canvas), with meter bars --- */
+#wh{display:none}
+html[data-skin=wormhole]{--bg:#02020c;--bg2:rgba(8,6,26,.55)!important;--line:rgba(var(--gr),.35)!important;--txt:#f1ecff;--dim:#b8abe6;--g:#a98bff;--gr:169,139,255;--g2:#d8c9ff}
+html[data-skin=wormhole] body{background:#02020c}
+html[data-skin=wormhole] #wh{display:block;position:fixed;left:0;top:0;width:100%;height:100%;z-index:0}
+html[data-skin=wormhole] *{font-family:'Orbitron','Barlow',system-ui,sans-serif!important}
+html[data-skin=wormhole] .top{background:rgba(3,2,16,.55);border-bottom:1px solid rgba(var(--gr),.5);z-index:6;backdrop-filter:blur(8px)}
+html[data-skin=wormhole] .one{color:var(--g);font-weight:900;font-size:24px!important;text-shadow:0 0 16px rgba(var(--gr),.9)!important}html[data-skin=wormhole] .rad{font-weight:700;letter-spacing:.3em;font-size:14px;color:#f1ecff}
+html[data-skin=wormhole] .tag{font-size:11px;letter-spacing:.22em;color:var(--dim)}
+html[data-skin=wormhole] .logo img{border-radius:50%;box-shadow:0 0 0 2px var(--g),0 0 22px rgba(var(--gr),.8)}
+html[data-skin=wormhole] .themebtn,html[data-skin=wormhole] .skinbtn{background:rgba(5,3,24,.6);border:1px solid var(--g);color:var(--g);border-radius:999px;font-weight:700;font-size:10px;letter-spacing:.18em;padding:7px 13px;box-shadow:0 0 14px rgba(var(--gr),.35)}
+html[data-skin=wormhole] .themebtn i{box-shadow:0 0 10px var(--g)}html[data-skin=wormhole] .themebtn:hover,html[data-skin=wormhole] .skinbtn:hover{background:var(--g);color:#02020c}
+html[data-skin=wormhole] .onair{font-size:11px;letter-spacing:.2em}html[data-skin=wormhole] .onair i{border-radius:50%}
+html[data-skin=wormhole] .cols,html[data-skin=wormhole] .card,html[data-skin=wormhole] footer,html[data-skin=wormhole] .hint,html[data-skin=wormhole] .lab,html[data-skin=wormhole] .bar,html[data-skin=wormhole] .eq,html[data-skin=wormhole] .savebtn{display:none!important}
+html[data-skin=wormhole] main.wrap{max-width:none;padding:0}
+html[data-skin=wormhole] .player{position:static;overflow:visible;border:0;background:none;box-shadow:none;padding:0;margin:0}html[data-skin=wormhole] .player::before{display:none}
+html[data-skin=wormhole] .np{position:fixed;left:24px;right:24px;top:84px;bottom:auto;z-index:3;pointer-events:none;padding:0;text-align:center}
+html[data-skin=wormhole] .title{font-size:clamp(22px,5vw,54px);line-height:1.05;text-transform:uppercase;color:#fff;margin:0;font-weight:900;letter-spacing:.06em;text-shadow:0 0 22px rgba(var(--gr),.95),0 0 4px #000}
+html[data-skin=wormhole] .artist{color:var(--g2);font-size:clamp(12px,2vw,18px);text-transform:uppercase;letter-spacing:.25em;margin-top:8px;text-shadow:0 0 10px #000}
+html[data-skin=wormhole] .ctl{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:4;margin:0;width:min(92vw,520px);background:rgba(3,2,16,.6);border:1px solid rgba(var(--gr),.55);border-radius:999px;padding:8px 18px 8px 10px;gap:14px;flex-wrap:nowrap;backdrop-filter:blur(8px);box-shadow:0 0 24px rgba(var(--gr),.3)}
+html[data-skin=wormhole] .play{width:54px;height:54px;border-radius:50%;background:rgba(var(--gr),.18);color:var(--g);border:2px solid var(--g);box-shadow:0 0 20px rgba(var(--gr),.55);flex:none}
+html[data-skin=wormhole] .vol{min-width:0}html[data-skin=wormhole] .vol span,html[data-skin=wormhole] .vol b{font-size:10px;letter-spacing:.2em;color:var(--g);font-weight:700}html[data-skin=wormhole] .vol input{accent-color:var(--g)}
