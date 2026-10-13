@@ -213,7 +213,7 @@
 
   var nextTimer = null, badIds = {}, curAlt = 0, curP = null;
   // ---- dead-air filler: when a song ends and the next slot is still a few seconds away, play station-ID jingles that finish before the next song starts ----
-  var JINGLES = [{"f": "assets/jingles/j3.mp3", "d": 6.11}, {"f": "assets/jingles/j5.mp3", "d": 4.95}, {"f": "assets/jingles/j7.mp3", "d": 8.14, "msg": "Try out our new features: tap SKIN to change the whole look, and THEME to change the colors."}, {"f": "assets/jingles/j8.mp3", "d": 7.72, "msg": "New: tap SKIN for a new look, tap THEME for new colors."}], jing = new Audio(), jingOn = false, jingUnlocked = false;
+  var JINGLES = [{"f": "assets/jingles/j6.mp3", "d": 3.5}, {"f": "assets/jingles/j3.mp3", "d": 6.11}, {"f": "assets/jingles/j5.mp3", "d": 4.95}, {"f": "assets/jingles/j7.mp3", "d": 8.14, "msg": "Try out our new features: tap SKIN to change the whole look, and THEME to change the colors."}, {"f": "assets/jingles/j8.mp3", "d": 7.72, "msg": "New: tap SKIN for a new look, tap THEME for new colors."}], jing = new Audio(), jingOn = false, jingUnlocked = false;
   jing.preload = 'auto';
   var hintWas = null;
   function showPromo(msg) { var h = $('hint'); if (!h) return; if (msg) { if (hintWas === null) hintWas = h.textContent; h.textContent = msg; h.classList.add('promo'); } else if (hintWas !== null) { h.textContent = hintWas; hintWas = null; h.classList.remove('promo'); } }
@@ -304,7 +304,7 @@
   // ---- hourly station ID: church bell, "The time is now ...", "One Up Radio. Keep the volume up." on the listener's local hour ----
   var chime = new Audio(), chimeOn = false, chimeUnlocked = false, chimeHour = -1, chimeKey = '', IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   chime.preload = 'auto';
-  function chimeSrc(h) { return 'assets/chimes/chime-' + (h % 12 || 12) + '.mp3'; }   // 12 clips: the bell, "the time is now N o'clock", the station ID
+  function chimeSrc(h) { return 'assets/chimes/chime-' + (h % 12 || 12) + '.mp3?v=2'; }   // 12 clips: the bell, "the time is now N o'clock", the station ID
   function chimePrep(h) { if (chimeHour !== h) { chimeHour = h; chime.src = chimeSrc(h); try { chime.load(); } catch (e) {} } }
   function unlockChime() {            // phones only let a sound play later if one was started inside a real tap: start it silently once
     if (chimeUnlocked) return; chimeUnlocked = true;
