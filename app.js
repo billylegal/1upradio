@@ -320,7 +320,7 @@
   // ---- hourly station ID: church bell, "The time is now ...", "One Up Radio. Keep the volume up." on the listener's local hour ----
   var chime = new Audio(), chimeOn = false, chimeUnlocked = false, chimeHour = -1, chimeKey = '', IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   chime.preload = 'auto';
-  function chimeSrc(h) { return 'assets/chimes/chime-' + (h % 12 || 12) + '.mp3?v=4'; }   // 12 clips: the bell, "the time is now N o'clock", the station ID
+  function chimeSrc(h) { return 'assets/chimes/chime-' + (h % 12 || 12) + '.mp3?v=5'; }   // 12 clips: a small ding, "The time is N o'clock.", "One Up Radio."
   function chimePrep(h) { if (chimeHour !== h) { chimeHour = h; chime.src = chimeSrc(h); try { chime.load(); } catch (e) {} } }
   function unlockChime() {            // phones only let a sound play later if one was started inside a real tap: start it silently once
     if (chimeUnlocked) return; chimeUnlocked = true;
