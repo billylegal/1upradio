@@ -54,14 +54,14 @@
     $('savedhint').style.display = saved.length ? 'none' : '';
     el.innerHTML = saved.map(function (s, i) {
       var a = split(s.title), q = encodeURIComponent(a[0] ? a[0] + ' ' + a[1] : a[1]), L = s.links || null, lk = '';
-      lk += '<a class="chip" href="https://www.youtube.com/watch?v=' + encodeURIComponent(s.id) + '" target="_blank" rel="noopener">YouTube</a>';
-      if (L && L.apple) lk += '<a class="chip found" href="' + esc(L.apple) + '" target="_blank" rel="noopener">Apple Music</a>';
-      if (L && L.deezer) lk += '<a class="chip found" href="' + esc(L.deezer) + '" target="_blank" rel="noopener">Deezer</a>';
-      lk += '<a class="chip srch" href="https://open.spotify.com/search/' + q + '" target="_blank" rel="noopener" title="Search Spotify">Spotify ⌕</a>' +
-        '<a class="chip srch" href="https://music.youtube.com/search?q=' + q + '" target="_blank" rel="noopener" title="Search YouTube Music">YT Music ⌕</a>' +
-        '<a class="chip srch" href="https://music.amazon.com/search/' + q + '" target="_blank" rel="noopener" title="Search Amazon Music">Amazon ⌕</a>' +
-        '<a class="chip srch" href="https://listen.tidal.com/search?q=' + q + '" target="_blank" rel="noopener" title="Search Tidal">Tidal ⌕</a>';
-      lk += !(L && L.apple !== undefined && L.deezer !== undefined) ? '<span class="snf">checking Apple Music &amp; Deezer…</span>' : (L.apple || L.deezer ? '' : '<span class="snf">not found on Apple Music or Deezer</span>');
+      lk += '<a class="chip found" href="https://www.youtube.com/watch?v=' + encodeURIComponent(s.id) + '" target="_blank" rel="noopener">YouTube ✓</a>';
+      if (L && L.apple) lk += '<a class="chip found" href="' + esc(L.apple) + '" target="_blank" rel="noopener">Apple ✓</a>';
+      if (L && L.deezer) lk += '<a class="chip found" href="' + esc(L.deezer) + '" target="_blank" rel="noopener">Deezer ✓</a>';
+      lk += '<a class="chip found" href="https://open.spotify.com/search/' + q + '" target="_blank" rel="noopener" title="Search Spotify">Spotify ⌕</a>' +
+        '<a class="chip found" href="https://music.youtube.com/search?q=' + q + '" target="_blank" rel="noopener" title="Search YouTube Music">YT Music ⌕</a>' +
+        '<a class="chip found" href="https://music.amazon.com/search/' + q + '" target="_blank" rel="noopener" title="Search Amazon Music">Amazon ⌕</a>' +
+        '<a class="chip found" href="https://listen.tidal.com/search?q=' + q + '" target="_blank" rel="noopener" title="Search Tidal">Tidal ⌕</a>';
+      lk += !(L && L.apple !== undefined && L.deezer !== undefined) ? '<span class="snf">checking Apple &amp; Deezer…</span>' : (L.apple || L.deezer ? '' : '<span class="snf">not found on Apple or Deezer</span>');
       return '<li class="srow"><span class="st">' + esc(a[0] ? a[0] + ' — ' + a[1] : a[1]) + '</span><button class="sdel" data-i="' + i + '" type="button" aria-label="Remove from saved songs" title="Remove">✕</button><div class="slinks">' + lk + '</div></li>';
     }).join('');
     lookupMissing();
@@ -107,9 +107,10 @@
   function lookupMissing() {
     if (lookingUp) return;
     saved.forEach(function (s) { if (s.lv !== 2) { s.links = {}; s.tries = 0; s.lv = 2; } });   // re-check songs matched by the older, looser rule
+    saved.forEach(function (s) { var l = s.links || {}; if (s.chk && Date.now() - s.chk > 864e5 && (l.apple === '' || l.deezer === '')) { if (l.apple === '') l.apple = undefined; if (l.deezer === '') l.deezer = undefined; s.tries = 0; s.chk = 0; } });   // not found yet? look again every 24 h
     var x = saved.find(function (s) { var l = s.links || {}; return (l.apple === undefined || l.deezer === undefined) && (s.tries || 0) < 3; }); if (!x) return;
     lookingUp = true; x.tries = (x.tries || 0) + 1;
-    findLinks(x.title, x.links).then(function (l) { x.links = l; persistSaved(); lookingUp = false; paintSaved(); }).catch(function () { lookingUp = false; });
+    findLinks(x.title, x.links).then(function (l) { x.links = l; if (l.apple !== undefined && l.deezer !== undefined) x.chk = Date.now(); persistSaved(); lookingUp = false; paintSaved(); }).catch(function () { lookingUp = false; });
   }
   $('saveBtn').addEventListener('click', function () {
     var p = curP || S.plays[idx]; if (!p) return;
