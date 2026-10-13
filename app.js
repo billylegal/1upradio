@@ -61,17 +61,23 @@
         '<a class="chip srch" href="https://music.youtube.com/search?q=' + q + '" target="_blank" rel="noopener" title="Search YouTube Music">YT Music ⌕</a>' +
         '<a class="chip srch" href="https://music.amazon.com/search/' + q + '" target="_blank" rel="noopener" title="Search Amazon Music">Amazon ⌕</a>' +
         '<a class="chip srch" href="https://listen.tidal.com/search?q=' + q + '" target="_blank" rel="noopener" title="Search Tidal">Tidal ⌕</a>';
-      lk += !L ? '<span class="snf">checking Apple Music &amp; Deezer…</span>' : (L.apple || L.deezer ? '' : '<span class="snf">not found on Apple Music or Deezer</span>');
+      lk += !(L && L.apple !== undefined && L.deezer !== undefined) ? '<span class="snf">checking Apple Music &amp; Deezer…</span>' : (L.apple || L.deezer ? '' : '<span class="snf">not found on Apple Music or Deezer</span>');
       return '<li class="srow"><span class="st">' + esc(a[0] ? a[0] + ' — ' + a[1] : a[1]) + '</span><button class="sdel" data-i="' + i + '" type="button" aria-label="Remove from saved songs" title="Remove">✕</button><div class="slinks">' + lk + '</div></li>';
     }).join('');
     lookupMissing();
   }
   // ---- which services carry a saved song: Apple Music (iTunes search) and Deezer (search, via JSONP) ----
   function sw(t) { return (t || '').toLowerCase().replace(/\(.*?\)|\[.*?\]/g, ' ').replace(/\b(feat|ft|featuring|remaster(ed)?|radio edit|original mix|mix|version|edit|official|video|audio|lyrics?)\b/g, ' ').replace(/[^\p{L}\p{N}]+/gu, ' ').trim().split(' ').filter(Boolean); }
-  function sameSong(saved, cand) {
-    var a = sw(saved), b = sw(cand); if (!a.length || !b.length) return false;
-    var hitA = a.filter(function (x) { return b.indexOf(x) >= 0; }).length / a.length, hitB = b.filter(function (x) { return a.indexOf(x) >= 0; }).length / b.length;
-    return hitA >= 0.8 && hitB >= 0.5;
+  // exact-song check: artist AND title must match ("Billy Legal - X" must not match "Billy Vaughn - X")
+  function inter(x, y) { return x.filter(function (w) { return y.indexOf(w) >= 0; }).length; }
+  function matchOne(A, T, cA, cT) {
+    if (!T.length || !cT.length) return false;
+    if (inter(T, cT) / T.length < 0.8 || inter(cT, T) / cT.length < 0.6) return false;
+    return !A.length || inter(A, cA) / Math.min(A.length, cA.length || 1) >= 0.7;
+  }
+  function sameSong(saved, cArtist, cTrack) {
+    var p = split(saved), A = sw(p[0]), T = sw(p[1]), cA = sw(cArtist), cT = sw(cTrack);
+    return matchOne(A, T, cA, cT) || (A.length > 0 && matchOne(T, A, cA, cT));   // station may send "Title - Artist"
   }
   function jsonp(u) {
     return new Promise(function (res) {
@@ -81,21 +87,29 @@
       s.src = u + '&output=jsonp&callback=' + cb; document.head.appendChild(s);
     });
   }
-  function findLinks(title) {
-    var parts = split(title), plain = parts[0] ? parts[0] + ' ' + parts[1] : parts[1], links = {}, ok = false, qq = encodeURIComponent(plain);
-    return fetch('https://itunes.apple.com/search?media=music&entity=song&limit=6&term=' + qq).then(function (r) { return r.json(); }).then(function (r) {
-      ok = true; var m = (r.results || []).find(function (x) { return sameSong(title, x.artistName + ' ' + x.trackName); });
-      if (m) links.apple = m.trackViewUrl.replace(/[?&]uo=\d+/, '');
-    }).catch(function () {}).then(function () { return jsonp('https://api.deezer.com/search?limit=6&q=' + qq); }).then(function (d) {
-      if (d && d.data) { ok = true; var m = d.data.find(function (x) { return sameSong(title, x.artist.name + ' ' + (x.title_short || x.title)); }); if (m) links.deezer = m.link; }
-      return ok ? links : null;   // null = services unreachable, try again later
+  // links.apple / links.deezer: URL = found, '' = checked and not there, undefined = could not check yet
+  function findLinks(title, prev) {
+    var parts = split(title), plain = parts[0] ? parts[0] + ' ' + parts[1] : parts[1], links = {}, qq = encodeURIComponent(plain);
+    if (prev) { links.apple = prev.apple; links.deezer = prev.deezer; }
+    function apple(n) {
+      if (links.apple !== undefined || n > 1) return Promise.resolve();
+      return fetch('https://itunes.apple.com/search?media=music&entity=song&limit=8&term=' + qq).then(function (r) { return r.json(); }).then(function (r) {
+        var m = (r.results || []).find(function (x) { return sameSong(title, x.artistName, x.trackName); });
+        links.apple = m ? m.trackViewUrl.replace(/[?&]uo=\d+/, '') : '';
+      }).catch(function () { return new Promise(function (ok) { setTimeout(ok, 1200); }).then(function () { return apple(n + 1); }); });
+    }
+    return apple(0).then(function () { return links.deezer !== undefined ? null : jsonp('https://api.deezer.com/search?limit=8&q=' + qq); }).then(function (d) {
+      if (d && d.data) { var m = d.data.find(function (x) { return sameSong(title, x.artist.name, x.title_short || x.title); }); links.deezer = m ? m.link : ''; }
+      return links;
     });
   }
   var lookingUp = false;
   function lookupMissing() {
-    if (lookingUp) return; var x = saved.find(function (s) { return !s.links && !s.tried; }); if (!x) return;
-    lookingUp = true;
-    findLinks(x.title).then(function (l) { if (l) x.links = l; else x.tried = 1; persistSaved(); lookingUp = false; paintSaved(); }).catch(function () { x.tried = 1; lookingUp = false; });
+    if (lookingUp) return;
+    saved.forEach(function (s) { if (s.lv !== 2) { s.links = {}; s.tries = 0; s.lv = 2; } });   // re-check songs matched by the older, looser rule
+    var x = saved.find(function (s) { var l = s.links || {}; return (l.apple === undefined || l.deezer === undefined) && (s.tries || 0) < 3; }); if (!x) return;
+    lookingUp = true; x.tries = (x.tries || 0) + 1;
+    findLinks(x.title, x.links).then(function (l) { x.links = l; persistSaved(); lookingUp = false; paintSaved(); }).catch(function () { lookingUp = false; });
   }
   $('saveBtn').addEventListener('click', function () {
     var p = curP || S.plays[idx]; if (!p) return;
