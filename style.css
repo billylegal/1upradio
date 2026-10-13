@@ -746,8 +746,6 @@ html[data-skin]:not([data-skin=meters]):not([data-skin=wormhole]) .play svg{widt
 .saved .chip.srch{border-style:dashed;opacity:.7}
 .saved .snf{font-size:11px;opacity:.65}
 
-.saved .chip.srch{border-style:solid;opacity:1}
-.saved .chip.found{background:var(--g);color:#000;border-color:var(--g);font-weight:700}
 
 /* skin button: forward arrow on the right too  [ < | SKIN name | > ] */
 .skinbtn .sk-f{font-style:normal;font-size:1.9em;line-height:.8;padding:2px 2px 4px 9px;margin-left:1px;border-left:1px solid currentColor;opacity:.95;cursor:pointer}
