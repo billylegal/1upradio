@@ -376,3 +376,22 @@
 
 ;(function(){var g=document.getElementById("tapgate");if(!g)return;function go(e){if(!g||!e.isTrusted)return;if(e.type==="click"){e.preventDefault();e.stopPropagation()}g.remove();g=null}window.addEventListener("click",go,true);window.addEventListener("keydown",go,true)})();
 
+
+;(function(){   // one-time pop-up: "try our new skins and themes", pointing at the buttons
+  var KEY = 'up1-tip-skins', tip = document.getElementById('tip'), tb = document.getElementById('themeBtn'), sb = document.getElementById('skinBtn'), timer = 0;
+  if (!tip || !tb || !sb) return;
+  try { if (localStorage.getItem(KEY) === '1') return; } catch (e) {}
+  function place() {
+    var a = tb.getBoundingClientRect(), b = sb.getBoundingClientRect(); if (!a.width && !b.width) { hide(); return; }
+    tip.style.top = (Math.max(a.bottom, b.bottom) + 18) + 'px';
+    var c1 = a.width ? a.left + a.width / 2 : b.left + b.width / 2, c2 = b.width ? b.left + b.width / 2 : c1, w = tip.offsetWidth, left = Math.min(Math.max(8, (c1 + c2) / 2 - w / 2), innerWidth - w - 8);
+    tip.style.left = left + 'px'; document.getElementById('tipa1').style.left = (c1 - left - 9) + 'px'; document.getElementById('tipa2').style.left = (c2 - left - 9) + 'px';
+    document.getElementById('tipa2').style.display = (a.width && b.width) ? '' : 'none';
+  }
+  function hide() { clearTimeout(timer); tip.hidden = true; tb.classList.remove('pulse'); sb.classList.remove('pulse'); removeEventListener('resize', place); try { localStorage.setItem(KEY, '1'); } catch (e) {} }
+  function show() { tip.hidden = false; place(); tb.classList.add('pulse'); sb.classList.add('pulse'); addEventListener('resize', place); timer = setTimeout(hide, 16000); }
+  document.getElementById('tipx').addEventListener('click', hide);
+  tb.addEventListener('click', hide, true); sb.addEventListener('click', hide, true);
+  addEventListener('keydown', function (e) { if (e.key === 'Escape') hide(); });
+  var iv = setInterval(function () { if (document.getElementById('tapgate')) return; clearInterval(iv); setTimeout(show, 1400); }, 400);
+})();
