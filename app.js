@@ -347,7 +347,7 @@
   // ---- phone lock screen / background: Media Session (title, artwork, play/pause buttons) + a silent looping sound that keeps the page's audio session alive, and a jump back to live whenever the phone wakes the page up ----
   var userPaused = false, keep = new Audio('assets/silence.mp3'); keep.loop = true; keep.setAttribute('playsinline', '');
   $('play').addEventListener('click', function () { userPaused = playing; }, true);
-  function keepSync() { try { if (started && gestured && !userPaused) { var pr = keep.play(); if (pr && pr.catch) pr.catch(function () {}); } else keep.pause(); } catch (e) {} }
+  function keepSync() { if (bgMode) return; try { if (started && gestured && !userPaused) { var pr = keep.play(); if (pr && pr.catch) pr.catch(function () {}); } else keep.pause(); } catch (e) {} }
   function goLive() { if (!started || !ready || !S.plays.length) return; userPaused = false; try { var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } catch (e) {} keepSync(); }
   var MS = 'mediaSession' in navigator ? navigator.mediaSession : null;
   function msMeta() {
@@ -355,14 +355,32 @@
     try { MS.metadata = new MediaMetadata({ title: a[1] || p.title, artist: a[0] || '1UP Radio', album: '1UP Radio · Keep the volume up', artwork: [{ src: 'assets/logo.png', sizes: '512x512', type: 'image/png' }] }); MS.playbackState = playing ? 'playing' : 'paused'; } catch (e) {}
   }
   if (MS) {
-    try { MS.setActionHandler('play', function () { if (!started) { $('play').click(); return; } goLive(); }); } catch (e) {}
-    try { MS.setActionHandler('pause', function () { userPaused = true; try { yt.pauseVideo(); } catch (e) {} keepSync(); }); } catch (e) {}
+    try { MS.setActionHandler('play', function () { if (!started) { $('play').click(); return; } if (bgMode) { userPaused = false; try { keep.play(); } catch (e) {} return; } goLive(); }); } catch (e) {}
+    try { MS.setActionHandler('pause', function () { userPaused = true; try { yt.pauseVideo(); } catch (e) {} if (bgMode) { try { keep.pause(); } catch (e) {} } keepSync(); }); } catch (e) {}
     try { MS.setActionHandler('stop', function () { userPaused = true; try { yt.pauseVideo(); } catch (e) {} keepSync(); }); } catch (e) {}
     try { MS.setActionHandler('nexttrack', null); MS.setActionHandler('previoustrack', null); } catch (e) {}
   }
-  setInterval(function () { msMeta(); keepSync(); }, 2000);
+  setInterval(function () { if (!bgMode) msMeta(); keepSync(); }, 2000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden && started && !playing && !userPaused && !chimeOn) goLive(); });
   addEventListener('pageshow', function () { if (started && !playing && !userPaused && !chimeOn) goLive(); });
+  // ---- phone background mode: YouTube pauses embedded players when a phone page is hidden, so when the page goes to the background on a phone we hand the audio element over to UP Radio Athens' live audio stream (a real stream, so the phone keeps it playing like Spotify), and come back to the normal 1UP schedule when the page is shown again ----
+  var BG_URL = 'https://athensupradio.evostream.gr/listen/up_radio_-_athens/radio.mp3', bgMode = false, IS_PHONE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  function bgStart() {
+    if (bgMode || !IS_PHONE || !started || userPaused || !gestured) return;
+    bgMode = true;
+    try { yt.pauseVideo(); } catch (e) {} clearNext(); stopJingle && stopJingle();
+    try { keep.loop = false; keep.src = BG_URL; keep.volume = Math.max(0.05, +$('vol').value / 100); var pr = keep.play(); if (pr && pr.catch) pr.catch(function () { bgMode = false; }); } catch (e) { bgMode = false; return; }
+    try { if (MS && typeof MediaMetadata !== 'undefined') { MS.metadata = new MediaMetadata({ title: 'UP Radio Athens · live', artist: '1UP Radio (background mode)', album: 'Keep the volume up', artwork: [{ src: 'assets/logo.png', sizes: '512x512', type: 'image/png' }] }); MS.playbackState = 'playing'; } } catch (e) {}
+  }
+  function bgStop(resume) {
+    if (!bgMode) return; bgMode = false;
+    try { keep.pause(); keep.src = 'assets/silence.mp3'; keep.loop = true; keep.volume = 1; } catch (e) {}
+    if (resume) goLive(); else keepSync();
+  }
+  document.addEventListener('visibilitychange', function () { if (document.hidden) bgStart(); else if (bgMode) { bgStop(true); $('hint').textContent = 'Back on 1UP Radio. Keep the volume up.'; } });
+  addEventListener('pagehide', function () { if (IS_PHONE) bgStart(); });
+  keep.addEventListener('error', function () { if (bgMode) { bgMode = false; try { keep.src = 'assets/silence.mp3'; keep.loop = true; } catch (e) {} } });
+
   // open playing: start on load; browsers block sound before the first tap, so fall back to silent autoplay and unmute on the first touch
   var mutedAuto = false;
   function unmuteNow(ev) {
