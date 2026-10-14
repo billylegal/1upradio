@@ -785,3 +785,7 @@ html[data-skin=meters] .lyrbtn{display:none!important}
 .bigst:hover{transform:rotate(-2deg) scale(1.04)}.bigst img{display:block;width:100%;height:auto}}
 html[data-skin=mono] .bigst img{filter:grayscale(1) contrast(1.1)}
 @media(prefers-reduced-motion:reduce){.bigst{transition:none}}
+
+@media(min-width:1280px){.bigr{top:128px;left:auto;right:calc(50% - 500px - var(--w) - 10px);transform:rotate(6deg)}.bigr:hover{transform:rotate(2deg) scale(1.04)}
+.bigs{position:fixed;top:auto;bottom:34px;left:auto;right:calc(50% - 500px - var(--w) - 10px);transform:rotate(-8deg)}.bigs:hover{transform:rotate(-3deg) scale(1.05)}}
+html[data-skin=mono] .bigr img,html[data-skin=mono] .bigs img{filter:grayscale(1) contrast(1.1)}
