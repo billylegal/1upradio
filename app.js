@@ -163,6 +163,7 @@
     }).catch(function () { return null; });
   }
   function fetchLyrics(titles, dur) {   // titles: the station's title + YouTube's own; best LRCLIB match (closest in length, timed preferred) else the AI library
+    if (titles.some(function (t) { return /^\s*billy legal\b/i.test(t || ''); })) return Promise.resolve(null);   // Billy's own songs: no lyrics source is verified, never guess
     var enc = encodeURIComponent, seen = {}, vs = [];
     titles.forEach(function (t) { variants(t).forEach(function (v) { var k = fold(v.artist + '|' + v.track); if (v.track && v.track.length > 1 && !seen[k]) { seen[k] = 1; vs.push(v); } }); });
     function J(u) { return fetch(u).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
