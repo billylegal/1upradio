@@ -789,3 +789,16 @@ html[data-skin=mono] .bigst img{filter:grayscale(1) contrast(1.1)}
 @media(min-width:1280px){.bigr{top:128px;left:auto;right:calc(50% - 500px - var(--w) - 10px);transform:rotate(6deg)}.bigr:hover{transform:rotate(2deg) scale(1.04)}
 .bigs{position:fixed;top:auto;bottom:34px;left:auto;right:calc(50% - 500px - var(--w) - 10px);transform:rotate(-8deg)}.bigs:hover{transform:rotate(-3deg) scale(1.05)}}
 html[data-skin=mono] .bigr img,html[data-skin=mono] .bigs img{filter:grayscale(1) contrast(1.1)}
+
+/* shuttle sticker: animated engine flames (desktop only, same as the sticker) */
+.bigs .fl{display:none}
+@media(min-width:1280px){.bigs{right:calc(50% - 500px - var(--w) - 10px + var(--w) * .2)}
+.bigs img{position:relative;z-index:1}
+.bigs .fl{display:block;position:absolute;z-index:0;left:80%;top:37%;width:38%;height:auto;overflow:visible;transform-origin:0 50%;transform:rotate(-25deg);pointer-events:none;filter:drop-shadow(0 0 7px rgba(255,120,0,.85))}
+.bigs .fl path{transform-box:fill-box;transform-origin:0 50%}
+.bigs .fl .o{animation:fo .13s ease-in-out infinite alternate}.bigs .fl .m{animation:fm .09s ease-in-out infinite alternate}.bigs .fl .c{animation:fc .07s ease-in-out infinite alternate}}
+@keyframes fo{from{transform:scale(.82,.9)}to{transform:scale(1.18,1.08)}}
+@keyframes fm{from{transform:scale(1.1,.9)}to{transform:scale(.8,1.1)}}
+@keyframes fc{from{transform:scale(.8,1)}to{transform:scale(1.15,.85)}}
+html[data-skin=mono] .bigs .fl{filter:grayscale(1)}
+@media(prefers-reduced-motion:reduce){.bigs .fl path{animation:none}}
