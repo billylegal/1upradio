@@ -238,9 +238,12 @@
 
   // ---- color themes: every tap on THEME switches to the next of 8 colors ----
   var THEMES = ['#39ff14', '#ffb000', '#ff3b3b', '#00e5ff', '#b4ff3c', '#ffe066', '#ff6a00', '#d946ff'], themeI = 0;
-  var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash', 'space', 'marquee', 'blueprint', 'candy', 'glitch', 'press', 'meters', 'wormhole'], skinI = 0;
-  var SKIN_NAMES = ['Retro', 'Stream', 'Glass', 'Mono', 'Synth', 'Vinyl', 'Terminal', 'Brutal', 'Aegean', 'GameBoy', 'Cassette', 'Dash', 'Space', 'Marquee', 'Blueprint', 'Candy', 'Glitch', 'Press', 'Meters', 'Wormhole'];
+  var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash', 'space', 'marquee', 'blueprint', 'candy', 'glitch', 'press', 'meters', 'wormhole', 'nebula'], skinI = 0;
+  var SKIN_NAMES = ['Retro', 'Stream', 'Glass', 'Mono', 'Synth', 'Vinyl', 'Terminal', 'Brutal', 'Aegean', 'GameBoy', 'Cassette', 'Dash', 'Space', 'Marquee', 'Blueprint', 'Candy', 'Glitch', 'Press', 'Meters', 'Wormhole', 'Nebula'];
   var LIGHT = { glass: 1, aegean: 1, cassette: 1, candy: 1, press: 1 }, NATIVE_OK = { retro: 0, stream: 0 };   // light skins get a darker tint of the colour; every other skin can also go back to its own native colours (-1)
+  // Place the SKIN button right after the THEME button whatever the skin's font makes of their widths (desktop; phones lay them out in a row via CSS).
+  function fitBtns() { var t = $('themeBtn'), s = $('skinBtn'); if (!t || !s) return; if (window.innerWidth <= 900) { s.style.left = ''; return; } s.style.left = (t.offsetLeft + t.offsetWidth + 10) + 'px'; }
+  window.addEventListener('resize', fitBtns); if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitBtns);
   function skinName() { return SKINS[skinI]; }
   function themeKey() { return skinName() === 'retro' ? 'up1-theme' : 'up1-theme-' + skinName(); }
   function applyTheme(i) {
@@ -372,6 +375,7 @@
     setBars(SKINS[skinI] === 'meters' ? 36 : 0);
     wormhole(SKINS[skinI] === 'wormhole');
     if ($('skinName')) $('skinName').textContent = SKIN_NAMES[skinI];
+    fitBtns(); setTimeout(fitBtns, 250);
   }
   try { skinI = +(localStorage.getItem('up1-skin') || 0) || 0; } catch (e) {}
   applySkin(skinI);

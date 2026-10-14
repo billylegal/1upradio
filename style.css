@@ -470,6 +470,41 @@ html[data-skin=space] .list li .hb{border:1px solid rgba(255,255,255,.28);border
 html[data-skin=space] .days button{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.2);border-radius:999px;color:#eaf2ff;font-weight:600;font-size:12px;letter-spacing:.16em}html[data-skin=space] .days button.on{background:rgba(var(--gr),.3);border-color:var(--g);color:#fff}
 html[data-skin=space] footer{border-top:1px solid rgba(255,255,255,.12);color:var(--dim)}html[data-skin=space] footer a{color:var(--g2)}
 @media(prefers-reduced-motion:reduce){html[data-skin=space] .player,html[data-skin=space] .card,html[data-skin=space] body::before,html[data-skin=space] body::after,html[data-skin=space] .play::after{animation:none}}
+/* --- nebula: the Legal Dock "Nebula" desktop theme (purple space wallpaper) --- */
+html[data-skin=nebula]{--bg:#07050F;--bg2:rgba(139,92,246,.07)!important;--line:rgba(184,162,255,.28)!important;--txt:#E6E1FA;--dim:#8E86B0;--g:#8B5CF6;--gr:139,92,246;--g2:#CC8CFF;--red:#F0517A}
+html[data-skin=nebula]{background:#07050F url(assets/nebula-bg.jpg) center/cover fixed}
+html[data-skin=nebula] body{background:transparent;color:#E6E1FA}
+html[data-skin=nebula] *{font-family:'Barlow','Barlow Condensed',system-ui,sans-serif!important}
+@keyframes nebuladrift{to{transform:translateY(-100vh)}}@keyframes nebulatwinkle{from{opacity:.25}to{opacity:1}}
+@keyframes nebulafloat{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(4px,-9px) rotate(.12deg)}100%{transform:translate(-3px,3px) rotate(-.1deg)}}
+html[data-skin=nebula] .top{background:rgba(2,3,12,.45);border-bottom:1px solid rgba(255,255,255,.12);backdrop-filter:blur(12px)}
+html[data-skin=nebula] .one{color:var(--g);font-weight:700;font-size:26px!important;letter-spacing:.06em;text-shadow:0 0 18px rgba(var(--gr),.8)!important}html[data-skin=nebula] .rad{font-weight:300;letter-spacing:.5em;font-size:16px;color:#eaf2ff}
+html[data-skin=nebula] .tag{color:var(--dim);letter-spacing:.3em;font-size:12px;text-transform:uppercase;font-weight:300}
+html[data-skin=nebula] .logo img{border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,.4),0 0 24px rgba(var(--gr),.6)}
+html[data-skin=nebula] .themebtn,html[data-skin=nebula] .skinbtn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.3);color:#eaf2ff;border-radius:999px;font-weight:600;font-size:11px;letter-spacing:.22em;padding:8px 14px;backdrop-filter:blur(6px)}
+html[data-skin=nebula] .themebtn i{border-radius:50%;box-shadow:0 0 10px var(--g)}html[data-skin=nebula] .themebtn:hover,html[data-skin=nebula] .skinbtn:hover{background:rgba(var(--gr),.25);color:#fff;border-color:var(--g)}html[data-skin=nebula] .themebtn:hover i{background:var(--g)}
+html[data-skin=nebula] .onair{font-size:11px;letter-spacing:.25em;font-weight:600}html[data-skin=nebula] .onair i{border-radius:50%;background:#46567a;box-shadow:none}html[data-skin=nebula] .onair.on{color:#8dffc7}html[data-skin=nebula] .onair.on i{background:#8dffc7;box-shadow:0 0 14px #8dffc7}
+html[data-skin=nebula] .player{border:1px solid rgba(255,255,255,.2);border-radius:28px;background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.015));box-shadow:0 0 60px rgba(var(--gr),.14),inset 0 0 40px rgba(255,255,255,.03);backdrop-filter:blur(7px);padding:32px 30px 24px;animation:nebulafloat 11s ease-in-out infinite alternate}
+html[data-skin=nebula] .player::before{display:none}
+html[data-skin=nebula] .eq i{background:linear-gradient(0deg,var(--g),transparent);box-shadow:0 0 10px rgba(var(--gr),.7);opacity:.9;border-radius:2px;width:3px;flex:0 0 3px}html[data-skin=nebula] .eq{justify-content:nebula-between}
+html[data-skin=nebula] .lab{color:var(--dim);font-weight:600;font-size:11px;letter-spacing:.45em}
+html[data-skin=nebula] .title{font-weight:300;text-transform:uppercase;font-size:clamp(26px,5vw,52px);letter-spacing:.07em;line-height:1.1;color:#fff;text-shadow:0 0 24px rgba(var(--gr),.55)}
+html[data-skin=nebula] .artist{color:var(--g2);font-weight:400;letter-spacing:.2em;text-transform:uppercase;font-size:14px}
+html[data-skin=nebula] .savebtn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.3);color:#eaf2ff;border-radius:999px;font-weight:600;font-size:12px;letter-spacing:.2em;padding:9px 18px}
+html[data-skin=nebula] .savebtn:hover:not(:disabled){background:rgba(var(--gr),.22);border-color:var(--g);color:#fff}html[data-skin=nebula] .savebtn.on{background:rgba(var(--gr),.35);border-color:var(--g);color:#fff}
+html[data-skin=nebula] .bar{height:2px;background:rgba(255,255,255,.18)}html[data-skin=nebula] .fill{background:var(--g);box-shadow:0 0 12px var(--g)}
+html[data-skin=nebula] .play{position:relative;width:74px;height:74px;border-radius:50%;background:rgba(var(--gr),.12);color:var(--g);border:1px solid rgba(var(--gr),.7);box-shadow:0 0 30px rgba(var(--gr),.45),inset 0 0 18px rgba(var(--gr),.25);backdrop-filter:blur(4px)}
+html[data-skin=nebula] .play::after{content:"";position:absolute;inset:-13px;border:1px dashed rgba(var(--gr),.45);border-radius:50%;animation:nebulaspin 16s linear infinite;pointer-events:none}@keyframes nebulaspin{to{transform:rotate(360deg)}}
+html[data-skin=nebula] .vol span,html[data-skin=nebula] .vol b{font-size:11px;font-weight:600;letter-spacing:.25em;color:var(--g)}html[data-skin=nebula] .vol input{accent-color:var(--g)}
+html[data-skin=nebula] .hint,html[data-skin=nebula] .note{color:var(--dim);font-weight:300;letter-spacing:.04em}
+html[data-skin=nebula] .card{border:1px solid rgba(255,255,255,.16);border-radius:24px;background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.01));box-shadow:0 0 44px rgba(var(--gr),.09);backdrop-filter:blur(7px);animation:nebulafloat 14s ease-in-out infinite alternate}
+html[data-skin=nebula] .cols .card:nth-child(2){animation-duration:17s;animation-delay:-5s}html[data-skin=nebula] .card.saved{animation-duration:15s;animation-delay:-3s}html[data-skin=nebula] .card.sched{animation-duration:19s;animation-delay:-8s}
+html[data-skin=nebula] h2{color:var(--g2);font-size:13px;font-weight:600;letter-spacing:.4em;text-transform:uppercase}
+html[data-skin=nebula] .list li{border-bottom:1px solid rgba(255,255,255,.08);align-items:center;color:#eaf2ff;font-weight:300}html[data-skin=nebula] .list li time{color:var(--dim);font-size:10px;font-weight:600}html[data-skin=nebula] .list li.now{color:var(--g);text-shadow:0 0 12px rgba(var(--gr),.7);font-weight:600}
+html[data-skin=nebula] .list li .hb{border:1px solid rgba(255,255,255,.28);border-radius:50%;color:var(--g);background:transparent}html[data-skin=nebula] .list li .hb.on{background:rgba(var(--gr),.3);border-color:var(--g);color:#fff}
+html[data-skin=nebula] .days button{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.2);border-radius:999px;color:#eaf2ff;font-weight:600;font-size:12px;letter-spacing:.16em}html[data-skin=nebula] .days button.on{background:rgba(var(--gr),.3);border-color:var(--g);color:#fff}
+html[data-skin=nebula] footer{border-top:1px solid rgba(255,255,255,.12);color:var(--dim)}html[data-skin=nebula] footer a{color:var(--g2)}
+@media(prefers-reduced-motion:reduce){html[data-skin=nebula] .player,html[data-skin=nebula] .card,html[data-skin=nebula] body::before,html[data-skin=nebula] body::after,html[data-skin=nebula] .play::after{animation:none}}
 
 /* skin name inside the SKIN button */
 .skinbtn{flex-direction:column;gap:3px!important;line-height:1.1;align-items:center}
@@ -822,3 +857,18 @@ html[data-skin=mono] .shy .fl{filter:grayscale(1)}
 @media(max-width:720px){.sh{height:84px}.shy{width:80px;margin-top:0;animation-duration:46s,2.8s}.shx{animation-duration:46s}}
 
 #gclock{font-family:'Press Start 2P',monospace;color:var(--g2);text-align:center;margin-top:6px}#gclock .gd{font-size:clamp(9px,2.4vw,13px);letter-spacing:.06em;opacity:.8;margin-bottom:14px}#gclock .gz{display:flex;gap:clamp(18px,6vw,48px);justify-content:center}#gclock .gz b{display:block;font-weight:400;font-size:clamp(8px,2vw,11px);letter-spacing:.12em;opacity:.7;margin-bottom:8px}#gclock .gt{display:block;font-size:clamp(13px,4vw,24px);letter-spacing:.05em;text-shadow:0 0 14px rgba(var(--gr),.55)}
+
+/* wormhole: no floating stickers over the flight (the small sticker in the footer stays) */
+html[data-skin=wormhole] .bigst,html[data-skin=wormhole] .bh,html[data-skin=wormhole] .sh{display:none!important}
+
+/* header buttons: keep the text inside on small screens, per skin */
+@media(max-width:700px){
+  html[data-skin=gameboy] .tag{display:none!important}
+  html[data-skin=wormhole] .np{top:182px!important}
+  html[data-skin=wormhole] .title{font-size:clamp(16px,5.4vw,26px)}
+  .themebtn,.skinbtn{min-width:0;white-space:nowrap}
+  .skinbtn small{font-size:.6em;letter-spacing:.02em}
+  html[data-skin=gameboy] .skinbtn small,html[data-skin=wormhole] .skinbtn small{font-size:.58em;letter-spacing:0}
+  html[data-skin=gameboy] .skinbtn,html[data-skin=gameboy] .themebtn{padding-left:6px;padding-right:6px}
+}
+html[data-skin=gameboy] .themebtn,html[data-skin=gameboy] .skinbtn{font-size:8px;letter-spacing:.06em}
