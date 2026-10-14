@@ -802,3 +802,21 @@ html[data-skin=mono] .bigr img,html[data-skin=mono] .bigs img{filter:grayscale(1
 @keyframes fc{from{transform:scale(.8,1)}to{transform:scale(1.15,.85)}}
 html[data-skin=mono] .bigs .fl{filter:grayscale(1)}
 @media(prefers-reduced-motion:reduce){.bigs .fl path{animation:none}}
+
+/* small shuttle on desktop: flies across the top banner end to end, back and forth, with engine flames */
+@media(min-width:1280px){
+.sh{inset:0 0 auto 0;height:84px}
+.shx{animation:shflyx 24s linear infinite;animation-delay:0s}
+.shy{position:relative;width:84px;margin-top:4px;animation:shflip 24s linear infinite,shbob 2.6s ease-in-out infinite alternate;animation-delay:0s,0s}
+.shx:hover,.shx:hover .shy{animation-play-state:paused}
+.shy .fl{display:block;position:absolute;z-index:0;left:80%;top:37%;width:42%;height:auto;overflow:visible;transform-origin:0 50%;transform:rotate(-25deg);pointer-events:none;filter:drop-shadow(0 0 6px rgba(255,120,0,.85))}
+.shy img{position:relative;z-index:1}
+.shy .fl path{transform-box:fill-box;transform-origin:0 50%}
+.shy .fl .o{animation:fo .13s ease-in-out infinite alternate}.shy .fl .m{animation:fm .09s ease-in-out infinite alternate}.shy .fl .c{animation:fc .07s ease-in-out infinite alternate}}
+@media(max-width:1279px){.shy .fl{display:none}}
+@keyframes shflyx{0%{transform:translateX(-130px)}50%{transform:translateX(calc(100vw + 40px))}100%{transform:translateX(-130px)}}
+@keyframes shflip{0%,49.99%{transform:rotate(-25deg) scaleX(-1)}50%,100%{transform:rotate(25deg)}}
+@keyframes shbob{from{translate:0 0}to{translate:0 9px}}
+html[data-skin=mono] .shy .fl{filter:grayscale(1)}
+@media(prefers-reduced-motion:reduce){.shy .fl path{animation:none}}
+@media(min-width:1280px) and (prefers-reduced-motion:reduce){.sh{display:none}}
