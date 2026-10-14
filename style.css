@@ -819,4 +819,4 @@ html[data-skin=mono] .shy .fl{filter:grayscale(1)}
 @media(prefers-reduced-motion:reduce){.shy .fl path{animation:none}}
 @media(prefers-reduced-motion:reduce){.sh{display:none}}
 @media(max-width:1279px){.sh{height:70px}.shy{width:62px;margin-top:3px}}
-@media(max-width:720px){.sh{height:58px}.shy{width:52px;margin-top:2px}}
+@media(max-width:720px){.sh{height:84px}.shy{width:80px;margin-top:0;animation-duration:46s,2.8s}.shx{animation-duration:46s}}
