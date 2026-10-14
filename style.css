@@ -820,3 +820,5 @@ html[data-skin=mono] .shy .fl{filter:grayscale(1)}
 @media(prefers-reduced-motion:reduce){.sh{display:none}}
 @media(max-width:1279px){.sh{height:70px}.shy{width:62px;margin-top:3px}}
 @media(max-width:720px){.sh{height:84px}.shy{width:80px;margin-top:0;animation-duration:46s,2.8s}.shx{animation-duration:46s}}
+
+#gclock{font-family:'Press Start 2P',monospace;color:var(--g2);text-align:center;margin-top:6px}#gclock .gd{font-size:clamp(9px,2.4vw,13px);letter-spacing:.06em;opacity:.8;margin-bottom:12px}#gclock .gt{font-size:clamp(20px,6.5vw,38px);letter-spacing:.08em;text-shadow:0 0 14px rgba(var(--gr),.55)}

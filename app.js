@@ -579,3 +579,5 @@
   addEventListener('keydown', function (e) { if (e.key === 'Escape') hide(); });
   var iv = setInterval(function () { if (document.getElementById('tapgate')) return; clearInterval(iv); setTimeout(show, 1400); }, 400);
 })();
+
+;(function(){var d=document.querySelector("#gclock .gd"),t=document.querySelector("#gclock .gt");if(!d||!t)return;function tick(){var n=new Date();d.textContent=n.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"}).toUpperCase();t.textContent=n.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit",second:"2-digit"})}tick();var iv=setInterval(function(){if(!document.getElementById("gclock"))return clearInterval(iv);tick()},1000)})();
