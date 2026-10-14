@@ -778,3 +778,10 @@ html[data-skin=meters] .lyrbtn{display:none!important}
 .btnrow .savebtn{box-sizing:border-box;width:100%;min-width:0;margin:0;padding:9px 6px!important;font-size:11px!important;line-height:1.2;text-align:center;white-space:nowrap;display:block!important}
 
 #lyrics .lbt{display:flex;gap:8px;align-items:flex-start}#lyC{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:5px 10px;font:700 12px system-ui;cursor:pointer;white-space:nowrap}#lyC.done{background:var(--g);color:#000}
+
+/* big Billy Legal sticker beside the player: desktop only (hidden on tablet + phone) */
+.bigst{display:none}
+@media(min-width:1280px){.bigst{display:block;position:absolute;z-index:30;top:128px;--w:min(230px,calc((100vw - 1000px)/2 - 26px));width:var(--w);left:calc(50% - 500px - var(--w) - 10px);transform:rotate(-6deg);filter:drop-shadow(0 8px 16px rgba(0,0,0,.6));transition:transform .2s}
+.bigst:hover{transform:rotate(-2deg) scale(1.04)}.bigst img{display:block;width:100%;height:auto}}
+html[data-skin=mono] .bigst img{filter:grayscale(1) contrast(1.1)}
+@media(prefers-reduced-motion:reduce){.bigst{transition:none}}
