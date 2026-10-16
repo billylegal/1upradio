@@ -10,7 +10,7 @@ for p in sorted(plays, key=lambda p: p['t']):
     tr = tracks.get(p['oid'])
     if not tr or not tr.get('id'): miss += 1; continue
     day = datetime.datetime.fromtimestamp(p['t'], A).date().isoformat()
-    if (day, p['oid']) in seen: skipped += 1; continue          # never play the same song twice in one (Athens) day
+    if (day, p['oid']) in seen and not p.get('est'): skipped += 1; continue          # never play the same song twice in one (Athens) day (the song on air always stays)
     seen.add((day, p['oid']))
     out.append({'t': p['t'], 'id': tr['id'], 'title': p['title'], 'dur': tr.get('dur') or 240})
 
