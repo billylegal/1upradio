@@ -1,5 +1,5 @@
 """Find a YouTube video for every distinct track in data/plays.json -> data/tracks.json  {oid: {id, yt_title, dur, score}}"""
-import json, re, subprocess, sys, os, unicodedata
+import json, re, sys, os, unicodedata, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 def fold(t):
     t = unicodedata.normalize('NFD', t.lower()); t = ''.join(c for c in t if unicodedata.category(c) != 'Mn')
@@ -19,15 +19,31 @@ def pick(title, entries):
         if re.search(r'official|audio|topic', yt + (d.get('channel') or ''), re.I): score += 0.08
         if best is None or score > best[0]: best = (score, d)
     return best
+KEY_FILE = os.path.expanduser("~/.config/1upradio/youtube.key")
+API = "https://www.googleapis.com/youtube/v3/"
+def api(path, params):
+    key = open(KEY_FILE).read().strip()
+    q = urllib.parse.urlencode(dict(params, key=key))
+    with urllib.request.urlopen(API + path + "?" + q, timeout=30) as r:
+        return json.load(r)
+def iso_secs(d):
+    m = re.match(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$', d or '')
+    return (int(m.group(1) or 0) * 3600 + int(m.group(2) or 0) * 60 + int(m.group(3) or 0)) if m else 0
+def search(title):
+    # official Data API (search = 100 quota units each); durations come from one cheap videos.list call
+    found = api("search", {"part": "snippet", "q": query(title), "type": "video", "maxResults": 5})
+    ids = [i["id"]["videoId"] for i in found.get("items", []) if i.get("id", {}).get("videoId")]
+    if not ids: return []
+    vids = api("videos", {"part": "contentDetails,snippet", "id": ",".join(ids)})
+    out = []
+    for v in vids.get("items", []):
+        out.append({"id": v["id"], "title": v["snippet"]["title"], "channel": v["snippet"]["channelTitle"],
+                    "duration": iso_secs(v["contentDetails"]["duration"])})
+    return out
 def resolve(item):
     oid, title = item
-    try:
-        out = subprocess.run(["yt-dlp", "--flat-playlist", "--dump-json", "-I", "1:6", "ytsearch6:" + query(title)], capture_output=True, text=True, timeout=60).stdout
+    try: ents = search(title)
     except Exception: return oid, None
-    ents = []
-    for l in out.splitlines():
-        try: ents.append(json.loads(l))
-        except Exception: pass
     b = pick(title, ents)
     if not b or b[0] < 0.5: return oid, {'miss': True, 'q': title}
     d = b[1]; return oid, {'id': d['id'], 'yt': d.get('title'), 'dur': d.get('duration'), 'score': round(b[0], 2), 'ch': d.get('channel')}

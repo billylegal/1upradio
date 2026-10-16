@@ -28,14 +28,25 @@ def main(days=8):
     try: have = {(p['t'], p['oid']): p for p in json.load(open('data/plays.json'))}
     except Exception: have = {}
     new = 0
+    # the song on air has no clock time yet: keep it with an estimated start (last timed song + its length), and drop old estimates
+    have = {k: v for k, v in have.items() if not v.get('est')}
+    on_air = []
     for day in range(days):
         try: h = fetch(day)
         except Exception as e: print('day', day, 'failed', e, file=sys.stderr); continue
         for p in parse(h, day, now):
-            if p.get('live'): continue
+            if p.get('live'): on_air.append(p); continue
             k = (p['t'], p['oid'])
             if k not in have: have[k] = p; new += 1
         time.sleep(1.5)
+    timed = [p for p in have.values()]
+    if on_air and timed:
+        last = max(timed, key=lambda p: p['t'])
+        try: dur = json.load(open('data/tracks.json')).get(last['oid'], {}).get('dur') or 210
+        except Exception: dur = 210
+        for li in on_air:
+            est = {'t': last['t'] + int(dur), 'title': li['title'], 'oid': li['oid'], 'est': True}
+            have.setdefault((est['t'], est['oid']), est)
     plays = sorted(have.values(), key=lambda p: p['t'])
     cutoff = int(now.timestamp()) - 10 * 86400
     plays = [p for p in plays if p['t'] >= cutoff]
