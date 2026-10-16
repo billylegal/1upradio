@@ -22,7 +22,7 @@ def pick(title, entries):
 KEY_FILE = os.path.expanduser("~/.config/1upradio/youtube.key")
 API = "https://www.googleapis.com/youtube/v3/"
 def api(path, params):
-    key = open(KEY_FILE).read().strip()
+    key = os.environ.get('YOUTUBE_API_KEY') or open(KEY_FILE).read().strip()   # GitHub Actions passes the secret; the PC reads its private file
     q = urllib.parse.urlencode(dict(params, key=key))
     with urllib.request.urlopen(API + path + "?" + q, timeout=30) as r:
         return json.load(r)
