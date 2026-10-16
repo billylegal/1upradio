@@ -24,6 +24,7 @@
   function paintNP() {
     var p = curP || S.plays[idx]; if (!p) return; var a = split(p.title);
     $('npTitle').textContent = a[1] || p.title; $('npArtist').textContent = a[0];
+    var aw = $('npArtWrap'), ai = $('npArt'); if (aw && ai) { if (p.id) { var u = 'https://i.ytimg.com/vi/' + encodeURIComponent(p.id) + '/mqdefault.jpg'; if (ai.getAttribute('src') !== u) ai.src = u; aw.hidden = false; } else aw.hidden = true; }   // album cover (the song's YouTube picture), like the desktop player
     document.title = (playing ? '▶ ' : '') + (a[1] || p.title) + ' · 1UP Radio';
     paintSave();
     paintLists();
