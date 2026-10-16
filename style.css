@@ -873,9 +873,13 @@ html[data-skin=wormhole] .bigst,html[data-skin=wormhole] .bh,html[data-skin=worm
 }
 html[data-skin=gameboy] .themebtn,html[data-skin=gameboy] .skinbtn{font-size:8px;letter-spacing:.06em}
 
-/* album cover above the title, like the desktop player */
-.npart{width:104px;height:104px;margin:0 auto 12px;border-radius:14px;overflow:hidden;border:1px solid var(--line);box-shadow:0 6px 22px rgba(0,0,0,.45);background:var(--bg2)}
+/* album cover in a small box to the left of the title / artist, like the desktop player */
+.np:has(.npart:not([hidden])){display:grid;grid-template-columns:auto 1fr;column-gap:14px;align-items:center;text-align:left}
+.np:has(.npart:not([hidden])) > *{grid-column:2}
+.np:has(.npart:not([hidden])) > .npart{grid-column:1;grid-row:1/span 4;align-self:center}
+.np:has(.npart:not([hidden])) > .bar{grid-column:1/-1}
+.npart{width:76px;height:76px;margin:0;border-radius:10px;overflow:hidden;border:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.4);background:var(--bg2)}
 .npart[hidden]{display:none}
 .npart img{width:100%;height:100%;object-fit:cover;display:block}
 html[data-skin=meters] .npart,html[data-skin=wormhole] .npart{display:none}
-@media(max-width:820px){.npart{width:88px;height:88px}}
+@media(max-width:820px){.npart{width:64px;height:64px}}
