@@ -258,7 +258,7 @@
       } else {
         var k = LIGHT[sk] ? 0.62 : 1, rr = Math.round(r * k), gg = Math.round(g * k), bb = Math.round(b * k);
         st.setProperty('--g', 'rgb(' + rr + ',' + gg + ',' + bb + ')'); st.setProperty('--gr', rr + ',' + gg + ',' + bb);
-        if (!LIGHT[sk] && (sk === 'retro' || sk === 'stream' || sk === 'synth' || sk === 'vinyl' || sk === 'terminal' || sk === 'dash' || sk === 'space' || sk === 'marquee' || sk === 'blueprint' || sk === 'glitch' || sk === 'wormhole')) st.setProperty('--g2', mix(0.45, 140));
+        if (!LIGHT[sk] && (sk === 'retro' || sk === 'stream' || sk === 'mono' || sk === 'synth' || sk === 'vinyl' || sk === 'terminal' || sk === 'dash' || sk === 'space' || sk === 'marquee' || sk === 'blueprint' || sk === 'glitch' || sk === 'wormhole')) st.setProperty('--g2', mix(0.45, 140));
         if (sk === 'retro' || sk === 'stream') { st.setProperty('--line', mix(0.16, 6)); st.setProperty('--bg2', mix(0.035, 9)); }
       }
     }
@@ -377,7 +377,8 @@
     if ($('skinName')) $('skinName').textContent = SKIN_NAMES[skinI];
     fitBtns(); setTimeout(fitBtns, 250);
   }
-  try { skinI = +(localStorage.getItem('up1-skin') || 0) || 0; } catch (e) {}
+  var START_SKIN = 'nebula';   // for now every visit opens in Nebula (set to '' to remember each visitor's last skin again)
+  if (START_SKIN) skinI = Math.max(0, SKINS.indexOf(START_SKIN)); else { try { skinI = +(localStorage.getItem('up1-skin') || 0) || 0; } catch (e) {} }
   applySkin(skinI);
   $('themeBtn').addEventListener('click', function () { var n = themeI + 1; if (n >= THEMES.length) n = (skinName() in NATIVE_OK) ? 0 : -1; applyTheme(n); });
   if ($('skinBtn')) $('skinBtn').addEventListener('click', function (e) { applySkin(skinI + ((e.target && e.target.closest && e.target.closest('.sk-b')) ? -1 : 1)); });
@@ -584,4 +585,4 @@
   var iv = setInterval(function () { if (document.getElementById('tapgate')) return; clearInterval(iv); setTimeout(show, 1400); }, 400);
 })();
 
-;(function(){var d=document.querySelector("#gclock .gd"),zs=document.querySelectorAll("#gclock .gt");if(!d||!zs.length)return;function tick(){var n=new Date();d.textContent=n.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric",timeZone:"America/Toronto"}).toUpperCase();zs.forEach(function(e){e.textContent=n.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",second:"2-digit",timeZone:e.getAttribute("data-z")})})}tick();var iv=setInterval(function(){if(!document.getElementById("gclock"))return clearInterval(iv);tick()},1000)})();
+;(function(){var d=document.querySelector("#gclock .gd"),zs=document.querySelectorAll("#gclock .gt");if(!d||!zs.length)return;function tick(){var n=new Date();d.textContent=n.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"}).toUpperCase();zs.forEach(function(e){e.textContent=n.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",second:"2-digit"})})}tick();var iv=setInterval(function(){if(!document.getElementById("gclock"))return clearInterval(iv);tick()},1000)})();

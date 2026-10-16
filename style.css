@@ -162,32 +162,32 @@ html[data-skin=glass] .days button{background:#efeff4;border:0;border-radius:999
 html[data-skin=glass] footer{border-top:1px solid #e4e4ea;color:#8e8e93}html[data-skin=glass] footer a{color:#6e6e73}
 
 /* --- mono: pure black & white, sharp, minimal --- */
-html[data-skin=mono]{--bg:#000;--bg2:#000!important;--line:#3a3a3a!important;--txt:#fff;--dim:#9a9a9a;--g:#fff!important;--gr:255,255,255!important;--g2:#fff!important;--red:#fff}
+html[data-skin=mono]{--bg:#000;--bg2:#000!important;--line:#3a3a3a!important;--txt:#fff;--dim:#9a9a9a;--g:#fff;--gr:255,255,255;--g2:#fff;--red:var(--g)}
 html[data-skin=mono] body{background:#000}
 html[data-skin=mono] *{font-family:'Barlow Condensed','Arial Narrow',system-ui,sans-serif!important}
-html[data-skin=mono] .top{background:#000;border-bottom:1px solid #fff}
+html[data-skin=mono] .top{background:#000;border-bottom:1px solid var(--g)}
 html[data-skin=mono] .one{text-shadow:none!important;font-weight:700;font-size:26px!important;letter-spacing:.04em}html[data-skin=mono] .rad{letter-spacing:.4em;font-weight:500}
 html[data-skin=mono] .tag{letter-spacing:.3em;font-size:13px}
 html[data-skin=mono] .logo img{border-radius:0;box-shadow:none;filter:grayscale(1)}
-html[data-skin=mono] .themebtn,html[data-skin=mono] .skinbtn{border:1px solid #fff;color:#fff;border-radius:0;font-weight:700;font-size:13px;letter-spacing:.2em;padding:8px 14px}
-html[data-skin=mono] .themebtn i{display:none}html[data-skin=mono] .themebtn:hover,html[data-skin=mono] .skinbtn:hover{background:#fff;color:#000}
-html[data-skin=mono] .onair{font-weight:700;font-size:13px;letter-spacing:.2em}html[data-skin=mono] .onair i{background:#555;box-shadow:none}html[data-skin=mono] .onair.on i{background:#fff;box-shadow:none}
-html[data-skin=mono] .player{border:1px solid #fff;background:#000;border-radius:0;padding:30px 28px 24px}html[data-skin=mono] .player::before{display:none}
-html[data-skin=mono] .eq{height:40px;gap:3px}html[data-skin=mono] .eq i{background:#fff;box-shadow:none;opacity:1;border-radius:0}
+html[data-skin=mono] .themebtn,html[data-skin=mono] .skinbtn{border:1px solid var(--g);color:var(--g);border-radius:0;font-weight:700;font-size:13px;letter-spacing:.2em;padding:8px 14px}
+html[data-skin=mono] .themebtn i{display:none}html[data-skin=mono] .themebtn:hover,html[data-skin=mono] .skinbtn:hover{background:var(--g);color:#000}
+html[data-skin=mono] .onair{font-weight:700;font-size:13px;letter-spacing:.2em}html[data-skin=mono] .onair i{background:#555;box-shadow:none}html[data-skin=mono] .onair.on i{background:var(--g);box-shadow:none}
+html[data-skin=mono] .player{border:1px solid var(--g);background:#000;border-radius:0;padding:30px 28px 24px}html[data-skin=mono] .player::before{display:none}
+html[data-skin=mono] .eq{height:40px;gap:3px}html[data-skin=mono] .eq i{background:var(--g);box-shadow:none;opacity:1;border-radius:0}
 html[data-skin=mono] .lab{font-weight:700;font-size:12px;letter-spacing:.4em;color:#9a9a9a}
 html[data-skin=mono] .title{font-weight:700;font-size:clamp(30px,6vw,60px);line-height:1;letter-spacing:.01em}html[data-skin=mono] .artist{color:#d6d6d6;font-weight:500;font-size:18px;letter-spacing:.12em;text-transform:uppercase}
-html[data-skin=mono] .savebtn{border:1px solid #fff;color:#fff;border-radius:0;font-weight:700;font-size:13px;letter-spacing:.2em;padding:10px 16px;text-transform:uppercase}
-html[data-skin=mono] .savebtn:hover:not(:disabled),html[data-skin=mono] .savebtn.on{background:#fff;color:#000}
-html[data-skin=mono] .bar{height:2px;background:#3a3a3a}html[data-skin=mono] .fill{background:#fff;box-shadow:none}
-html[data-skin=mono] .play{width:70px;height:70px;border-radius:0;background:#fff;color:#000;box-shadow:none}
-html[data-skin=mono] .vol span,html[data-skin=mono] .vol b{font-weight:700;font-size:13px;letter-spacing:.2em;color:#fff}html[data-skin=mono] .vol input{accent-color:#fff}
+html[data-skin=mono] .savebtn{border:1px solid var(--g);color:var(--g);border-radius:0;font-weight:700;font-size:13px;letter-spacing:.2em;padding:10px 16px;text-transform:uppercase}
+html[data-skin=mono] .savebtn:hover:not(:disabled),html[data-skin=mono] .savebtn.on{background:var(--g);color:#000}
+html[data-skin=mono] .bar{height:2px;background:#3a3a3a}html[data-skin=mono] .fill{background:var(--g);box-shadow:none}
+html[data-skin=mono] .play{width:70px;height:70px;border-radius:0;background:var(--g);color:#000;box-shadow:none}
+html[data-skin=mono] .vol span,html[data-skin=mono] .vol b{font-weight:700;font-size:13px;letter-spacing:.2em;color:var(--g)}html[data-skin=mono] .vol input{accent-color:var(--g)}
 html[data-skin=mono] .card{border:1px solid #3a3a3a;border-radius:0;padding:20px 22px 12px}
 html[data-skin=mono] h2{font-size:22px;font-weight:700;letter-spacing:.3em;text-transform:uppercase}
 html[data-skin=mono] .list li{border-bottom:1px solid #222;padding:10px 0;align-items:center}html[data-skin=mono] .list li:hover{background:#111}
-html[data-skin=mono] .list li time{font-weight:500;font-size:13px;letter-spacing:.1em;color:#9a9a9a;width:9ch}html[data-skin=mono] .list li.now{color:#000;background:#fff;padding-left:8px;padding-right:8px}html[data-skin=mono] .list li.now time{color:#000}
-html[data-skin=mono] .list li .hb{border:1px solid #fff;border-radius:0;height:30px;width:32px}html[data-skin=mono] .list li .hb.on{background:#fff;color:#000}html[data-skin=mono] .list li.now .hb{border-color:#000;color:#000}
-html[data-skin=mono] .days button{background:transparent;border:1px solid #555;border-radius:0;color:#fff;font-weight:700;font-size:13px;letter-spacing:.14em;padding:7px 12px}html[data-skin=mono] .days button.on{background:#fff;color:#000;border-color:#fff}
-html[data-skin=mono] footer{border-top:1px solid #fff}
+html[data-skin=mono] .list li time{font-weight:500;font-size:13px;letter-spacing:.1em;color:#9a9a9a;width:9ch}html[data-skin=mono] .list li.now{color:#000;background:var(--g);padding-left:8px;padding-right:8px}html[data-skin=mono] .list li.now time{color:#000}
+html[data-skin=mono] .list li .hb{border:1px solid var(--g);border-radius:0;height:30px;width:32px}html[data-skin=mono] .list li .hb.on{background:var(--g);color:#000}html[data-skin=mono] .list li.now .hb{border-color:#000;color:#000}
+html[data-skin=mono] .days button{background:transparent;border:1px solid #555;border-radius:0;color:var(--g);font-weight:700;font-size:13px;letter-spacing:.14em;padding:7px 12px}html[data-skin=mono] .days button.on{background:var(--g);color:#000;border-color:var(--g)}
+html[data-skin=mono] footer{border-top:1px solid var(--g)}
 html[data-skin=mono] .bh img,html[data-skin=mono] .sh img,html[data-skin=mono] .stk img{filter:grayscale(1) contrast(1.1)}
 
 /* ============ more skins ============ */
@@ -856,7 +856,7 @@ html[data-skin=mono] .shy .fl{filter:grayscale(1)}
 @media(max-width:1279px){.sh{height:70px}.shy{width:62px;margin-top:3px}}
 @media(max-width:720px){.sh{height:84px}.shy{width:80px;margin-top:0;animation-duration:46s,2.8s}.shx{animation-duration:46s}}
 
-#gclock{font-family:'Press Start 2P',monospace;color:var(--g2);text-align:center;margin-top:6px}#gclock .gd{font-size:clamp(9px,2.4vw,13px);letter-spacing:.06em;opacity:.8;margin-bottom:14px}#gclock .gz{display:flex;gap:clamp(18px,6vw,48px);justify-content:center}#gclock .gz b{display:block;font-weight:400;font-size:clamp(8px,2vw,11px);letter-spacing:.12em;opacity:.7;margin-bottom:8px}#gclock .gt{display:block;font-size:clamp(13px,4vw,24px);letter-spacing:.05em;text-shadow:0 0 14px rgba(var(--gr),.55)}
+#gclock{font-family:'Press Start 2P',monospace;color:var(--g2);text-align:center;margin-top:6px}#gclock .gd{font-size:clamp(9px,2.4vw,13px);letter-spacing:.06em;opacity:.8;margin-bottom:14px}#gclock .gz{display:flex;gap:clamp(18px,6vw,48px);justify-content:center}#gclock .gz b{display:block;font-weight:400;font-size:clamp(8px,2vw,11px);letter-spacing:.12em;opacity:.7;margin-bottom:8px}#gclock .gt{display:block;font-size:clamp(18px,6.4vw,36px);letter-spacing:.05em;text-shadow:0 0 14px rgba(var(--gr),.55)}
 
 /* wormhole: no floating stickers over the flight (the small sticker in the footer stays) */
 html[data-skin=wormhole] .bigst,html[data-skin=wormhole] .bh,html[data-skin=wormhole] .sh{display:none!important}
