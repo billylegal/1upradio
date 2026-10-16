@@ -587,3 +587,10 @@
 })();
 
 ;(function(){var d=document.querySelector("#gclock .gd"),zs=document.querySelectorAll("#gclock .gt");if(!d||!zs.length)return;function tick(){var n=new Date();d.textContent=n.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"}).toUpperCase();zs.forEach(function(e){e.textContent=n.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",second:"2-digit"})})}tick();var iv=setInterval(function(){if(!document.getElementById("gclock"))return clearInterval(iv);tick()},1000)})();
+
+// Nebula meter bars: thin bars that run across the whole player (the other skins use 12 wide bars)
+(function () {
+  var fit = function () { var e = document.getElementById('eq'); if (!e) return; var n = document.documentElement.getAttribute('data-skin') === 'nebula' ? 44 : 12; while (e.children.length < n) e.appendChild(document.createElement('i')); while (e.children.length > n) e.removeChild(e.lastChild); };
+  var go = function () { fit(); new MutationObserver(fit).observe(document.documentElement, { attributes: true, attributeFilter: ['data-skin'] }); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+})();

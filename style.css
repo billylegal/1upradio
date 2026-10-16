@@ -486,7 +486,7 @@ html[data-skin=nebula] .themebtn i{border-radius:50%;box-shadow:0 0 10px var(--g
 html[data-skin=nebula] .onair{font-size:11px;letter-spacing:.25em;font-weight:600}html[data-skin=nebula] .onair i{border-radius:50%;background:#46567a;box-shadow:none}html[data-skin=nebula] .onair.on{color:#8dffc7}html[data-skin=nebula] .onair.on i{background:#8dffc7;box-shadow:0 0 14px #8dffc7}
 html[data-skin=nebula] .player{border:1px solid rgba(255,255,255,.2);border-radius:28px;background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.015));box-shadow:0 0 60px rgba(var(--gr),.14),inset 0 0 40px rgba(255,255,255,.03);backdrop-filter:blur(7px);padding:32px 30px 24px;animation:nebulafloat 11s ease-in-out infinite alternate}
 html[data-skin=nebula] .player::before{display:none}
-html[data-skin=nebula] .eq i{background:linear-gradient(0deg,var(--g),transparent);box-shadow:0 0 10px rgba(var(--gr),.7);opacity:.9;border-radius:2px;width:3px;flex:0 0 3px}html[data-skin=nebula] .eq{justify-content:nebula-between}
+html[data-skin=nebula] .eq i{background:linear-gradient(0deg,var(--g),transparent);box-shadow:0 0 10px rgba(var(--gr),.7);opacity:.9;border-radius:2px;width:3px;flex:0 0 3px}html[data-skin=nebula] .eq{justify-content:space-between}
 html[data-skin=nebula] .lab{color:var(--dim);font-weight:600;font-size:11px;letter-spacing:.45em}
 html[data-skin=nebula] .title{font-weight:300;text-transform:uppercase;font-size:clamp(26px,5vw,52px);letter-spacing:.07em;line-height:1.1;color:#fff;text-shadow:0 0 24px rgba(var(--gr),.55)}
 html[data-skin=nebula] .artist{color:var(--g2);font-weight:400;letter-spacing:.2em;text-transform:uppercase;font-size:14px}
