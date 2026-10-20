@@ -9,6 +9,11 @@
   var KEY = 'up1-station', cur = ST[0], m;
   try { m = /[?&]station=([a-z0-9]+)/.exec(location.search); var want = m ? m[1] : localStorage.getItem(KEY); ST.forEach(function (s) { if (s.id === want && !s.soon) cur = s; }); } catch (e) {}
   if (/[?&]ailocal=1/.test(location.search)) window.UP1_AI_URL = 'ai/';   // preview: read the AI lyrics from this PC instead of the live site
+  if (cur.id === 'cultureshock') { var cm = /[?&]cs=([123])/.exec(location.search); var pick = cm ? cm[1] : '';
+    if (!pick) { var last = ''; try { last = localStorage.getItem('up1-cs-look') || ''; } catch (e) {} var all = ['1', '2', '3'].filter(function (n) { return n !== last; }); pick = all[Math.floor(Math.random() * all.length)]; }   // a different look each time someone opens Culture Shock
+    try { localStorage.setItem('up1-cs-look', pick); } catch (e) {}
+    document.documentElement.setAttribute('data-cs', pick); }
+  if (/[?&]nogate=1/.test(location.search)) { var gs = document.createElement('style'); gs.textContent = '#tapgate{display:none!important}'; (document.head || document.documentElement).appendChild(gs); }   // preview only
   window.UP1_SCHEDULE = cur.sched; window.UP1_STATION = cur.id;
   document.documentElement.setAttribute('data-station', cur.id);
   function ready() {
