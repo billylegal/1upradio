@@ -2,7 +2,7 @@
 (function () {
   var ST = [
     { id: '1up', name: '1UP Radio', sub: 'The main station: deep house, melodic, electronic, all day', sched: 'schedule.json', art: 'assets/logo.png', tag: 'Keep the volume up' },
-    { id: 'cultureshock', name: 'Culture Shock', sub: 'Roots reggae and dub, straight from the Crucial Brew channel', sched: 'schedule-culture.json', art: 'assets/cultureshock.svg', tag: 'Roots · reggae · dub' },
+    { id: 'cultureshock', name: 'Culture Shock', sub: 'Roots reggae and dub, all day', sched: 'schedule-culture.json', art: 'assets/cultureshock.svg?v=2', tag: 'Roots · reggae · dub' },
     { id: 'movement', name: 'The Movement', sub: 'Hand-selected house and Afro tracks', soon: 1, art: 'assets/logo.png' },
     { id: 'trap', name: 'Trap', sub: 'Heavy 808s and hard-hitting trap', soon: 1, art: 'assets/logo.png' }
   ];

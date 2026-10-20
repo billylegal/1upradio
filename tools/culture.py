@@ -1,4 +1,4 @@
-"""Culture Shock (roots reggae): follow the Crucial Brew YouTube channel and keep a clock-synced schedule.
+"""Culture Shock (roots reggae): follow its YouTube source channel and keep a clock-synced schedule.
 
   data/culture-videos.json   every embeddable video of the channel  {id, title, dur, pub}
   data/culture-plays.json    the plays already decided (kept, so the song on air never changes under listeners)
@@ -8,7 +8,7 @@ New uploads play soon (before anything is repeated); once everything has been pl
 never repeating a song from the last 60% of the library. Uses the YouTube Data API (quota ~40 units per run)."""
 import json, os, random, re, sys, time, urllib.parse, urllib.request
 
-CHANNEL_UPLOADS = 'UUcS-Gz7tDZmJbsi5M-DLsQw'      # Crucial Brew
+CHANNEL_UPLOADS = 'UUcS-Gz7tDZmJbsi5M-DLsQw'      # source channel
 HORIZON = 7 * 24 * 3600                          # always schedule a week ahead
 KEEP_PAST = 12 * 3600                            # and keep half a day behind (the Just Played list)
 MIN_DUR, MAX_DUR = 60, 1500

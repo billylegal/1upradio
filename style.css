@@ -915,3 +915,13 @@ html[data-skin=nebula] .eq,html[data-skin=space] .eq{gap:0;overflow:hidden}
 .stcard.soon{opacity:.5;cursor:default}.stcard.soon i{border-color:var(--dim);color:var(--dim)}
 .stcard:not(.soon):not(.on):hover{background:rgba(var(--gr),.12)}
 @media(max-width:720px){.stcard img{width:52px;height:52px}.stcard small{font-size:12px}.stcard i{font-size:10px;padding:4px 8px}#stations{padding-top:40px}}
+
+/* Saved songs: lyrics (when found) */
+.slyr{margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(0,0,0,.22);max-height:260px;overflow:auto}
+.slyr[hidden]{display:none}.slyh{font:700 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--g2);margin-bottom:6px}
+.slyr pre{margin:0;white-space:pre-wrap;font:inherit;font-size:14px;line-height:1.55;color:var(--txt)}
+.lybtn{cursor:pointer;font:inherit}
+.lybtn.lywait{opacity:.6;cursor:progress}.lybtn.lyretry{opacity:.85}
+.saved button.chip{background:transparent;font-family:inherit;font-size:12px;cursor:pointer;margin-left:6px;vertical-align:middle;display:inline-block}
+.saved button.chip.found:hover,.saved button.chip.lyretry:hover{background:rgba(var(--gr),.15)}
+.saved .lybtn.lywait{opacity:.55}

@@ -63,9 +63,25 @@
         '<a class="chip found" href="https://music.amazon.com/search/' + q + '" target="_blank" rel="noopener" title="Search Amazon Music">Amazon ⌕</a>' +
         '<a class="chip found" href="https://listen.tidal.com/search?q=' + q + '" target="_blank" rel="noopener" title="Search Tidal">Tidal ⌕</a>';
       lk += !(L && L.apple !== undefined && L.deezer !== undefined) ? '<span class="snf">checking Apple &amp; Deezer…</span>' : (L.apple || L.deezer ? '' : '<span class="snf">not found on Apple or Deezer</span>');
-      return '<li class="srow"><span class="st">' + esc(a[0] ? a[0] + ' — ' + a[1] : a[1]) + '</span><button class="sdel" data-i="' + i + '" type="button" aria-label="Remove from saved songs" title="Remove">✕</button><div class="slinks">' + lk + '</div></li>';
+      var LY = s.ly && s.ly.text ? s.ly : null;
+      var lyb = '';
+      if (LY) lyb = '<button class="chip found lybtn" data-i="' + i + '" type="button" aria-expanded="false">♪ Lyrics ✓</button>';
+      else if (s.ly === undefined && (s.lyt || 0) < 3) lyb = '<button class="chip lybtn lywait" type="button" disabled>♪ Lyrics …</button>';
+      else lyb = '<button class="chip lybtn lyretry" data-i="' + i + '" type="button" title="No lyrics found yet. Tap to search again.">♪ Lyrics ?</button> <span class="snf">none found yet · tap to search again</span>';
+      return '<li class="srow"><span class="st">' + esc(a[0] ? a[0] + ' — ' + a[1] : a[1]) + ' ' + lyb + '</span><button class="sdel" data-i="' + i + '" type="button" aria-label="Remove from saved songs" title="Remove">✕</button><div class="slinks">' + lk + '</div>' + (LY ? '<div class="slyr" hidden><div class="slyh">' + esc((LY.t || '') + (LY.a ? ' · ' + LY.a : '') + (LY.ai ? ' · 🤖 AI-transcribed, may contain mistakes' : '')) + '</div><pre>' + esc(LY.text) + '</pre></div>' : '') + '</li>';
     }).join('');
-    lookupMissing();
+    lookupMissing(); setTimeout(lookupLyricsForSaved, 1500);   // after the page has finished starting (the lyrics code is defined further down)
+  }
+  var lyLooking = false, lyRL = 0;   // lyRL: when LRCLIB last said "too many requests" (then a miss is not a real miss)
+  function lookupLyricsForSaved() {   // find the words for saved songs, one at a time; kept with the song so they show in the list
+    if (lyLooking || typeof fetchLyrics !== 'function') return;
+    saved.forEach(function (s) { if (s.ly === '' && Date.now() - (s.lyat || 0) > 864e5) { s.ly = undefined; s.lyt = 0; } });   // not found? look again every 24 h (new lyrics get added over time)
+    var x = saved.find(function (s) { return s.ly === undefined && (s.lyt || 0) < 3 && !/^\s*billy legal\b/i.test(s.title || ''); }); if (!x) return;
+    lyLooking = true; x.lyt = (x.lyt || 0) + 1;
+    var pr; try { pr = fetchLyrics([x.title], 0); } catch (e) { lyLooking = false; return; }
+    pr.then(function (d) {
+      if (!d && Date.now() - lyRL < 20000) { x.lyt = Math.max(0, (x.lyt || 1) - 1); lyLooking = false; setTimeout(lookupLyricsForSaved, 60000); return; }   // rate-limited: try again in a minute, do not call it "not found"
+      x.ly = d && d.text ? { t: d.t, a: d.a, ai: !!d.ai, text: d.text.slice(0, 8000) } : ''; x.lyat = Date.now(); persistSaved(); lyLooking = false; paintSaved(); }).catch(function () { persistSaved(); lyLooking = false; });
   }
   // ---- which services carry a saved song: Apple Music (iTunes search) and Deezer (search, via JSONP) ----
   function sw(t) { return (t || '').toLowerCase().replace(/\(.*?\)|\[.*?\]/g, ' ').replace(/\b(feat|ft|featuring|remaster(ed)?|radio edit|original mix|mix|version|edit|official|video|audio|lyrics?)\b/g, ' ').replace(/[^\p{L}\p{N}]+/gu, ' ').trim().split(' ').filter(Boolean); }
@@ -119,7 +135,10 @@
     if (k >= 0) saved.splice(k, 1); else saved.unshift({ id: p.id, title: p.title, at: Date.now() });
     persistSaved(); paintSave(); paintSaved();
   });
-  $('saved').addEventListener('click', function (e) { var b = e.target.closest('.sdel'); if (!b) return; saved.splice(+b.dataset.i, 1); persistSaved(); paintSave(); paintSaved(); });
+  $('saved').addEventListener('click', function (e) {
+    var rt = e.target.closest('.lyretry'); if (rt) { var sv = saved[+rt.dataset.i]; if (sv) { sv.ly = undefined; sv.lyt = 0; persistSaved(); paintSaved(); } return; }
+    var lb = e.target.closest('.lybtn'); if (lb) { var pn = lb.closest('.srow').querySelector('.slyr'); if (pn) { pn.hidden = !pn.hidden; lb.setAttribute('aria-expanded', pn.hidden ? 'false' : 'true'); } return; }
+    var b = e.target.closest('.sdel'); if (!b) return; saved.splice(+b.dataset.i, 1); persistSaved(); paintSave(); paintSaved(); });
   document.addEventListener('click', function (e) {   // heart on any track row (week list, up next, just played)
     var b = e.target.closest('.hb'); if (!b) return;
     var p = S.plays.find(function (x) { return x.t === +b.dataset.t; }); if (!p) return;
@@ -149,7 +168,12 @@
     if (parts.length >= 2 && STRIP.test(parts[parts.length - 1])) parts.pop();
     if (parts.length < 2) return [{ artist: '', track: parts[0] || s }];
     var tr = parts.slice(1).join(' - '), first = parts[0].split(/\s*[\/,&]\s*/)[0].trim(), out = [{ artist: first, track: tr }];
-    if (first !== parts[0]) out.push({ artist: parts[0], track: tr }); return out;
+    if (first !== parts[0]) out.push({ artist: parts[0], track: tr });
+    if (window.UP1_STATION && window.UP1_STATION !== '1up') {   // Culture Shock's channel writes "Song / Version - Artist": try that order first
+      var ra = parts[parts.length - 1].split(/\s*[\/,&]\s*/)[0].trim(), rt = parts.slice(0, -1).join(' - ').split(/\s*\/\s*/)[0].trim();
+      if (ra && rt) out.unshift({ artist: ra, track: rt });
+    }
+    return out;
   }
   var AI_URL = 'https://aviewfromspace.com/data/', aiIdx = null;
   function aiKey(t) { var f = String(t || '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim(); return crypto.subtle.digest('SHA-1', new TextEncoder().encode(f)).then(function (b) { return Array.prototype.slice.call(new Uint8Array(b), 0, 6).map(function (x) { return x.toString(16).padStart(2, '0'); }).join(''); }); }
@@ -167,7 +191,7 @@
     if (titles.some(function (t) { return /^\s*billy legal\b/i.test(t || ''); })) return Promise.resolve(null);   // Billy's own songs: no lyrics source is verified, never guess
     var enc = encodeURIComponent, seen = {}, vs = [];
     titles.forEach(function (t) { variants(t).forEach(function (v) { var k = fold(v.artist + '|' + v.track); if (v.track && v.track.length > 1 && !seen[k]) { seen[k] = 1; vs.push(v); } }); });
-    function J(u) { return fetch(u).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
+    function J(u) { return fetch(u).then(function (r) { if (r.status === 429) lyRL = Date.now(); return r.ok ? r.json() : null; }).catch(function () { return null; }); }
     function good(d) { return d && (d.plainLyrics || '').trim().length > 40 && !d.instrumental; }
     function pack(d) { return { t: d.trackName, a: d.artistName, text: d.plainLyrics.trim(), sync: parseLRC(d.syncedLyrics) }; }
     function score(d) { return Math.abs((d.duration || 0) - dur) - (d.syncedLyrics ? 30 : 0); }
