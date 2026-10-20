@@ -19,6 +19,22 @@
       if (img) img.src = cur.art;
       var na = document.getElementById('npArtist'); if (na) na.textContent = cur.tag + ' · all day';
     }
+    // Share button after the volume: shares THIS station (1UP Radio = the home page, the others = their own link with a preview card)
+    var ctl = document.querySelector('.ctl'), vol = ctl && ctl.querySelector('.vol');
+    if (ctl) {
+      var sb = document.createElement('button'); sb.type = 'button'; sb.id = 'shareBtn'; sb.className = 'savebtn sharebtn'; sb.textContent = '\u2197 Share'; sb.setAttribute('aria-label', 'Share ' + cur.name);
+      if (vol && vol.nextSibling) ctl.insertBefore(sb, vol.nextSibling); else ctl.appendChild(sb);
+      sb.addEventListener('click', function () {
+        var url = location.origin + (cur.id === '1up' ? '/' : '/s/' + cur.id + '/'), title = cur.name + ' \u00b7 1UP Radio', txt = 'Listen to ' + cur.name + ' on 1UP Radio. Keep the volume up.';
+        var flash = function (m) { sb.textContent = m; setTimeout(function () { sb.textContent = '\u2197 Share'; }, 1800); };
+        var copy = function () {
+          var ta = document.createElement('textarea'); ta.value = url; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select();
+          var ok = false; try { ok = document.execCommand('copy'); } catch (e) {} ta.remove();
+          if (ok) flash('\u2713 Link copied'); else if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(function () { flash('\u2713 Link copied'); }, function () { flash(url); }); else flash(url);
+        };
+        if (navigator.share) navigator.share({ title: title, text: txt, url: url }).catch(function (e) { if (e && e.name !== 'AbortError') copy(); }); else copy();
+      });
+    }
     var logo = document.querySelector('a.logo'); if (!logo) return;
     logo.setAttribute('aria-haspopup', 'dialog'); logo.insertAdjacentHTML('beforeend', '<span class="stcaret" aria-hidden="true">&#9662;</span>');
     var box = document.createElement('div'); box.id = 'stations'; box.hidden = true; box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', 'Choose a station');

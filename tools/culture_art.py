@@ -32,10 +32,10 @@ def deezer(path, q):
         except Exception: time.sleep(5)
     return []
 def ok_match(T, A, xt, xa, xc=''):
-    """song title matches AND the artist matches: a song with no known artist is never matched (that is how a nursery-rhyme 'Three Blind Mice' got picked)"""
-    if not T or not A: return False
-    if not (len(T & xt) / len(T) >= 0.8 and len(xt - T) <= 2): return False
-    return len(A & xa) / len(A) >= 0.5 or len(A & toks(xc)) / len(A) >= 0.8
+    """strict: the song title must be the same words (ignoring Version/Dub) AND the artist the same (or one name inside the other).
+    Anything doubtful returns False, and the site then keeps the YouTube picture."""
+    if not T or not A or not xt or not xa: return False
+    return T == xt and (A <= xa or xa <= A)
 ARTIST = {}
 def artist_cover(art):
     """no exact song found: the cover of the artist's best-known album (Deezer first, then Apple)"""
