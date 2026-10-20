@@ -8,14 +8,25 @@ New uploads play soon (before anything is repeated); once everything has been pl
 never repeating a song from the last 60% of the library. Uses the YouTube Data API (quota ~40 units per run)."""
 import json, os, random, re, sys, time, urllib.parse, urllib.request
 
-CHANNEL_UPLOADS = 'UUcS-Gz7tDZmJbsi5M-DLsQw'      # source channel
+# every station that follows a YouTube channel: uploads playlist (UU + the channel id without its UC) and the names of its files
+STATIONS = {
+    'culture': {'uploads': 'UUcS-Gz7tDZmJbsi5M-DLsQw', 'videos': 'data/culture-videos.json', 'plays': 'data/culture-plays.json', 'history': 'data/culture-history.json', 'out': 'schedule-culture.json'},
+    'movement': {'uploads': '', 'videos': 'data/movement-videos.json', 'plays': 'data/movement-plays.json', 'history': 'data/movement-history.json', 'out': 'schedule-movement.json'},   # hand-picked folder: no channel to follow
+    'hiphopvinyl': {'uploads': '', 'videos': 'data/hiphopvinyl-videos.json', 'plays': 'data/hiphopvinyl-plays.json', 'history': 'data/hiphopvinyl-history.json', 'out': 'schedule-hiphopvinyl.json'},
+}
+NAME = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] in STATIONS else 'culture'
+ST = dict(STATIONS[NAME])
+try:   # a source channel can live in a private file on this PC instead of in the public repo
+    ST['uploads'] = json.load(open(os.path.expanduser('~/.config/1upradio/station-sources.json'))).get(NAME, ST['uploads'])
+except Exception: pass
+CHANNEL_UPLOADS = ST['uploads']
 HORIZON = 7 * 24 * 3600                          # always schedule a week ahead
 KEEP_PAST = 12 * 3600                            # and keep half a day behind (the Just Played list)
 MIN_DUR, MAX_DUR = 60, 1500
 API = 'https://www.googleapis.com/youtube/v3/'
 KEY_FILE = os.path.expanduser('~/.config/1upradio/youtube.key')
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-VIDEOS, PLAYS, OUT = (os.path.join(HERE, p) for p in ('data/culture-videos.json', 'data/culture-plays.json', 'schedule-culture.json'))
+VIDEOS, PLAYS, OUT = (os.path.join(HERE, p) for p in (ST['videos'], ST['plays'], ST['out']))
 
 
 def api(path, **params):
@@ -55,16 +66,17 @@ def load(p, default):
 def main():
     now = int(time.time())
     try:
+        if not CHANNEL_UPLOADS: raise RuntimeError('a fixed list (no channel)')
         vids = fetch_videos()
         if len(vids) < 50: raise RuntimeError('only %d videos came back' % len(vids))
         json.dump(vids, open(VIDEOS, 'w'), ensure_ascii=False, separators=(',', ':'))
     except Exception as e:
-        print('channel fetch failed:', e, '- keeping the last list', file=sys.stderr)
+        if CHANNEL_UPLOADS: print('channel fetch failed:', e, '- keeping the last list', file=sys.stderr)
         vids = load(VIDEOS, [])
     if not vids: sys.exit(1)
     by = {v['id']: v for v in vids}
     old = load(PLAYS, [])
-    hist = load(os.path.join(HERE, 'data/culture-history.json'), [])      # ids in the order they were scheduled (all time)
+    hist = load(os.path.join(HERE, ST['history']), [])      # ids in the order they were scheduled (all time)
     # what is already decided up to one hour from now is final; the rest is re-planned (so new uploads jump the queue)
     plays = [p for p in old if p['t'] <= now + 3600 and p['t'] + p['dur'] > now - KEEP_PAST]
     for p in reversed([p for p in old if p['t'] > now + 3600]):
@@ -83,7 +95,7 @@ def main():
         plays.append({'t': t, 'id': pick['id'], 'title': pick['title'], 'dur': pick['dur']})
         t += pick['dur']
     json.dump(plays, open(PLAYS, 'w'), ensure_ascii=False, separators=(',', ':'))
-    json.dump(hist[-5000:], open(os.path.join(HERE, 'data/culture-history.json'), 'w'), separators=(',', ':'))
+    json.dump(hist[-5000:], open(os.path.join(HERE, ST['history']), 'w'), separators=(',', ':'))
     json.dump({'built': now, 'delay': 0, 'plays': plays}, open(OUT, 'w'), ensure_ascii=False, separators=(',', ':'))
     print('culture shock:', len(vids), 'videos,', len(plays), 'plays scheduled')
 

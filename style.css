@@ -1043,6 +1043,40 @@ html[data-skin=dubby] .days button{background:rgba(255,255,255,.03);border:1px s
 html[data-skin=dubby] footer{border-top:1px solid rgba(255,255,255,.12);color:var(--dim)}html[data-skin=dubby] footer a{color:var(--g2)}
 @media(prefers-reduced-motion:reduce){html[data-skin=dubby] .player,html[data-skin=dubby] .card,html[data-skin=dubby] body::before,html[data-skin=dubby] body::after,html[data-skin=dubby] .play::after{animation:none}}
 html[data-skin=dubby] .eq{gap:0;overflow:hidden}
+/* skin: house (a copy of the Nebula look, recoloured for house music) */
+html[data-skin=house]{--bg:#07050F;--bg2:rgba(139,92,246,.07)!important;--line:rgba(184,162,255,.28)!important;--txt:#E6E1FA;--dim:#8E86B0;--g:#8B5CF6;--gr:139,92,246;--g2:#CC8CFF;--red:#F0517A}
+html[data-skin=house]{background:#07050F url(assets/nebula-bg.jpg) center/cover fixed}
+html[data-skin=house] body{background:transparent;color:#E6E1FA}
+html[data-skin=house] *{font-family:'Barlow','Barlow Condensed',system-ui,sans-serif!important}
+html[data-skin=house] .top{background:rgba(2,3,12,.45);border-bottom:1px solid rgba(255,255,255,.12);backdrop-filter:blur(12px)}
+html[data-skin=house] .one{color:var(--g);font-weight:700;font-size:26px!important;letter-spacing:.06em;text-shadow:0 0 18px rgba(var(--gr),.8)!important}html[data-skin=house] .rad{font-weight:300;letter-spacing:.5em;font-size:16px;color:#eaf2ff}
+html[data-skin=house] .tag{color:var(--dim);letter-spacing:.3em;font-size:12px;text-transform:uppercase;font-weight:300}
+html[data-skin=house] .logo img{border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,.4),0 0 24px rgba(var(--gr),.6)}
+html[data-skin=house] .themebtn,html[data-skin=house] .skinbtn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.3);color:#eaf2ff;border-radius:999px;font-weight:600;font-size:11px;letter-spacing:.22em;padding:8px 14px;backdrop-filter:blur(6px)}
+html[data-skin=house] .themebtn i{border-radius:50%;box-shadow:0 0 10px var(--g)}html[data-skin=house] .themebtn:hover,html[data-skin=house] .skinbtn:hover{background:rgba(var(--gr),.25);color:#fff;border-color:var(--g)}html[data-skin=house] .themebtn:hover i{background:var(--g)}
+html[data-skin=house] .onair{font-size:11px;letter-spacing:.25em;font-weight:600}html[data-skin=house] .onair i{border-radius:50%;background:#46567a;box-shadow:none}html[data-skin=house] .onair.on{color:#8dffc7}html[data-skin=house] .onair.on i{background:#8dffc7;box-shadow:0 0 14px #8dffc7}
+html[data-skin=house] .player{border:1px solid rgba(255,255,255,.2);border-radius:28px;background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.015));box-shadow:0 0 60px rgba(var(--gr),.14),inset 0 0 40px rgba(255,255,255,.03);backdrop-filter:blur(7px);padding:32px 30px 24px;animation:nebulafloat 11s ease-in-out infinite alternate}
+html[data-skin=house] .player::before{display:none}
+html[data-skin=house] .eq i{background:linear-gradient(0deg,var(--g),transparent);box-shadow:0 0 10px rgba(var(--gr),.7);opacity:.9;border-radius:2px;width:3px;flex:0 0 3px}html[data-skin=house] .eq{justify-content:space-between}
+html[data-skin=house] .lab{color:var(--dim);font-weight:600;font-size:11px;letter-spacing:.45em}
+html[data-skin=house] .title{font-weight:300;text-transform:uppercase;font-size:clamp(26px,5vw,52px);letter-spacing:.07em;line-height:1.1;color:#fff;text-shadow:0 0 24px rgba(var(--gr),.55)}
+html[data-skin=house] .artist{color:var(--g2);font-weight:400;letter-spacing:.2em;text-transform:uppercase;font-size:14px}
+html[data-skin=house] .savebtn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.3);color:#eaf2ff;border-radius:999px;font-weight:600;font-size:12px;letter-spacing:.2em;padding:9px 18px}
+html[data-skin=house] .savebtn:hover:not(:disabled){background:rgba(var(--gr),.22);border-color:var(--g);color:#fff}html[data-skin=house] .savebtn.on{background:rgba(var(--gr),.35);border-color:var(--g);color:#fff}
+html[data-skin=house] .bar{height:2px;background:rgba(255,255,255,.18)}html[data-skin=house] .fill{background:var(--g);box-shadow:0 0 12px var(--g)}
+html[data-skin=house] .play{position:relative;width:74px;height:74px;border-radius:50%;background:rgba(var(--gr),.12);color:var(--g);border:1px solid rgba(var(--gr),.7);box-shadow:0 0 30px rgba(var(--gr),.45),inset 0 0 18px rgba(var(--gr),.25);backdrop-filter:blur(4px)}
+html[data-skin=house] .play::after{content:"";position:absolute;inset:-13px;border:1px dashed rgba(var(--gr),.45);border-radius:50%;animation:nebulaspin 16s linear infinite;pointer-events:none}@keyframes nebulaspin{to{transform:rotate(360deg)}}
+html[data-skin=house] .vol span,html[data-skin=house] .vol b{font-size:11px;font-weight:600;letter-spacing:.25em;color:var(--g)}html[data-skin=house] .vol input{accent-color:var(--g)}
+html[data-skin=house] .hint,html[data-skin=house] .note{color:var(--dim);font-weight:300;letter-spacing:.04em}
+html[data-skin=house] .card{border:1px solid rgba(255,255,255,.16);border-radius:24px;background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.01));box-shadow:0 0 44px rgba(var(--gr),.09);backdrop-filter:blur(7px);animation:nebulafloat 14s ease-in-out infinite alternate}
+html[data-skin=house] .cols .card:nth-child(2){animation-duration:17s;animation-delay:-5s}html[data-skin=house] .card.saved{animation-duration:15s;animation-delay:-3s}html[data-skin=house] .card.sched{animation-duration:19s;animation-delay:-8s}
+html[data-skin=house] h2{color:var(--g2);font-size:13px;font-weight:600;letter-spacing:.4em;text-transform:uppercase}
+html[data-skin=house] .list li{border-bottom:1px solid rgba(255,255,255,.08);align-items:center;color:#eaf2ff;font-weight:300}html[data-skin=house] .list li time{color:var(--dim);font-size:10px;font-weight:600}html[data-skin=house] .list li.now{color:var(--g);text-shadow:0 0 12px rgba(var(--gr),.7);font-weight:600}
+html[data-skin=house] .list li .hb{border:1px solid rgba(255,255,255,.28);border-radius:50%;color:var(--g);background:transparent}html[data-skin=house] .list li .hb.on{background:rgba(var(--gr),.3);border-color:var(--g);color:#fff}
+html[data-skin=house] .days button{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.2);border-radius:999px;color:#eaf2ff;font-weight:600;font-size:12px;letter-spacing:.16em}html[data-skin=house] .days button.on{background:rgba(var(--gr),.3);border-color:var(--g);color:#fff}
+html[data-skin=house] footer{border-top:1px solid rgba(255,255,255,.12);color:var(--dim)}html[data-skin=house] footer a{color:var(--g2)}
+@media(prefers-reduced-motion:reduce){html[data-skin=house] .player,html[data-skin=house] .card,html[data-skin=house] body::before,html[data-skin=house] body::after,html[data-skin=house] .play::after{animation:none}}
+html[data-skin=house] .eq{gap:0;overflow:hidden}
 /* Share button (after the volume) */
 .ctl .sharebtn{margin-top:0;padding:9px 12px;font-size:10px;white-space:nowrap}
 html[data-skin=nebula] .ctl .sharebtn{border-radius:999px;font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.2em;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.04);color:#eaf2ff;padding:9px 18px}
@@ -1132,3 +1166,81 @@ a.bigst,a.bigst:hover,.bigcap{text-decoration:none}
 /* ON AIR light: always a blinking red - except on the red Shock skin, where it is a blinking green */
 html[data-skin=culture] .onair.on i,html[data-skin=dubby] .onair.on i,html[data-skin=shock] .onair.on i{animation:bl 1.2s steps(2) infinite}
 html[data-skin=shock] .onair.on{color:#35d46a}html[data-skin=shock] .onair.on i{background:#35d46a;box-shadow:0 0 14px #35d46a}
+
+/* Bigger round logos for The Vault and The Movement */
+html[data-station=vault] .top .logo img,html[data-station=movement] .top .logo img{width:84px!important;height:84px!important;border-radius:50%}
+html[data-station=vault] .top .logo,html[data-station=movement] .top .logo{gap:14px}
+@media(max-width:900px){html[data-station=vault] .top .logo img,html[data-station=movement] .top .logo img{width:60px!important;height:60px!important}}
+
+/* ===== House: the space skin recoloured for house music - club purple, hot pink and orange, laser beams ===== */
+html[data-skin=house]{--bg:#07040f;--bg2:rgba(255,61,160,.07)!important;--line:rgba(255,150,210,.36)!important;--txt:#fff0f8;--dim:#b69ac6;--g:#ff3da0;--gr:255,61,160;--g2:#ffa04d;--red:#ff4d6d;
+  background:linear-gradient(160deg,#2a0a5e 0%,#c2185b 48%,#ff7a18 100%),#07040F url(assets/nebula-bg.jpg) center/cover fixed;background-blend-mode:color,normal}
+html[data-skin=house] body{color:#fff0f8}
+html[data-skin=house]::before{content:"";position:fixed;left:-60%;right:-60%;top:-10%;bottom:-120%;z-index:0;pointer-events:none;opacity:.55;transform-origin:50% 100%;
+  background:conic-gradient(from 270deg at 50% 100%,transparent 0 4%,rgba(255,61,160,.20) 5% 6.5%,transparent 7.5% 17%,rgba(255,160,77,.16) 18% 19.2%,transparent 20% 33%,rgba(150,100,255,.20) 34% 35.5%,transparent 36.5% 100%);animation:hlasers 22s ease-in-out infinite alternate}
+@keyframes hlasers{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
+@media(prefers-reduced-motion:reduce){html[data-skin=house]::before{animation:none}}
+html[data-skin=house] .title{text-shadow:0 0 26px rgba(255,61,160,.7)}
+html[data-skin=house] .eq i{background:linear-gradient(0deg,#ff7a18,#ff3da0);box-shadow:0 0 10px rgba(255,61,160,.7)}
+html[data-skin=house] .artist{color:#ffa04d}
+html[data-skin=house] .player,html[data-skin=house] .card{border-color:rgba(255,150,210,.42);box-shadow:0 0 54px rgba(255,61,160,.22),inset 0 0 40px rgba(255,160,77,.05)}
+html[data-skin=house] .onair.on{color:#ff5a8a}html[data-skin=house] .onair.on i{background:#ff2a6a;box-shadow:0 0 14px #ff2a6a}
+
+/* ===== The Vault skin: rugged and raw - concrete, cardboard, masking tape, hazard stripes, stencil type ===== */
+html[data-skin=vault]{--bg:#141311;--bg2:#171512!important;--line:rgba(239,230,210,.38)!important;--txt:#efe6d2;--dim:#9b937f;--g:#ff5a1f;--gr:255,90,31;--g2:#efe6d2;--red:#d7261e;
+  background:
+   radial-gradient(520px 340px at 12% 22%,rgba(0,0,0,.38),transparent 70%),radial-gradient(640px 400px at 88% 64%,rgba(0,0,0,.34),transparent 70%),radial-gradient(900px 500px at 50% -120px,rgba(255,90,31,.10),transparent 70%),
+   url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .12 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),#1c1a17;color:var(--txt)}
+html[data-skin=vault] body{background:transparent;color:var(--txt)}
+html[data-skin=vault] *{font-family:'Special Elite','Barlow Condensed',system-ui,sans-serif!important}
+html[data-skin=vault] .top{position:relative!important;background:#0d0c0b;border-bottom:0;backdrop-filter:none;margin-bottom:12px}
+html[data-skin=vault] .top::after{content:"";position:absolute;left:0;right:0;bottom:-12px;height:12px;background:repeating-linear-gradient(-45deg,#ffcc00 0 14px,#0d0c0b 14px 28px);box-shadow:0 3px 0 rgba(0,0,0,.6)}
+html[data-skin=vault] .one{color:#ff5a1f;font-family:'Black Ops One',sans-serif!important;font-size:30px!important;letter-spacing:.04em;text-shadow:2px 3px 0 #000!important}
+html[data-skin=vault] .rad{font-family:'Black Ops One',sans-serif!important;letter-spacing:.14em;font-size:19px;color:#efe6d2;font-weight:400}
+html[data-skin=vault] .stsub,html[data-skin=vault] .tag{color:#ff5a1f;letter-spacing:.24em;font-size:12px}
+html[data-skin=vault] .logo img{border-radius:50%;box-shadow:0 0 0 3px #efe6d2,0 0 0 6px #0d0c0b,4px 5px 0 6px rgba(0,0,0,.6)}
+html[data-skin=vault] .themebtn,html[data-skin=vault] .skinbtn{background:#0d0c0b;border:2px solid #efe6d2;border-radius:2px;color:#efe6d2;font-family:'Black Ops One',sans-serif!important;font-weight:400;letter-spacing:.14em;text-transform:uppercase;box-shadow:3px 4px 0 rgba(0,0,0,.65);backdrop-filter:none}
+html[data-skin=vault] .themebtn:hover,html[data-skin=vault] .skinbtn:hover{background:#ff5a1f;color:#0d0c0b;border-color:#0d0c0b}
+html[data-skin=vault] .onair{letter-spacing:.2em;font-family:'Black Ops One',sans-serif!important}
+html[data-skin=vault] .onair.on{color:#ff5a3d}html[data-skin=vault] .onair.on i{background:#ff2a2a;box-shadow:0 0 14px #ff2a2a}
+html[data-skin=vault] .player,html[data-skin=vault] .card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(0,0,0,.18)),#191612;border:3px dashed rgba(239,230,210,.55);border-radius:2px;
+  box-shadow:0 0 0 3px #0d0c0b,9px 11px 0 rgba(0,0,0,.62);backdrop-filter:none;animation:none;transform:rotate(-.3deg)}
+html[data-skin=vault] .card:nth-of-type(2n){transform:rotate(.35deg)}
+html[data-skin=vault] .player::before{display:none}
+html[data-skin=vault] .player::after{content:"RARE \2605 90s";position:absolute;right:16px;top:12px;transform:rotate(7deg);border:3px solid #ff5a1f;color:#ff5a1f;padding:3px 10px;font:400 15px 'Black Ops One',sans-serif!important;letter-spacing:.14em;opacity:.9;mix-blend-mode:normal;pointer-events:none;z-index:3}
+html[data-skin=vault] .lab,html[data-skin=vault] h2{font-family:'Black Ops One',sans-serif!important;font-weight:400;letter-spacing:.3em;color:#ff5a1f}
+html[data-skin=vault] .title{font-family:'Black Ops One',sans-serif!important;font-weight:400;text-transform:uppercase;letter-spacing:.03em;color:#efe6d2;text-shadow:3px 3px 0 #ff5a1f;font-size:clamp(22px,3vw,34px)!important}
+html[data-skin=vault] .artist{font-family:'Permanent Marker',sans-serif!important;color:#ff5a1f;letter-spacing:.03em;text-transform:none;font-size:17px!important}
+html[data-skin=vault] .savebtn{background:#0d0c0b;border:2px solid #efe6d2;border-radius:2px;color:#efe6d2;font-family:'Black Ops One',sans-serif!important;font-weight:400;letter-spacing:.12em;text-transform:uppercase;font-size:13px}
+html[data-skin=vault] .savebtn:hover:not(:disabled){background:#ff5a1f;color:#0d0c0b}
+html[data-skin=vault] .play{background:#efe6d2;color:#0d0c0b;border:4px solid #0d0c0b;border-radius:50%;box-shadow:0 0 0 3px #efe6d2,5px 6px 0 3px rgba(0,0,0,.65)}
+html[data-skin=vault] .eq i{background:#ff5a1f;box-shadow:none;opacity:1;border-radius:0}
+html[data-skin=vault] .bar{height:7px;background:#0d0c0b}html[data-skin=vault] .fill{background:repeating-linear-gradient(-45deg,#ffcc00 0 8px,#0d0c0b 8px 16px);box-shadow:none}
+html[data-skin=vault] .list li{border-bottom:1px dashed rgba(239,230,210,.25)}html[data-skin=vault] .list li time{color:#ff5a1f}
+html[data-skin=vault] .ctl .sharebtn{background:#0d0c0b;color:#efe6d2;border:2px solid #efe6d2;border-radius:50%;box-shadow:3px 4px 0 rgba(0,0,0,.65)}
+html[data-skin=vault] .npart{box-shadow:0 0 0 3px #efe6d2,0 0 0 6px #0d0c0b,5px 6px 0 6px rgba(0,0,0,.6)}
+html[data-skin=vault] .vtape{background:linear-gradient(180deg,#e2d3ac,#cdbb90);color:#2a1d0a;border:0;box-shadow:0 5px 8px rgba(0,0,0,.55);transform:rotate(-1.6deg);
+  clip-path:polygon(0 8%,1.2% 0,2.4% 9%,3.6% 0,5% 10%,100% 0,98.8% 12%,99.6% 55%,98.8% 100%,0 92%,1.2% 60%)}
+html[data-skin=vault] .vtrack span{font:400 24px/1 'Special Elite',monospace!important;letter-spacing:.12em;text-transform:uppercase;font-weight:700}
+html[data-skin=vault] .vside{color:rgba(255,90,31,.15);font-family:'Black Ops One',sans-serif!important}
+/* tape ribbon above the lists + words down both sides (The Vault only) */
+.vtape{margin:6px -2px 24px;overflow:hidden;white-space:nowrap}
+.vtrack{display:inline-flex;animation:vtape 40s linear infinite}
+.vtrack span{padding:11px 0}
+@keyframes vtape{to{transform:translateX(-50%)}}
+.vside{display:none;position:fixed;top:0;bottom:0;z-index:2;pointer-events:none;overflow:hidden;white-space:nowrap;font-size:50px;line-height:1;letter-spacing:.2em;text-transform:uppercase;writing-mode:vertical-rl}
+.vside.vl{left:6px;transform:rotate(180deg)}.vside.vr{right:6px}
+html[data-skin=vault] .vside{display:block}
+@media(max-width:1100px){html[data-skin=vault] .vside{display:none}}
+@media(prefers-reduced-motion:reduce){.vtrack{animation:none}}
+
+/* Rights-holder notice under every page */
+.takedown{margin-top:6px;padding-top:12px;border-top:1px dashed var(--line,rgba(255,255,255,.2))}
+.takedown p{margin:0 0 18px;color:var(--dim,#9a9a9a);font-size:12.5px;line-height:1.55;text-align:center;letter-spacing:.01em}
+.takedown b{color:var(--txt,#ddd);letter-spacing:.06em;text-transform:uppercase;font-size:11.5px}
+.takedown a{color:var(--g,#fff);text-decoration:underline}
+.takedown p{flex:1 1 100%}
+/* The Movement: the house itself is the logo (no circle) */
+html[data-station=movement] .top .logo img{border-radius:0!important;box-shadow:none!important;background:none}
+/* The Vault: the b-boy dragging the 1UP logo is the logo (no circle) */
+html[data-station=vault] .top .logo img{border-radius:0!important;box-shadow:none!important;background:none}

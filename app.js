@@ -9,7 +9,7 @@
   function split(t) { var i = t.indexOf(' - '); return i > 0 ? [t.slice(0, i), t.slice(i + 3)] : ['', t]; }
 
   var ART = {};   // Culture Shock: song id -> Apple Music cover (data/culture-art.json, built by tools/culture_art.py)
-  if (window.UP1_STATION && window.UP1_STATION !== '1up') fetch('data/culture-art.json?t=' + Math.floor(Date.now() / 600000)).then(function (r) { return r.json(); }).then(function (j) { ART = j || {}; try { paintNP(); } catch (e) {} }).catch(function () {});
+  if (window.UP1_ARTMAP) fetch(window.UP1_ARTMAP + '?t=' + Math.floor(Date.now() / 600000)).then(function (r) { return r.json(); }).then(function (j) { ART = j || {}; try { paintNP(); } catch (e) {} }).catch(function () {});
   function load() {
     return fetch((window.UP1_SCHEDULE || 'schedule.json') + '?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (d) {
       var cur = idx >= 0 && S.plays[idx] ? S.plays[idx].t : null;
@@ -26,7 +26,7 @@
   function paintNP() {
     var p = curP || S.plays[idx]; if (!p) return; var a = split(p.title);
     $('npTitle').textContent = a[1] || p.title; $('npArtist').textContent = a[0];
-    var aw = $('npArtWrap'), ai = $('npArt'); if (aw && ai) { if (p.id) { var u = (window.UP1_STATION && window.UP1_STATION !== '1up' && ART[p.id]) ? ART[p.id] : 'https://i.ytimg.com/vi/' + encodeURIComponent(p.id) + '/mqdefault.jpg'; if (ai.getAttribute('src') !== u) ai.src = u; aw.hidden = false; } else aw.hidden = true; }   // album cover (the song's YouTube picture), like the desktop player
+    var aw = $('npArtWrap'), ai = $('npArt'); if (aw && ai) { if (p.id) { var u = (ART[p.id]) ? ART[p.id] : 'https://i.ytimg.com/vi/' + encodeURIComponent(p.id) + '/mqdefault.jpg'; if (ai.getAttribute('src') !== u) ai.src = u; aw.hidden = false; } else aw.hidden = true; }   // album cover (the song's YouTube picture), like the desktop player
     document.title = (playing ? '▶ ' : '') + (a[1] || p.title) + ' · 1UP Radio';
     paintSave();
     paintLists();
@@ -273,8 +273,8 @@
 
   // ---- color themes: every tap on THEME switches to the next of 8 colors ----
   var THEMES = ['#39ff14', '#ffb000', '#ff3b3b', '#00e5ff', '#b4ff3c', '#ffe066', '#ff6a00', '#d946ff'], themeI = 0;
-  var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash', 'space', 'marquee', 'blueprint', 'candy', 'glitch', 'press', 'meters', 'wormhole', 'nebula', 'culture', 'shock', 'dubby'], skinI = 0;
-  var SKIN_NAMES = ['Retro', 'Stream', 'Glass', 'Mono', 'Synth', 'Vinyl', 'Terminal', 'Brutal', 'Aegean', 'GameBoy', 'Cassette', 'Dash', 'Space', 'Marquee', 'Blueprint', 'Candy', 'Glitch', 'Press', 'Meters', 'Wormhole', 'Nebula', 'Culture', 'Shock', 'Dubby'];
+  var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash', 'space', 'marquee', 'blueprint', 'candy', 'glitch', 'press', 'meters', 'wormhole', 'nebula', 'culture', 'shock', 'dubby', 'vault', 'house'], skinI = 0;
+  var SKIN_NAMES = ['Retro', 'Stream', 'Glass', 'Mono', 'Synth', 'Vinyl', 'Terminal', 'Brutal', 'Aegean', 'GameBoy', 'Cassette', 'Dash', 'Space', 'Marquee', 'Blueprint', 'Candy', 'Glitch', 'Press', 'Meters', 'Wormhole', 'Nebula', 'Culture', 'Shock', 'Dubby', 'Vault', 'House'];
   var LIGHT = { glass: 1, aegean: 1, cassette: 1, candy: 1, press: 1 }, NATIVE_OK = { retro: 0, stream: 0 };   // light skins get a darker tint of the colour; every other skin can also go back to its own native colours (-1)
   // Place the SKIN button right after the THEME button whatever the skin's font makes of their widths (desktop; phones lay them out in a row via CSS).
   function fitBtns() { var t = $('themeBtn'), s = $('skinBtn'); if (!t || !s) return; if (window.innerWidth <= 900) { s.style.left = ''; return; } s.style.left = (t.offsetLeft + t.offsetWidth + 10) + 'px'; }
@@ -418,8 +418,8 @@
   $('themeBtn').addEventListener('click', function () { var n = themeI + 1; if (n >= THEMES.length) n = (skinName() in NATIVE_OK) ? 0 : -1; applyTheme(n); });
   if ($('skinBtn')) $('skinBtn').addEventListener('click', function (e) {
     var dir = (e.target && e.target.closest && e.target.closest('.sk-b')) ? -1 : 1;
-    if (window.UP1_STATION && window.UP1_STATION !== '1up') {      // Culture Shock has just its own three skins
-      var own = ['culture', 'shock', 'dubby'], k = own.indexOf(SKINS[skinI]); k = k < 0 ? 0 : (k + dir + own.length) % own.length; applySkin(SKINS.indexOf(own[k]));
+    if (window.UP1_OWN_SKINS) {      // Culture Shock has just its own three skins
+      var own = window.UP1_OWN_SKINS, k = own.indexOf(SKINS[skinI]); k = k < 0 ? 0 : (k + dir + own.length) % own.length; applySkin(SKINS.indexOf(own[k]));
     } else applySkin(skinI + dir);
   });
 
@@ -629,7 +629,7 @@
 
 // Nebula meter bars: thin bars that run across the whole player (the other skins use 12 wide bars)
 (function () {
-  var fit = function () { var e = document.getElementById('eq'); if (!e) return; var n = ['nebula', 'culture', 'shock', 'dubby'].indexOf(document.documentElement.getAttribute('data-skin')) >= 0 ? 44 : 12; while (e.children.length < n) e.appendChild(document.createElement('i')); while (e.children.length > n) e.removeChild(e.lastChild); };
+  var fit = function () { var e = document.getElementById('eq'); if (!e) return; var n = ['nebula', 'culture', 'shock', 'dubby', 'house'].indexOf(document.documentElement.getAttribute('data-skin')) >= 0 ? 44 : 12; while (e.children.length < n) e.appendChild(document.createElement('i')); while (e.children.length > n) e.removeChild(e.lastChild); };
   var go = function () { fit(); new MutationObserver(fit).observe(document.documentElement, { attributes: true, attributeFilter: ['data-skin'] }); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
 })();

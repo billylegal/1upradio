@@ -2,21 +2,22 @@
 (function () {
   var ST = [
     { id: '1up', name: '1UP Radio', sub: 'The main station: deep house, melodic, electronic, all day', sched: 'schedule.json', art: 'assets/logo.png', tag: 'Keep the volume up' },
-    { id: 'cultureshock', name: 'Culture Shock', sub: 'Roots reggae and dub, all day', sched: 'schedule-culture.json', art: 'assets/cultureshock.svg?v=2', mark: 'assets/cultureshock-mark.svg?v=1', tag: 'Roots · reggae · dub' },
-    { id: 'movement', name: 'The Movement', sub: 'Hand-selected house and Afro tracks', soon: 1, art: 'assets/logo.png' },
+    { id: 'cultureshock', name: 'Culture Shock', sub: 'Roots reggae and dub, all day', sched: 'schedule-culture.json', art: 'assets/cultureshock.svg?v=2', mark: 'assets/cultureshock-mark.svg?v=1', tag: 'Roots · reggae · dub', artmap: 'data/culture-art.json', skins: ['culture', 'shock', 'dubby'] },
+    { id: 'vault', name: 'The Vault', sub: 'Hip hop vinyl: 90s underground demos, boom bap archives, digging in the crates', sched: 'schedule-hiphopvinyl.json', art: 'assets/vault-art.png?v=2', mark: 'assets/vault-mark.svg?v=3', tag: 'Hip hop vinyl · underground · boom bap', artmap: 'data/hiphopvinyl-art.json', start: 'vault', short: 'THE VAULT' },
+    { id: 'movement', name: 'The Movement', sub: 'Hand-selected house and Afro tracks', sched: 'schedule-movement.json', art: 'assets/movement-art.png?v=2', mark: 'assets/movement-mark.svg?v=3', tag: 'House · Afro', artmap: 'data/movement-art.json', start: 'house', short: 'THE MOVEMENT' },
     { id: 'trap', name: 'Trap', sub: 'Heavy 808s and hard-hitting trap', soon: 1, art: 'assets/logo.png' }
   ];
   var KEY = 'up1-station', cur = ST[0], m;
   try { m = /[?&]station=([a-z0-9]+)/.exec(location.search); var want = m ? m[1] : localStorage.getItem(KEY); ST.forEach(function (s) { if (s.id === want && !s.soon) cur = s; }); } catch (e) {}
   if (/[?&]ailocal=1/.test(location.search)) window.UP1_AI_URL = 'ai/';   // preview: read the AI lyrics from this PC instead of the live site
-  // Culture Shock opens in one of its three own skins (Culture, Shock, Dubby), a different one each visit; ?skin=name picks one (preview)
-  window.UP1_START_SKIN = '';
-  if (cur.id === 'cultureshock') {
-    var OWN = ['culture', 'shock', 'dubby'], mm = /[?&]skin=(culture|shock|dubby)/.exec(location.search), cm = /[?&]cs=([123])/.exec(location.search), pick = mm ? mm[1] : (cm ? OWN[+cm[1] - 1] : '');
+  // Culture Shock opens in one of its three own skins (Culture, Shock, Dubby), a different one each visit; ?skin=name picks one (preview). The others open in their own look.
+  window.UP1_START_SKIN = ''; window.UP1_OWN_SKINS = cur.skins || null; window.UP1_ARTMAP = cur.artmap || '';
+  if (cur.skins) {
+    var OWN = cur.skins, mm = /[?&]skin=(culture|shock|dubby)/.exec(location.search), cm = /[?&]cs=([123])/.exec(location.search), pick = mm ? mm[1] : (cm ? OWN[+cm[1] - 1] : '');
     if (!pick) { var last = ''; try { last = localStorage.getItem('up1-cs-skin') || ''; } catch (e) {} var all = OWN.filter(function (n) { return n !== last; }); pick = all[Math.floor(Math.random() * all.length)]; }
     try { localStorage.setItem('up1-cs-skin', pick); } catch (e) {}
     window.UP1_START_SKIN = pick;
-  }
+  } else if (cur.start) { var ms = /[?&]skin=([a-z]+)/.exec(location.search); window.UP1_START_SKIN = ms ? ms[1] : cur.start; }
   if (/[?&]nogate=1/.test(location.search)) { var gs = document.createElement('style'); gs.textContent = '#tapgate{display:none!important}'; (document.head || document.documentElement).appendChild(gs); }   // preview only
   try {
     if (sessionStorage.getItem('up1-skipgate') === '1') {
@@ -33,7 +34,7 @@
     // Top bar for every station: the name on one line ("1UP RADIO (ORIGINAL)", "1UP CULTURE SHOCK") with "Keep the volume up" underneath
     var isMain = cur.id === '1up';
     if (!isMain) document.title = cur.name + ' \u00b7 1UP Radio';
-    if (rad) rad.textContent = isMain ? 'RADIO (ORIGINAL)' : cur.name.toUpperCase();
+    if (rad) rad.textContent = isMain ? 'RADIO (ORIGINAL)' : (cur.short || cur.name).toUpperCase();
     if (img && !isMain) img.src = cur.mark || cur.art;
     var lg = document.querySelector('.logo'), one = lg && lg.querySelector('.one');
     if (lg && one && rad) {
@@ -107,6 +108,18 @@
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
     var n = 0, iv = setInterval(function () { place(); if (++n > 12) clearInterval(iv); }, 500);          // the bar settles as fonts and skins load
     try { new MutationObserver(function () { setTimeout(place, 60); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-skin'] }); } catch (e) {}
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
+})();
+
+/* The Vault: 90s hip-hop dressing - a tape ribbon above the lists and big words down both sides */
+(function () {
+  if (window.UP1_STATION !== 'vault') return;
+  var WORDS = 'DIGGING IN THE CRATES \u2605 RARE \u2605 90s UNDERGROUND \u2605 BOOM BAP ARCHIVES \u2605 HIDDEN GEMS \u2605 DEMOS \u2605 VINYL ONLY \u2605 ';
+  function ready() {
+    var cols = document.querySelector('main .cols');
+    if (cols) { var t = document.createElement('div'); t.className = 'vtape'; t.setAttribute('aria-hidden', 'true'); t.innerHTML = '<div class="vtrack"><span>' + WORDS + WORDS + '</span><span>' + WORDS + WORDS + '</span></div>'; cols.parentNode.insertBefore(t, cols); }
+    ['vl', 'vr'].forEach(function (c) { var d = document.createElement('div'); d.className = 'vside ' + c; d.setAttribute('aria-hidden', 'true'); d.textContent = WORDS + WORDS + WORDS; document.body.appendChild(d); });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
 })();
