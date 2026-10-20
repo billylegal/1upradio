@@ -1268,3 +1268,8 @@ html.swipe-on .top .wrap{grid-template-rows:auto!important}
 @keyframes swl{0%{transform:translateX(0);opacity:0}15%{opacity:1}70%{transform:translateX(-34px);opacity:1}100%{transform:translateX(-38px);opacity:0}}
 #swok{margin-top:6px;width:100%;padding:12px;border:0;border-radius:999px;background:var(--g,#fff);color:#000;font:700 15px 'Barlow Condensed',sans-serif;letter-spacing:.3em;cursor:pointer}
 @media(prefers-reduced-motion:reduce){.swhand span{animation:none}}
+
+/* Pop-out player button: computers only */
+.popbtn svg{width:20px;height:20px}
+@media(max-width:900px){.popbtn{display:none!important}}
+html.swipe-on .popbtn{display:none!important}

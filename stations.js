@@ -79,6 +79,18 @@
     if (ctl) {
       var sb = document.createElement('button'); sb.type = 'button'; sb.id = 'shareBtn'; sb.className = 'sharebtn'; sb.title = 'Share ' + cur.name; sb.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="sharetip" hidden></span>'; sb.setAttribute('aria-label', 'Share ' + cur.name);
       if (vol && vol.nextSibling) ctl.insertBefore(sb, vol.nextSibling); else ctl.appendChild(sb);
+      // Pop-out button (computers): the player in its own small window you can drop in a corner or move anywhere - it keeps playing while you browse
+      var pb = document.createElement('button'); pb.type = 'button'; pb.id = 'popBtn'; pb.className = 'sharebtn popbtn'; pb.title = 'Pop out the player'; pb.setAttribute('aria-label', 'Pop out the player');
+      pb.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h9v2H6v11h11v-7h2v9H4z"/><path d="M14 4h7v7h-2V7.4l-6.3 6.3-1.4-1.4L17.6 6H14z"/></svg><span class="sharetip" hidden></span>';
+      sb.parentNode.insertBefore(pb, sb.nextSibling);
+      pb.addEventListener('click', function () {
+        var w = 400, h = 240, left = Math.max(0, (screen.availLeft || 0) + screen.availWidth - w - 24), top = (screen.availTop || 0) + 24;
+        var win = null; try { win = window.open('player.html?station=' + cur.id, 'up1pop', 'popup=yes,width=' + w + ',height=' + h + ',left=' + left + ',top=' + top); } catch (e) {}
+        var tip = pb.querySelector('.sharetip');
+        if (!win) { tip.textContent = 'Allow pop-ups to use this'; tip.hidden = false; setTimeout(function () { tip.hidden = true; }, 2600); return; }
+        var pl = document.getElementById('play'); if (pl && pl.classList.contains('on')) pl.click();   // the pop-out takes over, so the music is not doubled
+        try { win.focus(); } catch (e) {}
+      });
       sb.addEventListener('click', function () {
         var url = location.origin + (cur.id === '1up' ? '/' : '/s/' + cur.id + '/'), title = cur.name + ' \u00b7 1UP Radio', txt = 'Listen to ' + cur.name + ' on 1UP Radio. Keep the volume up.';
         var flash = function (m) { var t = sb.querySelector('.sharetip'); t.textContent = m; t.hidden = false; setTimeout(function () { t.hidden = true; }, 1800); };

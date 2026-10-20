@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>1UP Radio · Player</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.youtube.com https://s.ytimg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://i.ytimg.com https://is1-ssl.mzstatic.com https://*.mzstatic.com https://cdn-images.dzcdn.net https://e-cdns-images.dzcdn.net https://yt3.googleusercontent.com https://lh3.googleusercontent.com https://*.discogs.com; connect-src 'self'; frame-src https://www.youtube-nocookie.com https://www.youtube.com; base-uri 'none'; form-action 'none'">
+<link rel="icon" href="assets/favicon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&family=Barlow:wght@400;600&display=swap">
+<style>
+:root{--g:#8b5cf6;--gr:139,92,246;--bg:#0b0813;--txt:#f2ecff;--dim:#9a8fb8}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font:14px/1.3 'Barlow',system-ui,sans-serif;overflow:hidden}
+body{background:radial-gradient(420px 220px at 20% -40px,rgba(var(--gr),.35),transparent 70%),var(--bg);display:flex;flex-direction:column;padding:10px 12px 8px;gap:8px;user-select:none}
+.top{display:flex;align-items:center;gap:8px}.top img{width:26px;height:26px;border-radius:50%;object-fit:cover}
+.top b{font:700 14px 'Barlow Condensed',sans-serif;letter-spacing:.18em;text-transform:uppercase;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.air{font:700 10px 'Barlow Condensed',sans-serif;letter-spacing:.2em;color:var(--dim);display:flex;align-items:center;gap:5px}.air i{width:8px;height:8px;border-radius:50%;background:#444;display:block}
+.air.on{color:#ff6b6b}.air.on i{background:#ff2a2a;box-shadow:0 0 8px #ff2a2a;animation:bl 1.2s steps(2) infinite}@keyframes bl{50%{opacity:0}}
+.main{display:flex;gap:12px;align-items:center;flex:1;min-height:0}
+.rec{width:74px;height:74px;border-radius:50%;flex:none;position:relative;overflow:hidden;box-shadow:0 0 0 3px #000,0 0 0 4px rgba(255,255,255,.14),0 6px 16px rgba(0,0,0,.55);background:#000}
+.rec img{width:100%;height:100%;object-fit:cover;display:block}.rec.on img{animation:sp 7s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+.rec::after{content:"";position:absolute;left:50%;top:50%;width:15%;height:15%;transform:translate(-50%,-50%);border-radius:50%;background:#050505;box-shadow:0 0 0 2px #cfcfcf}
+.info{min-width:0;flex:1}.t{font:700 17px/1.15 'Barlow Condensed',sans-serif;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.a{color:var(--g);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.ctl{display:flex;align-items:center;gap:10px;margin-top:8px}
+#pp{width:42px;height:42px;border-radius:50%;border:1px solid rgba(var(--gr),.8);background:rgba(var(--gr),.16);color:var(--g);cursor:pointer;display:grid;place-items:center;flex:none;box-shadow:0 0 18px rgba(var(--gr),.35)}
+#pp svg{width:18px;height:18px;fill:currentColor}#pp .ip{display:none}#pp.on .ia{display:none}#pp.on .ip{display:block}
+input[type=range]{flex:1;min-width:0;accent-color:var(--g);height:22px}
+.bot{display:flex;gap:6px;align-items:center;justify-content:space-between}
+.pills{display:flex;gap:5px;flex-wrap:wrap}.pills button{border:1px solid rgba(255,255,255,.22);background:transparent;color:var(--dim);border-radius:999px;padding:3px 9px;font:700 10.5px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.pills button.on{color:#000;background:var(--g);border-color:var(--g)}
+.bot a{color:var(--dim);font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-decoration:none;white-space:nowrap}.bot a:hover{color:var(--g)}
+#yt{position:fixed;left:-300px;top:0;width:200px;height:200px;overflow:hidden}
+.hint{position:absolute;left:0;right:0;bottom:36px;text-align:center;color:var(--dim);font-size:11px}
+</style></head><body>
+<div class="top"><img id="mk" alt=""><b id="nm">1UP Radio</b><div class="air" id="air"><i></i><span id="airt">OFF AIR</span></div></div>
+<div class="main"><div class="rec" id="rec"><img id="cv" alt=""></div>
+ <div class="info"><div class="t" id="t">Press play</div><div class="a" id="a">Keep the volume up</div>
+  <div class="ctl"><button id="pp" type="button" aria-label="Play"><svg class="ia" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg><svg class="ip" viewBox="0 0 24 24"><path d="M6 4.5h4v15H6zM14 4.5h4v15h-4z"/></svg></button><input id="vol" type="range" min="0" max="100" value="80" aria-label="Volume"></div></div></div>
+<div class="bot"><div class="pills" id="pills"></div><a id="full" href="/" target="_blank" rel="noopener">1UPRADIO.COM &#8599;</a></div>
+<div id="yt"><div id="ytp"></div></div>
+<script src="player.js"></script>
+</body></html>
