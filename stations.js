@@ -8,6 +8,7 @@
   ];
   var KEY = 'up1-station', cur = ST[0], m;
   try { m = /[?&]station=([a-z0-9]+)/.exec(location.search); var want = m ? m[1] : localStorage.getItem(KEY); ST.forEach(function (s) { if (s.id === want && !s.soon) cur = s; }); } catch (e) {}
+  if (/[?&]ailocal=1/.test(location.search)) window.UP1_AI_URL = 'ai/';   // preview: read the AI lyrics from this PC instead of the live site
   window.UP1_SCHEDULE = cur.sched; window.UP1_STATION = cur.id;
   document.documentElement.setAttribute('data-station', cur.id);
   function ready() {
@@ -35,6 +36,22 @@
       location.href = location.pathname + (c.dataset.id === '1up' ? '' : '?station=' + c.dataset.id);
     });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') open(false); });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
+})();
+
+/* Tap the album cover to see it big */
+(function () {
+  function ready() {
+    var box = document.createElement('div'); box.id = 'artzoom'; box.hidden = true; box.innerHTML = '<img alt="Album cover"><button type="button" aria-label="Close">&times;</button>'; document.body.appendChild(box);
+    var img = box.querySelector('img');
+    function close() { box.hidden = true; img.removeAttribute('src'); }
+    box.addEventListener('click', close); document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest('#npArt'); if (!a || !a.getAttribute('src')) return;
+      var src = a.currentSrc || a.src, big = src.replace('/mqdefault.jpg', '/hqdefault.jpg');   // YouTube pictures come in a bigger size; album covers are already large
+      img.onerror = function () { img.onerror = null; img.src = src; }; img.src = big; box.hidden = false;
+    });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
 })();

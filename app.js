@@ -8,6 +8,8 @@
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   function split(t) { var i = t.indexOf(' - '); return i > 0 ? [t.slice(0, i), t.slice(i + 3)] : ['', t]; }
 
+  var ART = {};   // Culture Shock: song id -> Apple Music cover (data/culture-art.json, built by tools/culture_art.py)
+  if (window.UP1_STATION && window.UP1_STATION !== '1up') fetch('data/culture-art.json?t=' + Math.floor(Date.now() / 600000)).then(function (r) { return r.json(); }).then(function (j) { ART = j || {}; try { paintNP(); } catch (e) {} }).catch(function () {});
   function load() {
     return fetch((window.UP1_SCHEDULE || 'schedule.json') + '?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (d) {
       var cur = idx >= 0 && S.plays[idx] ? S.plays[idx].t : null;
@@ -24,7 +26,7 @@
   function paintNP() {
     var p = curP || S.plays[idx]; if (!p) return; var a = split(p.title);
     $('npTitle').textContent = a[1] || p.title; $('npArtist').textContent = a[0];
-    var aw = $('npArtWrap'), ai = $('npArt'); if (aw && ai) { if (p.id) { var u = 'https://i.ytimg.com/vi/' + encodeURIComponent(p.id) + '/mqdefault.jpg'; if (ai.getAttribute('src') !== u) ai.src = u; aw.hidden = false; } else aw.hidden = true; }   // album cover (the song's YouTube picture), like the desktop player
+    var aw = $('npArtWrap'), ai = $('npArt'); if (aw && ai) { if (p.id) { var u = (window.UP1_STATION && window.UP1_STATION !== '1up' && ART[p.id]) ? ART[p.id] : 'https://i.ytimg.com/vi/' + encodeURIComponent(p.id) + '/mqdefault.jpg'; if (ai.getAttribute('src') !== u) ai.src = u; aw.hidden = false; } else aw.hidden = true; }   // album cover (the song's YouTube picture), like the desktop player
     document.title = (playing ? '▶ ' : '') + (a[1] || p.title) + ' · 1UP Radio';
     paintSave();
     paintLists();
@@ -68,7 +70,7 @@
       if (LY) lyb = '<button class="chip found lybtn" data-i="' + i + '" type="button" aria-expanded="false">♪ Lyrics ✓</button>';
       else if (s.ly === undefined && (s.lyt || 0) < 3) lyb = '<button class="chip lybtn lywait" type="button" disabled>♪ Lyrics …</button>';
       else lyb = '<button class="chip lybtn lyretry" data-i="' + i + '" type="button" title="No lyrics found yet. Tap to search again.">♪ Lyrics ?</button> <span class="snf">none found yet · tap to search again</span>';
-      return '<li class="srow"><span class="st">' + esc(a[0] ? a[0] + ' — ' + a[1] : a[1]) + ' ' + lyb + '</span><button class="sdel" data-i="' + i + '" type="button" aria-label="Remove from saved songs" title="Remove">✕</button><div class="slinks">' + lk + '</div>' + (LY ? '<div class="slyr" hidden><div class="slyh">' + esc((LY.t || '') + (LY.a ? ' · ' + LY.a : '') + (LY.ai ? ' · 🤖 AI-transcribed, may contain mistakes' : '')) + '</div><pre>' + esc(LY.text) + '</pre></div>' : '') + '</li>';
+      return '<li class="srow"><span class="st">' + esc(a[0] ? a[0] + ' — ' + a[1] : a[1]) + ' ' + lyb + '</span><button class="sdel" data-i="' + i + '" type="button" aria-label="Remove from saved songs" title="Remove">✕</button><div class="slinks">' + lk + '</div>' + (LY ? '<div class="slyr" hidden><div class="slyh"><span>' + esc((LY.t || '') + (LY.a ? ' · ' + LY.a : '') + (LY.ai ? ' · 🤖 AI-transcribed, may contain mistakes' : '')) + '</span><button class="chip lycopy" data-i="' + i + '" type="button">⧉ Copy</button></div><pre>' + esc(LY.text) + '</pre></div>' : '') + '</li>';
     }).join('');
     lookupMissing(); setTimeout(lookupLyricsForSaved, 1500);   // after the page has finished starting (the lyrics code is defined further down)
   }
@@ -136,6 +138,14 @@
     persistSaved(); paintSave(); paintSaved();
   });
   $('saved').addEventListener('click', function (e) {
+    var cb = e.target.closest('.lycopy'); if (cb) {   // copy the words (one line per row) to the clipboard
+      var sv0 = saved[+cb.dataset.i], txt = sv0 && sv0.ly && sv0.ly.text ? sv0.ly.text : ''; if (!txt) return;
+      var done = function () { cb.textContent = '✓ Copied'; setTimeout(function () { cb.textContent = '⧉ Copy'; }, 1500); };
+      var ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select();
+      var okc = false; try { okc = document.execCommand('copy'); } catch (er) {} ta.remove();
+      if (okc) done(); else if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, function () {});
+      return;
+    }
     var rt = e.target.closest('.lyretry'); if (rt) { var sv = saved[+rt.dataset.i]; if (sv) { sv.ly = undefined; sv.lyt = 0; persistSaved(); paintSaved(); } return; }
     var lb = e.target.closest('.lybtn'); if (lb) { var pn = lb.closest('.srow').querySelector('.slyr'); if (pn) { pn.hidden = !pn.hidden; lb.setAttribute('aria-expanded', pn.hidden ? 'false' : 'true'); } return; }
     var b = e.target.closest('.sdel'); if (!b) return; saved.splice(+b.dataset.i, 1); persistSaved(); paintSave(); paintSaved(); });
@@ -175,7 +185,7 @@
     }
     return out;
   }
-  var AI_URL = 'https://aviewfromspace.com/data/', aiIdx = null;
+  var AI_URL = window.UP1_AI_URL || 'https://aviewfromspace.com/data/', aiIdx = null;
   function aiKey(t) { var f = String(t || '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim(); return crypto.subtle.digest('SHA-1', new TextEncoder().encode(f)).then(function (b) { return Array.prototype.slice.call(new Uint8Array(b), 0, 6).map(function (x) { return x.toString(16).padStart(2, '0'); }).join(''); }); }
   function aiLyrics(titles) {   // lyrics transcribed from the audio on the PC (Radio Globe's library) for songs LRCLIB lacks
     var go = aiIdx ? Promise.resolve() : fetch(AI_URL + 'ai_lyrics_index.json').then(function (r) { return r.json(); }).then(function (j) { aiIdx = j.items || {}; setTimeout(function () { aiIdx = null; }, 300000); });

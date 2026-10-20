@@ -925,3 +925,11 @@ html[data-skin=nebula] .eq,html[data-skin=space] .eq{gap:0;overflow:hidden}
 .saved button.chip{background:transparent;font-family:inherit;font-size:12px;cursor:pointer;margin-left:6px;vertical-align:middle;display:inline-block}
 .saved button.chip.found:hover,.saved button.chip.lyretry:hover{background:rgba(var(--gr),.15)}
 .saved .lybtn.lywait{opacity:.55}
+.slyh{display:flex;align-items:center;justify-content:space-between;gap:10px}.slyh span{min-width:0}.saved button.chip.lycopy{margin:0;flex:none;border-color:var(--g);color:var(--g);font-weight:700}.saved button.chip.lycopy:hover{background:rgba(var(--gr),.15)}
+
+/* Album cover zoom */
+#npArt{cursor:zoom-in}
+#artzoom{position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.86);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:18px;cursor:zoom-out}
+#artzoom[hidden]{display:none}
+#artzoom img{max-width:min(92vw,720px);max-height:86vh;object-fit:contain;border-radius:14px;box-shadow:0 0 60px rgba(var(--gr),.35),0 10px 40px rgba(0,0,0,.6);background:#000}
+#artzoom button{position:absolute;right:14px;top:8px;background:none;border:0;color:#fff;font-size:36px;line-height:1;cursor:pointer}
