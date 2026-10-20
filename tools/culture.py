@@ -1,0 +1,92 @@
+"""Culture Shock (roots reggae): follow the Crucial Brew YouTube channel and keep a clock-synced schedule.
+
+  data/culture-videos.json   every embeddable video of the channel  {id, title, dur, pub}
+  data/culture-plays.json    the plays already decided (kept, so the song on air never changes under listeners)
+  schedule-culture.json      what the website reads (same format as schedule.json, delay 0 = real time)
+
+New uploads play soon (before anything is repeated); once everything has been played the order starts again,
+never repeating a song from the last 60% of the library. Uses the YouTube Data API (quota ~40 units per run)."""
+import json, os, random, re, sys, time, urllib.parse, urllib.request
+
+CHANNEL_UPLOADS = 'UUcS-Gz7tDZmJbsi5M-DLsQw'      # Crucial Brew
+HORIZON = 7 * 24 * 3600                          # always schedule a week ahead
+KEEP_PAST = 12 * 3600                            # and keep half a day behind (the Just Played list)
+MIN_DUR, MAX_DUR = 60, 1500
+API = 'https://www.googleapis.com/youtube/v3/'
+KEY_FILE = os.path.expanduser('~/.config/1upradio/youtube.key')
+HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+VIDEOS, PLAYS, OUT = (os.path.join(HERE, p) for p in ('data/culture-videos.json', 'data/culture-plays.json', 'schedule-culture.json'))
+
+
+def api(path, **params):
+    key = os.environ.get('YOUTUBE_API_KEY') or open(KEY_FILE).read().strip()
+    q = urllib.parse.urlencode(dict(params, key=key))
+    with urllib.request.urlopen(API + path + '?' + q, timeout=30) as r:
+        return json.load(r)
+
+
+def iso_secs(d):
+    m = re.match(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$', d or '')
+    return (int(m.group(1) or 0) * 3600 + int(m.group(2) or 0) * 60 + int(m.group(3) or 0)) if m else 0
+
+
+def fetch_videos():
+    ids, page = [], None
+    while True:
+        r = api('playlistItems', part='contentDetails', maxResults=50, playlistId=CHANNEL_UPLOADS, **({'pageToken': page} if page else {}))
+        ids += [i['contentDetails']['videoId'] for i in r.get('items', [])]
+        page = r.get('nextPageToken')
+        if not page: break
+    out = []
+    for i in range(0, len(ids), 50):
+        r = api('videos', part='contentDetails,snippet,status', id=','.join(ids[i:i + 50]))
+        for v in r.get('items', []):
+            st = v.get('status', {}); d = iso_secs(v['contentDetails']['duration'])
+            if not st.get('embeddable') or st.get('privacyStatus') != 'public' or not MIN_DUR <= d <= MAX_DUR: continue
+            out.append({'id': v['id'], 'title': v['snippet']['title'], 'dur': d, 'pub': v['snippet']['publishedAt']})
+    return out
+
+
+def load(p, default):
+    try: return json.load(open(p))
+    except Exception: return default
+
+
+def main():
+    now = int(time.time())
+    try:
+        vids = fetch_videos()
+        if len(vids) < 50: raise RuntimeError('only %d videos came back' % len(vids))
+        json.dump(vids, open(VIDEOS, 'w'), ensure_ascii=False, separators=(',', ':'))
+    except Exception as e:
+        print('channel fetch failed:', e, '- keeping the last list', file=sys.stderr)
+        vids = load(VIDEOS, [])
+    if not vids: sys.exit(1)
+    by = {v['id']: v for v in vids}
+    old = load(PLAYS, [])
+    hist = load(os.path.join(HERE, 'data/culture-history.json'), [])      # ids in the order they were scheduled (all time)
+    # what is already decided up to one hour from now is final; the rest is re-planned (so new uploads jump the queue)
+    plays = [p for p in old if p['t'] <= now + 3600 and p['t'] + p['dur'] > now - KEEP_PAST]
+    for p in reversed([p for p in old if p['t'] > now + 3600]):
+        if hist and hist[-1] == p['id']: hist.pop()
+    t = plays[-1]['t'] + plays[-1]['dur'] if plays else now - now % 60
+    rng = random.Random(now // 3600)
+    seen = set(hist)
+    while t < now + HORIZON:
+        fresh = sorted((v for v in vids if v['id'] not in seen), key=lambda v: v['pub'])       # never-played videos first, oldest upload first
+        if fresh: pick = fresh[0]
+        else:
+            block = set(hist[-int(len(vids) * 0.6):])
+            pool = [v for v in vids if v['id'] not in block] or vids
+            pick = rng.choice(pool)
+        hist.append(pick['id']); seen.add(pick['id'])
+        plays.append({'t': t, 'id': pick['id'], 'title': pick['title'], 'dur': pick['dur']})
+        t += pick['dur']
+    json.dump(plays, open(PLAYS, 'w'), ensure_ascii=False, separators=(',', ':'))
+    json.dump(hist[-5000:], open(os.path.join(HERE, 'data/culture-history.json'), 'w'), separators=(',', ':'))
+    json.dump({'built': now, 'delay': 0, 'plays': plays}, open(OUT, 'w'), ensure_ascii=False, separators=(',', ':'))
+    print('culture shock:', len(vids), 'videos,', len(plays), 'plays scheduled')
+
+
+if __name__ == '__main__':
+    main()

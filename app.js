@@ -9,7 +9,7 @@
   function split(t) { var i = t.indexOf(' - '); return i > 0 ? [t.slice(0, i), t.slice(i + 3)] : ['', t]; }
 
   function load() {
-    return fetch('schedule.json?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (d) {
+    return fetch((window.UP1_SCHEDULE || 'schedule.json') + '?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (d) {
       var cur = idx >= 0 && S.plays[idx] ? S.plays[idx].t : null;
       S = d;
       if (cur !== null) { var k = S.plays.findIndex(function (p) { return p.t === cur; }); if (k >= 0) idx = k; }
