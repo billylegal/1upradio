@@ -1094,3 +1094,23 @@ html[data-skin=shock] body{color:#fff1e6}
 html[data-skin=shock] .title{text-shadow:0 0 26px rgba(255,160,60,.6)}
 html[data-skin=shock] .artist{color:#ffb347}
 html[data-skin=shock] .player,html[data-skin=shock] .card{border-color:rgba(255,170,90,.42);box-shadow:0 0 50px rgba(255,120,50,.22),inset 0 0 40px rgba(255,200,120,.05)}
+
+/* Small shuttle: a flight lane under the top bar (below THEME / SKIN, above the meters), not over the buttons */
+.sh{position:absolute!important;inset:auto 0 auto 0!important;top:calc(var(--hb,100px) - 26px)!important;height:104px!important;z-index:4!important;overflow:hidden}
+.sh .shx{top:0}
+.sh .shy{margin-top:30px!important;width:66px!important}
+@media(max-width:720px){.sh .shy{width:60px!important;margin-top:28px!important}}
+
+/* Other stations: name on one line, "Keep the volume up" underneath (no separate tagline), so the top bar never crowds THEME / SKIN */
+.stwrap{display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:0}
+.stline{display:flex;align-items:baseline;gap:10px;white-space:nowrap}
+.stsub{font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:.3em;text-transform:uppercase;color:var(--g2);opacity:.85;white-space:nowrap}
+.st-sub .top .tag{display:none!important}
+.st-sub .logo{align-items:center}
+.st-sub .logo .rad{letter-spacing:.3em}
+@media(max-width:900px){
+  .st-sub .top .logo{grid-column:1 / 9!important}
+  .st-sub .top .onair{grid-column:9 / 13!important}
+  .st-sub .logo .rad{letter-spacing:.14em!important;font-size:12px!important}
+  .st-sub .stsub{font-size:9px;letter-spacing:.22em}
+}

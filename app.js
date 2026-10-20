@@ -536,7 +536,7 @@
   }
   function chimeNow(h) {
     if (chimeOn || !started || !playing || !yt || !ready) return;
-    chimeOn = true; chimePrep(h); chime.muted = false; chime.currentTime = 0; chime.volume = 1;
+    chimeOn = true; chimePrep(h); chime.muted = false; chime.currentTime = 0; chime.volume = 0.55;
     try { if (IOS) yt.pauseVideo(); else yt.setVolume(Math.max(6, Math.round(+$('vol').value * 0.12))); } catch (e) {}
     var pr = chime.play(); if (pr && pr.catch) pr.catch(chimeEnd);
     setTimeout(chimeEnd, 16000);

@@ -2,7 +2,7 @@
 (function () {
   var ST = [
     { id: '1up', name: '1UP Radio', sub: 'The main station: deep house, melodic, electronic, all day', sched: 'schedule.json', art: 'assets/logo.png', tag: 'Keep the volume up' },
-    { id: 'cultureshock', name: 'Culture Shock', sub: 'Roots reggae and dub, all day', sched: 'schedule-culture.json', art: 'assets/cultureshock.svg?v=2', tag: 'Roots · reggae · dub' },
+    { id: 'cultureshock', name: 'Culture Shock', sub: 'Roots reggae and dub, all day', sched: 'schedule-culture.json', art: 'assets/cultureshock.svg?v=2', mark: 'assets/cultureshock-mark.svg?v=1', tag: 'Roots · reggae · dub' },
     { id: 'movement', name: 'The Movement', sub: 'Hand-selected house and Afro tracks', soon: 1, art: 'assets/logo.png' },
     { id: 'trap', name: 'Trap', sub: 'Heavy 808s and hard-hitting trap', soon: 1, art: 'assets/logo.png' }
   ];
@@ -18,6 +18,14 @@
     window.UP1_START_SKIN = pick;
   }
   if (/[?&]nogate=1/.test(location.search)) { var gs = document.createElement('style'); gs.textContent = '#tapgate{display:none!important}'; (document.head || document.documentElement).appendChild(gs); }   // preview only
+  try {
+    if (sessionStorage.getItem('up1-skipgate') === '1') {
+      sessionStorage.removeItem('up1-skipgate');
+      var sg = document.createElement('style'); sg.textContent = '#tapgate{display:none!important}'; (document.head || document.documentElement).appendChild(sg);
+      var rg = function () { var g = document.getElementById('tapgate'); if (g) g.remove(); };
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', rg); else rg();
+    }
+  } catch (e) {}
   window.UP1_SCHEDULE = cur.sched; window.UP1_STATION = cur.id;
   document.documentElement.setAttribute('data-station', cur.id);
   function ready() {
@@ -25,7 +33,14 @@
     if (cur.id !== '1up') {
       document.title = cur.name + ' · 1UP Radio';
       if (rad) rad.textContent = cur.name.toUpperCase();
-      if (img) img.src = cur.art;
+      if (img) img.src = cur.mark || cur.art;
+      var lg = document.querySelector('.logo'), one = lg && lg.querySelector('.one');
+      if (lg && one && rad) {   // "1UP CULTURE SHOCK" on one line with "Keep the volume up" underneath, so the bar stays narrow
+        var wrap = document.createElement('span'); wrap.className = 'stwrap'; var ln = document.createElement('span'); ln.className = 'stline';
+        lg.insertBefore(wrap, one); ln.appendChild(one); ln.appendChild(rad); wrap.appendChild(ln);
+        var sub = document.createElement('span'); sub.className = 'stsub'; sub.textContent = 'Keep the volume up'; wrap.appendChild(sub);
+      }
+      document.documentElement.classList.add('st-sub');
       var na = document.getElementById('npArtist'); if (na) na.textContent = cur.tag + ' · all day';
     }
     // Share button after the volume: shares THIS station (1UP Radio = the home page, the others = their own link with a preview card)
@@ -57,7 +72,7 @@
       if (e.target === box || e.target.closest('.stx')) return open(false);
       var c = e.target.closest('.stcard'); if (!c || c.disabled) return;
       if (c.dataset.id === cur.id) return open(false);
-      try { localStorage.setItem(KEY, c.dataset.id); } catch (er) {}
+      try { localStorage.setItem(KEY, c.dataset.id); sessionStorage.setItem('up1-skipgate', '1'); } catch (er) {}   // switching stations goes straight into the player (the start screen is only for the first visit)
       location.href = location.pathname + (c.dataset.id === '1up' ? '' : '?station=' + c.dataset.id);
     });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') open(false); });
@@ -77,6 +92,21 @@
       var src = a.currentSrc || a.src, big = src.replace('/mqdefault.jpg', '/hqdefault.jpg');   // YouTube pictures come in a bigger size; album covers are already large
       img.onerror = function () { img.onerror = null; img.src = src; }; img.src = big; box.hidden = false;
     });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
+})();
+
+/* The small shuttle flies in a lane just under the top bar (below THEME / SKIN, above the meters): tell the CSS where the bar ends */
+(function () {
+  function place() {
+    var h = document.querySelector('header.top'); if (!h) return;
+    document.documentElement.style.setProperty('--hb', (Math.round(h.getBoundingClientRect().bottom + (window.pageYOffset || 0)) ) + 'px');
+  }
+  function ready() {
+    place(); window.addEventListener('resize', place); window.addEventListener('load', place);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
+    var n = 0, iv = setInterval(function () { place(); if (++n > 12) clearInterval(iv); }, 500);          // the bar settles as fonts and skins load
+    try { new MutationObserver(function () { setTimeout(place, 60); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-skin'] }); } catch (e) {}
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
 })();
