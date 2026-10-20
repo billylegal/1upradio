@@ -416,7 +416,12 @@
   if (START_SKIN) skinI = Math.max(0, SKINS.indexOf(START_SKIN)); else { try { skinI = +(localStorage.getItem('up1-skin') || 0) || 0; } catch (e) {} }
   applySkin(skinI);
   $('themeBtn').addEventListener('click', function () { var n = themeI + 1; if (n >= THEMES.length) n = (skinName() in NATIVE_OK) ? 0 : -1; applyTheme(n); });
-  if ($('skinBtn')) $('skinBtn').addEventListener('click', function (e) { applySkin(skinI + ((e.target && e.target.closest && e.target.closest('.sk-b')) ? -1 : 1)); });
+  if ($('skinBtn')) $('skinBtn').addEventListener('click', function (e) {
+    var dir = (e.target && e.target.closest && e.target.closest('.sk-b')) ? -1 : 1;
+    if (window.UP1_STATION && window.UP1_STATION !== '1up') {      // Culture Shock has just its own three skins
+      var own = ['culture', 'shock', 'dubby'], k = own.indexOf(SKINS[skinI]); k = k < 0 ? 0 : (k + dir + own.length) % own.length; applySkin(SKINS.indexOf(own[k]));
+    } else applySkin(skinI + dir);
+  });
 
   window.__up1 = { chimeNow: function (h) { chimeNow(h); }, get chimeOn() { return chimeOn; }, get chimeT() { return chime.currentTime; }, get chimeErr() { return chime.error && chime.error.code; }, get idx() { return idx; }, get curP() { return curP; }, get S() { return S; }, get badIds() { return badIds; }, replay: function () { playIdx(idx, Date.now() / 1000 - S.delay - S.plays[idx].t, 0); } };
   var selDay = null;
