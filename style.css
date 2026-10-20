@@ -941,29 +941,116 @@ html[data-skin=nebula] .eq,html[data-skin=space] .eq{gap:0;overflow:hidden}
 @media(max-width:820px){.npart{width:72px;height:72px}}
 @media(max-width:720px){.np:has(.npart:not([hidden])) > .npart{width:72px;height:72px;grid-row:1/span 3;align-self:start}}
 
+/* skin: culture (a copy of the Nebula look, recoloured below) */
+html[data-skin=culture]{--bg:#07050F;--bg2:rgba(139,92,246,.07)!important;--line:rgba(184,162,255,.28)!important;--txt:#E6E1FA;--dim:#8E86B0;--g:#8B5CF6;--gr:139,92,246;--g2:#CC8CFF;--red:#F0517A}
+html[data-skin=culture]{background:#07050F url(assets/nebula-bg.jpg) center/cover fixed}
+html[data-skin=culture] body{background:transparent;color:#E6E1FA}
+html[data-skin=culture] *{font-family:'Barlow','Barlow Condensed',system-ui,sans-serif!important}
+html[data-skin=culture] .top{background:rgba(2,3,12,.45);border-bottom:1px solid rgba(255,255,255,.12);backdrop-filter:blur(12px)}
+html[data-skin=culture] .one{color:var(--g);font-weight:700;font-size:26px!important;letter-spacing:.06em;text-shadow:0 0 18px rgba(var(--gr),.8)!important}html[data-skin=culture] .rad{font-weight:300;letter-spacing:.5em;font-size:16px;color:#eaf2ff}
+html[data-skin=culture] .tag{color:var(--dim);letter-spacing:.3em;font-size:12px;text-transform:uppercase;font-weight:300}
+html[data-skin=culture] .logo img{border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,.4),0 0 24px rgba(var(--gr),.6)}
+html[data-skin=culture] .themebtn,html[data-skin=culture] .skinbtn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.3);color:#eaf2ff;border-radius:999px;font-weight:600;font-size:11px;letter-spacing:.22em;padding:8px 14px;backdrop-filter:blur(6px)}
+html[data-skin=culture] .themebtn i{border-radius:50%;box-shadow:0 0 10px var(--g)}html[data-skin=culture] .themebtn:hover,html[data-skin=culture] .skinbtn:hover{background:rgba(var(--gr),.25);color:#fff;border-color:var(--g)}html[data-skin=culture] .themebtn:hover i{background:var(--g)}
+html[data-skin=culture] .onair{font-size:11px;letter-spacing:.25em;font-weight:600}html[data-skin=culture] .onair i{border-radius:50%;background:#46567a;box-shadow:none}html[data-skin=culture] .onair.on{color:#8dffc7}html[data-skin=culture] .onair.on i{background:#8dffc7;box-shadow:0 0 14px #8dffc7}
+html[data-skin=culture] .player{border:1px solid rgba(255,255,255,.2);border-radius:28px;background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.015));box-shadow:0 0 60px rgba(var(--gr),.14),inset 0 0 40px rgba(255,255,255,.03);backdrop-filter:blur(7px);padding:32px 30px 24px;animation:nebulafloat 11s ease-in-out infinite alternate}
+html[data-skin=culture] .player::before{display:none}
+html[data-skin=culture] .eq i{background:linear-gradient(0deg,var(--g),transparent);box-shadow:0 0 10px rgba(var(--gr),.7);opacity:.9;border-radius:2px;width:3px;flex:0 0 3px}html[data-skin=culture] .eq{justify-content:space-between}
+html[data-skin=culture] .lab{color:var(--dim);font-weight:600;font-size:11px;letter-spacing:.45em}
+html[data-skin=culture] .title{font-weight:300;text-transform:uppercase;font-size:clamp(26px,5vw,52px);letter-spacing:.07em;line-height:1.1;color:#fff;text-shadow:0 0 24px rgba(var(--gr),.55)}
+html[data-skin=culture] .artist{color:var(--g2);font-weight:400;letter-spacing:.2em;text-transform:uppercase;font-size:14px}
+html[data-skin=culture] .savebtn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.3);color:#eaf2ff;border-radius:999px;font-weight:600;font-size:12px;letter-spacing:.2em;padding:9px 18px}
+html[data-skin=culture] .savebtn:hover:not(:disabled){background:rgba(var(--gr),.22);border-color:var(--g);color:#fff}html[data-skin=culture] .savebtn.on{background:rgba(var(--gr),.35);border-color:var(--g);color:#fff}
+html[data-skin=culture] .bar{height:2px;background:rgba(255,255,255,.18)}html[data-skin=culture] .fill{background:var(--g);box-shadow:0 0 12px var(--g)}
+html[data-skin=culture] .play{position:relative;width:74px;height:74px;border-radius:50%;background:rgba(var(--gr),.12);color:var(--g);border:1px solid rgba(var(--gr),.7);box-shadow:0 0 30px rgba(var(--gr),.45),inset 0 0 18px rgba(var(--gr),.25);backdrop-filter:blur(4px)}
+html[data-skin=culture] .play::after{content:"";position:absolute;inset:-13px;border:1px dashed rgba(var(--gr),.45);border-radius:50%;animation:nebulaspin 16s linear infinite;pointer-events:none}@keyframes nebulaspin{to{transform:rotate(360deg)}}
+html[data-skin=culture] .vol span,html[data-skin=culture] .vol b{font-size:11px;font-weight:600;letter-spacing:.25em;color:var(--g)}html[data-skin=culture] .vol input{accent-color:var(--g)}
+html[data-skin=culture] .hint,html[data-skin=culture] .note{color:var(--dim);font-weight:300;letter-spacing:.04em}
+html[data-skin=culture] .card{border:1px solid rgba(255,255,255,.16);border-radius:24px;background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.01));box-shadow:0 0 44px rgba(var(--gr),.09);backdrop-filter:blur(7px);animation:nebulafloat 14s ease-in-out infinite alternate}
+html[data-skin=culture] .cols .card:nth-child(2){animation-duration:17s;animation-delay:-5s}html[data-skin=culture] .card.saved{animation-duration:15s;animation-delay:-3s}html[data-skin=culture] .card.sched{animation-duration:19s;animation-delay:-8s}
+html[data-skin=culture] h2{color:var(--g2);font-size:13px;font-weight:600;letter-spacing:.4em;text-transform:uppercase}
+html[data-skin=culture] .list li{border-bottom:1px solid rgba(255,255,255,.08);align-items:center;color:#eaf2ff;font-weight:300}html[data-skin=culture] .list li time{color:var(--dim);font-size:10px;font-weight:600}html[data-skin=culture] .list li.now{color:var(--g);text-shadow:0 0 12px rgba(var(--gr),.7);font-weight:600}
+html[data-skin=culture] .list li .hb{border:1px solid rgba(255,255,255,.28);border-radius:50%;color:var(--g);background:transparent}html[data-skin=culture] .list li .hb.on{background:rgba(var(--gr),.3);border-color:var(--g);color:#fff}
+html[data-skin=culture] .days button{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.2);border-radius:999px;color:#eaf2ff;font-weight:600;font-size:12px;letter-spacing:.16em}html[data-skin=culture] .days button.on{background:rgba(var(--gr),.3);border-color:var(--g);color:#fff}
+html[data-skin=culture] footer{border-top:1px solid rgba(255,255,255,.12);color:var(--dim)}html[data-skin=culture] footer a{color:var(--g2)}
+@media(prefers-reduced-motion:reduce){html[data-skin=culture] .player,html[data-skin=culture] .card,html[data-skin=culture] body::before,html[data-skin=culture] body::after,html[data-skin=culture] .play::after{animation:none}}
+html[data-skin=culture] .eq{gap:0;overflow:hidden}
+/* skin: shock (a copy of the Nebula look, recoloured below) */
+html[data-skin=shock]{--bg:#07050F;--bg2:rgba(139,92,246,.07)!important;--line:rgba(184,162,255,.28)!important;--txt:#E6E1FA;--dim:#8E86B0;--g:#8B5CF6;--gr:139,92,246;--g2:#CC8CFF;--red:#F0517A}
+html[data-skin=shock]{background:#07050F url(assets/nebula-bg.jpg) center/cover fixed}
+html[data-skin=shock] body{background:transparent;color:#E6E1FA}
+html[data-skin=shock] *{font-family:'Barlow','Barlow Condensed',system-ui,sans-serif!important}
+html[data-skin=shock] .top{background:rgba(2,3,12,.45);border-bottom:1px solid rgba(255,255,255,.12);backdrop-filter:blur(12px)}
+html[data-skin=shock] .one{color:var(--g);font-weight:700;font-size:26px!important;letter-spacing:.06em;text-shadow:0 0 18px rgba(var(--gr),.8)!important}html[data-skin=shock] .rad{font-weight:300;letter-spacing:.5em;font-size:16px;color:#eaf2ff}
+html[data-skin=shock] .tag{color:var(--dim);letter-spacing:.3em;font-size:12px;text-transform:uppercase;font-weight:300}
+html[data-skin=shock] .logo img{border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,.4),0 0 24px rgba(var(--gr),.6)}
+html[data-skin=shock] .themebtn,html[data-skin=shock] .skinbtn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.3);color:#eaf2ff;border-radius:999px;font-weight:600;font-size:11px;letter-spacing:.22em;padding:8px 14px;backdrop-filter:blur(6px)}
+html[data-skin=shock] .themebtn i{border-radius:50%;box-shadow:0 0 10px var(--g)}html[data-skin=shock] .themebtn:hover,html[data-skin=shock] .skinbtn:hover{background:rgba(var(--gr),.25);color:#fff;border-color:var(--g)}html[data-skin=shock] .themebtn:hover i{background:var(--g)}
+html[data-skin=shock] .onair{font-size:11px;letter-spacing:.25em;font-weight:600}html[data-skin=shock] .onair i{border-radius:50%;background:#46567a;box-shadow:none}html[data-skin=shock] .onair.on{color:#8dffc7}html[data-skin=shock] .onair.on i{background:#8dffc7;box-shadow:0 0 14px #8dffc7}
+html[data-skin=shock] .player{border:1px solid rgba(255,255,255,.2);border-radius:28px;background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.015));box-shadow:0 0 60px rgba(var(--gr),.14),inset 0 0 40px rgba(255,255,255,.03);backdrop-filter:blur(7px);padding:32px 30px 24px;animation:nebulafloat 11s ease-in-out infinite alternate}
+html[data-skin=shock] .player::before{display:none}
+html[data-skin=shock] .eq i{background:linear-gradient(0deg,var(--g),transparent);box-shadow:0 0 10px rgba(var(--gr),.7);opacity:.9;border-radius:2px;width:3px;flex:0 0 3px}html[data-skin=shock] .eq{justify-content:space-between}
+html[data-skin=shock] .lab{color:var(--dim);font-weight:600;font-size:11px;letter-spacing:.45em}
+html[data-skin=shock] .title{font-weight:300;text-transform:uppercase;font-size:clamp(26px,5vw,52px);letter-spacing:.07em;line-height:1.1;color:#fff;text-shadow:0 0 24px rgba(var(--gr),.55)}
+html[data-skin=shock] .artist{color:var(--g2);font-weight:400;letter-spacing:.2em;text-transform:uppercase;font-size:14px}
+html[data-skin=shock] .savebtn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.3);color:#eaf2ff;border-radius:999px;font-weight:600;font-size:12px;letter-spacing:.2em;padding:9px 18px}
+html[data-skin=shock] .savebtn:hover:not(:disabled){background:rgba(var(--gr),.22);border-color:var(--g);color:#fff}html[data-skin=shock] .savebtn.on{background:rgba(var(--gr),.35);border-color:var(--g);color:#fff}
+html[data-skin=shock] .bar{height:2px;background:rgba(255,255,255,.18)}html[data-skin=shock] .fill{background:var(--g);box-shadow:0 0 12px var(--g)}
+html[data-skin=shock] .play{position:relative;width:74px;height:74px;border-radius:50%;background:rgba(var(--gr),.12);color:var(--g);border:1px solid rgba(var(--gr),.7);box-shadow:0 0 30px rgba(var(--gr),.45),inset 0 0 18px rgba(var(--gr),.25);backdrop-filter:blur(4px)}
+html[data-skin=shock] .play::after{content:"";position:absolute;inset:-13px;border:1px dashed rgba(var(--gr),.45);border-radius:50%;animation:nebulaspin 16s linear infinite;pointer-events:none}@keyframes nebulaspin{to{transform:rotate(360deg)}}
+html[data-skin=shock] .vol span,html[data-skin=shock] .vol b{font-size:11px;font-weight:600;letter-spacing:.25em;color:var(--g)}html[data-skin=shock] .vol input{accent-color:var(--g)}
+html[data-skin=shock] .hint,html[data-skin=shock] .note{color:var(--dim);font-weight:300;letter-spacing:.04em}
+html[data-skin=shock] .card{border:1px solid rgba(255,255,255,.16);border-radius:24px;background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.01));box-shadow:0 0 44px rgba(var(--gr),.09);backdrop-filter:blur(7px);animation:nebulafloat 14s ease-in-out infinite alternate}
+html[data-skin=shock] .cols .card:nth-child(2){animation-duration:17s;animation-delay:-5s}html[data-skin=shock] .card.saved{animation-duration:15s;animation-delay:-3s}html[data-skin=shock] .card.sched{animation-duration:19s;animation-delay:-8s}
+html[data-skin=shock] h2{color:var(--g2);font-size:13px;font-weight:600;letter-spacing:.4em;text-transform:uppercase}
+html[data-skin=shock] .list li{border-bottom:1px solid rgba(255,255,255,.08);align-items:center;color:#eaf2ff;font-weight:300}html[data-skin=shock] .list li time{color:var(--dim);font-size:10px;font-weight:600}html[data-skin=shock] .list li.now{color:var(--g);text-shadow:0 0 12px rgba(var(--gr),.7);font-weight:600}
+html[data-skin=shock] .list li .hb{border:1px solid rgba(255,255,255,.28);border-radius:50%;color:var(--g);background:transparent}html[data-skin=shock] .list li .hb.on{background:rgba(var(--gr),.3);border-color:var(--g);color:#fff}
+html[data-skin=shock] .days button{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.2);border-radius:999px;color:#eaf2ff;font-weight:600;font-size:12px;letter-spacing:.16em}html[data-skin=shock] .days button.on{background:rgba(var(--gr),.3);border-color:var(--g);color:#fff}
+html[data-skin=shock] footer{border-top:1px solid rgba(255,255,255,.12);color:var(--dim)}html[data-skin=shock] footer a{color:var(--g2)}
+@media(prefers-reduced-motion:reduce){html[data-skin=shock] .player,html[data-skin=shock] .card,html[data-skin=shock] body::before,html[data-skin=shock] body::after,html[data-skin=shock] .play::after{animation:none}}
+html[data-skin=shock] .eq{gap:0;overflow:hidden}
+/* skin: dubby (a copy of the Nebula look, recoloured below) */
+html[data-skin=dubby]{--bg:#07050F;--bg2:rgba(139,92,246,.07)!important;--line:rgba(184,162,255,.28)!important;--txt:#E6E1FA;--dim:#8E86B0;--g:#8B5CF6;--gr:139,92,246;--g2:#CC8CFF;--red:#F0517A}
+html[data-skin=dubby]{background:#07050F url(assets/nebula-bg.jpg) center/cover fixed}
+html[data-skin=dubby] body{background:transparent;color:#E6E1FA}
+html[data-skin=dubby] *{font-family:'Barlow','Barlow Condensed',system-ui,sans-serif!important}
+html[data-skin=dubby] .top{background:rgba(2,3,12,.45);border-bottom:1px solid rgba(255,255,255,.12);backdrop-filter:blur(12px)}
+html[data-skin=dubby] .one{color:var(--g);font-weight:700;font-size:26px!important;letter-spacing:.06em;text-shadow:0 0 18px rgba(var(--gr),.8)!important}html[data-skin=dubby] .rad{font-weight:300;letter-spacing:.5em;font-size:16px;color:#eaf2ff}
+html[data-skin=dubby] .tag{color:var(--dim);letter-spacing:.3em;font-size:12px;text-transform:uppercase;font-weight:300}
+html[data-skin=dubby] .logo img{border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,.4),0 0 24px rgba(var(--gr),.6)}
+html[data-skin=dubby] .themebtn,html[data-skin=dubby] .skinbtn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.3);color:#eaf2ff;border-radius:999px;font-weight:600;font-size:11px;letter-spacing:.22em;padding:8px 14px;backdrop-filter:blur(6px)}
+html[data-skin=dubby] .themebtn i{border-radius:50%;box-shadow:0 0 10px var(--g)}html[data-skin=dubby] .themebtn:hover,html[data-skin=dubby] .skinbtn:hover{background:rgba(var(--gr),.25);color:#fff;border-color:var(--g)}html[data-skin=dubby] .themebtn:hover i{background:var(--g)}
+html[data-skin=dubby] .onair{font-size:11px;letter-spacing:.25em;font-weight:600}html[data-skin=dubby] .onair i{border-radius:50%;background:#46567a;box-shadow:none}html[data-skin=dubby] .onair.on{color:#8dffc7}html[data-skin=dubby] .onair.on i{background:#8dffc7;box-shadow:0 0 14px #8dffc7}
+html[data-skin=dubby] .player{border:1px solid rgba(255,255,255,.2);border-radius:28px;background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.015));box-shadow:0 0 60px rgba(var(--gr),.14),inset 0 0 40px rgba(255,255,255,.03);backdrop-filter:blur(7px);padding:32px 30px 24px;animation:nebulafloat 11s ease-in-out infinite alternate}
+html[data-skin=dubby] .player::before{display:none}
+html[data-skin=dubby] .eq i{background:linear-gradient(0deg,var(--g),transparent);box-shadow:0 0 10px rgba(var(--gr),.7);opacity:.9;border-radius:2px;width:3px;flex:0 0 3px}html[data-skin=dubby] .eq{justify-content:space-between}
+html[data-skin=dubby] .lab{color:var(--dim);font-weight:600;font-size:11px;letter-spacing:.45em}
+html[data-skin=dubby] .title{font-weight:300;text-transform:uppercase;font-size:clamp(26px,5vw,52px);letter-spacing:.07em;line-height:1.1;color:#fff;text-shadow:0 0 24px rgba(var(--gr),.55)}
+html[data-skin=dubby] .artist{color:var(--g2);font-weight:400;letter-spacing:.2em;text-transform:uppercase;font-size:14px}
+html[data-skin=dubby] .savebtn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.3);color:#eaf2ff;border-radius:999px;font-weight:600;font-size:12px;letter-spacing:.2em;padding:9px 18px}
+html[data-skin=dubby] .savebtn:hover:not(:disabled){background:rgba(var(--gr),.22);border-color:var(--g);color:#fff}html[data-skin=dubby] .savebtn.on{background:rgba(var(--gr),.35);border-color:var(--g);color:#fff}
+html[data-skin=dubby] .bar{height:2px;background:rgba(255,255,255,.18)}html[data-skin=dubby] .fill{background:var(--g);box-shadow:0 0 12px var(--g)}
+html[data-skin=dubby] .play{position:relative;width:74px;height:74px;border-radius:50%;background:rgba(var(--gr),.12);color:var(--g);border:1px solid rgba(var(--gr),.7);box-shadow:0 0 30px rgba(var(--gr),.45),inset 0 0 18px rgba(var(--gr),.25);backdrop-filter:blur(4px)}
+html[data-skin=dubby] .play::after{content:"";position:absolute;inset:-13px;border:1px dashed rgba(var(--gr),.45);border-radius:50%;animation:nebulaspin 16s linear infinite;pointer-events:none}@keyframes nebulaspin{to{transform:rotate(360deg)}}
+html[data-skin=dubby] .vol span,html[data-skin=dubby] .vol b{font-size:11px;font-weight:600;letter-spacing:.25em;color:var(--g)}html[data-skin=dubby] .vol input{accent-color:var(--g)}
+html[data-skin=dubby] .hint,html[data-skin=dubby] .note{color:var(--dim);font-weight:300;letter-spacing:.04em}
+html[data-skin=dubby] .card{border:1px solid rgba(255,255,255,.16);border-radius:24px;background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.01));box-shadow:0 0 44px rgba(var(--gr),.09);backdrop-filter:blur(7px);animation:nebulafloat 14s ease-in-out infinite alternate}
+html[data-skin=dubby] .cols .card:nth-child(2){animation-duration:17s;animation-delay:-5s}html[data-skin=dubby] .card.saved{animation-duration:15s;animation-delay:-3s}html[data-skin=dubby] .card.sched{animation-duration:19s;animation-delay:-8s}
+html[data-skin=dubby] h2{color:var(--g2);font-size:13px;font-weight:600;letter-spacing:.4em;text-transform:uppercase}
+html[data-skin=dubby] .list li{border-bottom:1px solid rgba(255,255,255,.08);align-items:center;color:#eaf2ff;font-weight:300}html[data-skin=dubby] .list li time{color:var(--dim);font-size:10px;font-weight:600}html[data-skin=dubby] .list li.now{color:var(--g);text-shadow:0 0 12px rgba(var(--gr),.7);font-weight:600}
+html[data-skin=dubby] .list li .hb{border:1px solid rgba(255,255,255,.28);border-radius:50%;color:var(--g);background:transparent}html[data-skin=dubby] .list li .hb.on{background:rgba(var(--gr),.3);border-color:var(--g);color:#fff}
+html[data-skin=dubby] .days button{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.2);border-radius:999px;color:#eaf2ff;font-weight:600;font-size:12px;letter-spacing:.16em}html[data-skin=dubby] .days button.on{background:rgba(var(--gr),.3);border-color:var(--g);color:#fff}
+html[data-skin=dubby] footer{border-top:1px solid rgba(255,255,255,.12);color:var(--dim)}html[data-skin=dubby] footer a{color:var(--g2)}
+@media(prefers-reduced-motion:reduce){html[data-skin=dubby] .player,html[data-skin=dubby] .card,html[data-skin=dubby] body::before,html[data-skin=dubby] body::after,html[data-skin=dubby] .play::after{animation:none}}
+html[data-skin=dubby] .eq{gap:0;overflow:hidden}
 /* Share button (after the volume) */
 .ctl .sharebtn{margin-top:0;padding:9px 12px;font-size:10px;white-space:nowrap}
 html[data-skin=nebula] .ctl .sharebtn{border-radius:999px;font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.2em;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.04);color:#eaf2ff;padding:9px 18px}
 html[data-skin=nebula] .ctl .sharebtn:hover{background:rgba(var(--gr),.22);border-color:var(--g)}
 
-/* ===== Culture Shock looks (space/nebula base, reggae colours). Picked with ?cs=1|2|3 while we choose ===== */
-html[data-station=cultureshock] .top{border-bottom:3px solid transparent;border-image:linear-gradient(90deg,#e8312f 0 33.4%,#f5c518 33.4% 66.7%,#1fa54a 66.7%) 1}
-/* 1: Rasta Nebula - the purple nebula turned red, gold and green */
-html[data-station=cultureshock][data-skin=nebula][data-cs="1"]{--bg:#070a05;--bg2:rgba(245,197,24,.06)!important;--line:rgba(245,197,24,.32)!important;--txt:#fff7e0;--dim:#b5ad8a;--g:#f5c518;--gr:245,197,24;--g2:#ffe27a;--red:#e8312f;
   background:linear-gradient(160deg,#e8312f 0%,#f5c518 48%,#1fa54a 100%),#07050F url(assets/nebula-bg.jpg) center/cover fixed;background-blend-mode:color,normal}
-html[data-station=cultureshock][data-skin=nebula][data-cs="1"] .onair.on{color:#35d46a}html[data-station=cultureshock][data-skin=nebula][data-cs="1"] .onair.on i{background:#35d46a;box-shadow:0 0 14px #35d46a}
-/* 2: Gold & Emerald - deep green space, gold stars, lion-gold glow */
-html[data-station=cultureshock][data-skin=nebula][data-cs="2"]{--bg:#03100a;--bg2:rgba(31,165,74,.09)!important;--line:rgba(212,175,55,.38)!important;--txt:#f3efd8;--dim:#9db59f;--g:#d4af37;--gr:212,175,55;--g2:#f1d98a;--red:#e8312f;
   background:linear-gradient(200deg,#0b6b3a 0%,#06301b 55%,#02100a 100%),#07050F url(assets/nebula-bg.jpg) center/cover fixed;background-blend-mode:color,normal}
-html[data-station=cultureshock][data-skin=nebula][data-cs="2"] .player,html[data-station=cultureshock][data-skin=nebula][data-cs="2"] .card{border-color:rgba(212,175,55,.45);box-shadow:0 0 50px rgba(31,165,74,.22),inset 0 0 40px rgba(212,175,55,.05)}
-html[data-station=cultureshock][data-skin=nebula][data-cs="2"] .onair.on{color:#35d46a}html[data-station=cultureshock][data-skin=nebula][data-cs="2"] .onair.on i{background:#35d46a;box-shadow:0 0 14px #35d46a}
-html[data-station=cultureshock][data-skin=nebula][data-cs="2"] .title{text-shadow:0 0 24px rgba(212,175,55,.55)}
-/* 3: Jah Sunset - a hot red and orange nebula with green controls */
-html[data-station=cultureshock][data-skin=nebula][data-cs="3"]{--bg:#12050a;--bg2:rgba(232,49,47,.08)!important;--line:rgba(255,160,80,.36)!important;--txt:#fff1e6;--dim:#c9a38d;--g:#35d46a;--gr:53,212,106;--g2:#ffb347;--red:#ff6a3d;
   background:linear-gradient(180deg,#6a0f3a 0%,#e8312f 38%,#ff9a3c 72%,#f5c518 100%),#07050F url(assets/nebula-bg.jpg) center/cover fixed;background-blend-mode:color,normal}
-html[data-station=cultureshock][data-skin=nebula][data-cs="3"] .title{text-shadow:0 0 26px rgba(255,160,60,.6)}
-html[data-station=cultureshock][data-skin=nebula][data-cs="3"] .artist{color:#ffb347}
-html[data-station=cultureshock][data-skin=nebula][data-cs="3"] .player,html[data-station=cultureshock][data-skin=nebula][data-cs="3"] .card{border-color:rgba(255,170,90,.42);box-shadow:0 0 50px rgba(255,120,50,.22),inset 0 0 40px rgba(255,200,120,.05)}
 
 /* Phones: Share sits on the far side of the volume, on the same row as play */
 @media(max-width:720px){
@@ -984,3 +1071,26 @@ html[data-station=cultureshock][data-skin=nebula][data-cs="3"] .player,html[data
 .ctl .sharebtn .sharetip[hidden]{display:none}
 .ctl .vol{margin-right:6px}
 @media(max-width:720px){.ctl .sharebtn,html[data-skin] .ctl .sharebtn{width:46px;height:46px;padding:0;margin-left:auto}.ctl .sharebtn svg{width:20px;height:20px}}
+
+
+/* ===== Culture / Shock / Dubby: three reggae space skins (same shapes as Nebula) ===== */
+html[data-skin=culture] .top,html[data-skin=shock] .top,html[data-skin=dubby] .top{border-bottom:3px solid transparent;border-image:linear-gradient(90deg,#e8312f 0 33.4%,#f5c518 33.4% 66.7%,#1fa54a 66.7%) 1}
+/* Culture: the nebula turned red, gold and green */
+html[data-skin=culture]{--bg:#070a05;--bg2:rgba(245,197,24,.06)!important;--line:rgba(245,197,24,.32)!important;--txt:#fff7e0;--dim:#b5ad8a;--g:#f5c518;--gr:245,197,24;--g2:#ffe27a;--red:#e8312f;
+  background:linear-gradient(160deg,#e8312f 0%,#f5c518 48%,#1fa54a 100%),#07050F url(assets/nebula-bg.jpg) center/cover fixed;background-blend-mode:color,normal}
+html[data-skin=culture] body{color:#fff7e0}
+html[data-skin=culture] .onair.on{color:#35d46a}html[data-skin=culture] .onair.on i{background:#35d46a;box-shadow:0 0 14px #35d46a}
+/* Dubby: deep green space, gold stars */
+html[data-skin=dubby]{--bg:#03100a;--bg2:rgba(31,165,74,.09)!important;--line:rgba(212,175,55,.38)!important;--txt:#f3efd8;--dim:#9db59f;--g:#d4af37;--gr:212,175,55;--g2:#f1d98a;--red:#e8312f;
+  background:linear-gradient(200deg,#0b6b3a 0%,#06301b 55%,#02100a 100%),#07050F url(assets/nebula-bg.jpg) center/cover fixed;background-blend-mode:color,normal}
+html[data-skin=dubby] body{color:#f3efd8}
+html[data-skin=dubby] .player,html[data-skin=dubby] .card{border-color:rgba(212,175,55,.45);box-shadow:0 0 50px rgba(31,165,74,.22),inset 0 0 40px rgba(212,175,55,.05)}
+html[data-skin=dubby] .onair.on{color:#35d46a}html[data-skin=dubby] .onair.on i{background:#35d46a;box-shadow:0 0 14px #35d46a}
+html[data-skin=dubby] .title{text-shadow:0 0 24px rgba(212,175,55,.55)}
+/* Shock: a hot red and orange sunset with green controls */
+html[data-skin=shock]{--bg:#12050a;--bg2:rgba(232,49,47,.08)!important;--line:rgba(255,160,80,.36)!important;--txt:#fff1e6;--dim:#c9a38d;--g:#35d46a;--gr:53,212,106;--g2:#ffb347;--red:#ff6a3d;
+  background:linear-gradient(180deg,#6a0f3a 0%,#e8312f 38%,#ff9a3c 72%,#f5c518 100%),#07050F url(assets/nebula-bg.jpg) center/cover fixed;background-blend-mode:color,normal}
+html[data-skin=shock] body{color:#fff1e6}
+html[data-skin=shock] .title{text-shadow:0 0 26px rgba(255,160,60,.6)}
+html[data-skin=shock] .artist{color:#ffb347}
+html[data-skin=shock] .player,html[data-skin=shock] .card{border-color:rgba(255,170,90,.42);box-shadow:0 0 50px rgba(255,120,50,.22),inset 0 0 40px rgba(255,200,120,.05)}
