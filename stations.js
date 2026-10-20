@@ -110,7 +110,15 @@
     }).join('') + '</div>';
     document.body.appendChild(box);
     function open(o) { box.hidden = !o; }
-    logo.addEventListener('click', function (e) { e.preventDefault(); open(box.hidden); });
+    // "tap here" nudge: until a visitor has opened the station list once, the logo pulses and a small bubble points at it
+    var SEEN = 'up1-st-seen', seenIt = false; try { seenIt = localStorage.getItem(SEEN) === '1'; } catch (e) {}
+    var nudge = null;
+    function dropNudge() { if (nudge) { nudge.remove(); nudge = null; } logo.classList.remove('attn'); try { localStorage.setItem(SEEN, '1'); } catch (e) {} }
+    if (!seenIt) {
+      logo.classList.add('attn'); nudge = document.createElement('span'); nudge.className = 'stnudge'; nudge.setAttribute('aria-hidden', 'true'); nudge.textContent = 'TAP HERE \u00b7 MORE STATIONS'; logo.appendChild(nudge);
+      setTimeout(function () { if (nudge) nudge.classList.add('calm'); }, 14000);     // the bubble quiets down after a while, the logo keeps pulsing until it is used
+    }
+    logo.addEventListener('click', function (e) { e.preventDefault(); dropNudge(); open(box.hidden); });
     box.addEventListener('click', function (e) {
       if (e.target === box || e.target.closest('.stx')) return open(false);
       var c = e.target.closest('.stcard'); if (!c || c.disabled) return;
