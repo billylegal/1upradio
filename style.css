@@ -1247,3 +1247,24 @@ html[data-station=vault] .top .logo img{border-radius:0!important;box-shadow:non
 
 /* the rights-holder line is plain and small */
 .takedown p{font-size:12px;letter-spacing:0;text-align:center}
+
+/* Phones: swipe instead of the THEME / SKIN buttons */
+html.swipe-on .themebtn,html.swipe-on .skinbtn{display:none!important}
+html.swipe-on .top .wrap{grid-template-rows:auto!important}
+#swtoast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,16px);z-index:2000;padding:10px 20px;border-radius:999px;background:rgba(0,0,0,.82);color:#fff;border:1px solid var(--g,#fff);font:700 13px 'Barlow Condensed',sans-serif;letter-spacing:.22em;text-transform:uppercase;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap;display:flex;align-items:center;gap:8px}
+#swtoast.on{opacity:1;transform:translate(-50%,0)}
+#swtoast b{color:var(--g,#fff);font-weight:700}#swtoast i{font-style:normal;color:var(--g,#fff);font-size:16px}
+.swdot{width:16px;height:16px;border-radius:50%;display:inline-block;box-shadow:0 0 10px currentColor;border:1px solid #fff}
+#swtip{position:fixed;inset:0;z-index:2100;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px}
+.swbox{width:min(360px,100%);background:#111;border:2px solid var(--g,#fff);border-radius:18px;padding:22px 20px 18px;color:#fff;text-align:center;box-shadow:0 0 50px rgba(var(--gr,255,255,255),.3)}
+.swbox h3{margin:0 0 6px;font:700 18px 'Barlow Condensed',sans-serif;letter-spacing:.3em;color:var(--g,#fff)}
+.swbox p{margin:0 0 14px;font-size:14px;color:#cfcfcf}
+.swrow{display:flex;align-items:center;gap:14px;text-align:left;background:rgba(255,255,255,.06);border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.swrow b{display:block;font:700 16px 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase}.swrow small{display:block;color:var(--g2,#ddd);font-size:12.5px;letter-spacing:.06em}
+.swhand{width:78px;height:42px;border-radius:999px;background:rgba(255,255,255,.08);position:relative;overflow:hidden;flex:none}
+.swhand span{position:absolute;top:2px;left:8px;font-size:26px;animation:swr 1.6s ease-in-out infinite}
+.swhand.l span{left:auto;right:8px;animation-name:swl}
+@keyframes swr{0%{transform:translateX(0);opacity:0}15%{opacity:1}70%{transform:translateX(34px);opacity:1}100%{transform:translateX(38px);opacity:0}}
+@keyframes swl{0%{transform:translateX(0);opacity:0}15%{opacity:1}70%{transform:translateX(-34px);opacity:1}100%{transform:translateX(-38px);opacity:0}}
+#swok{margin-top:6px;width:100%;padding:12px;border:0;border-radius:999px;background:var(--g,#fff);color:#000;font:700 15px 'Barlow Condensed',sans-serif;letter-spacing:.3em;cursor:pointer}
+@media(prefers-reduced-motion:reduce){.swhand span{animation:none}}

@@ -448,7 +448,7 @@
     try { jing.src = JINGLES[0].f; jing.muted = true; var pr = jing.play(); var done = function () { try { jing.pause(); jing.currentTime = 0; } catch (e) {} jing.muted = false; }; if (pr && pr.then) pr.then(done, function () { jing.muted = false; jingUnlocked = false; }); else done(); } catch (e) { jing.muted = false; }
   }
   function fillGap(wait, n) {
-    if (!JINGLES.length || !gestured || chimeOn || jingOn || wait < 3.4) return;
+    if (!JINGLES.length || !gestured || chimeOn || jingOn || userPaused || wait < 3.4) return;
     var left = wait - 0.5, seed = (Math.imul(n + 0x9e3779b9, 0x85ebca6b) >>> 0), list = [], k = 0; seed ^= seed >>> 13; seed = (Math.imul(seed, 0xc2b2ae35) >>> 0); seed ^= seed >>> 16; seed = seed >>> 0;
     while (left >= 3.2 && k < 3) { var fit = JINGLES.filter(function (j) { return j.d <= left; }); if (!fit.length) break; var promos = fit.filter(function (j) { return j.msg; }), plain = fit.filter(function (j) { return !j.msg; }), pick = (k === 0 && promos.length && seed % 4 === 0) ? promos[(seed >>> 4) % promos.length] : (plain.length ? plain : fit)[((seed >>> 2) + k * 5) % (plain.length || fit.length)]; list.push(pick); left -= pick.d + 0.4; k++; }
     if (!list.length) return;
@@ -483,8 +483,8 @@
     var wait = (S.plays[n].t + S.delay) - Date.now() / 1000;
     clearNext();
     if (wait > 3.4) fillGap(wait, n);
-    if (wait > 1) nextTimer = setTimeout(function () { nextTimer = null; stopJingle(); playIdx(n, 0); }, wait * 1000);
-    else playIdx(n, Math.max(0, -wait));
+    if (wait > 1) nextTimer = setTimeout(function () { nextTimer = null; stopJingle(); if (!userPaused) playIdx(n, 0); }, wait * 1000);
+    else if (!userPaused) playIdx(n, Math.max(0, -wait));
   }
   function setOn(on) {
     playing = on; $('play').classList.toggle('on', on); $('eq').classList.toggle('on', on); $('onair').classList.toggle('on', on);
@@ -537,10 +537,10 @@
   }
   function chimeEnd() {
     if (!chimeOn) return; chimeOn = false;
-    try { if (IOS) { var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } else yt.setVolume(+$('vol').value); } catch (e) {}
+    try { if (IOS) { if (!userPaused) { var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } } else yt.setVolume(+$('vol').value); } catch (e) {}
   }
   function chimeNow(h) {
-    if (chimeOn || !started || !playing || !yt || !ready) return;
+    if (chimeOn || !started || !playing || userPaused || !yt || !ready) return;
     chimeOn = true; chimePrep(h); chime.muted = false; chime.currentTime = 0; chime.volume = 0.55;
     try { if (IOS) yt.pauseVideo(); else yt.setVolume(Math.max(6, Math.round(+$('vol').value * 0.12))); } catch (e) {}
     var pr = chime.play(); if (pr && pr.catch) pr.catch(chimeEnd);
@@ -581,9 +581,9 @@
     if (tap) { unlockChime(); unlockJingle(); if (typeof keepSync === 'function') keepSync(); }
     if (tap && yt && ready) {                                   // phones only allow sound inside a real tap: unmute / (re)start right here, in the tap
       try { if (yt.isMuted()) { yt.unMute(); yt.setVolume(+$('vol').value); } } catch (e) {}
-      if (started && !playing && Date.now() - lastKick > 1500) { lastKick = Date.now(); try { yt.unMute(); var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } catch (e) {} }
+      if (started && !playing && !userPaused && Date.now() - lastKick > 1500) { lastKick = Date.now(); try { yt.unMute(); var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } catch (e) {} }
     }
-    if (!mutedAuto) { if (started && ready && !playing && !tap) { try { yt.playVideo(); } catch (e) {} } return; }
+    if (!mutedAuto) { if (started && ready && !playing && !tap && !userPaused) { try { yt.playVideo(); } catch (e) {} } return; }
     mutedAuto = false; unmutedAt = Date.now(); try { yt.unMute(); yt.setVolume(+$('vol').value); if (yt.getPlayerState() !== 1) yt.playVideo(); } catch (e) {} $('hint').innerHTML = LIVE_HTML;
   }
   ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click', 'keydown'].forEach(function (ev) { addEventListener(ev, unmuteNow, { passive: true, capture: true }); });
