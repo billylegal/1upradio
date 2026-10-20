@@ -7,17 +7,26 @@
     { id: 'movement', name: 'The Movement', sub: 'Hand-selected house and Afro tracks', sched: 'schedule-movement.json', art: 'assets/movement-art.png?v=2', mark: 'assets/movement-mark.svg?v=3', tag: 'House · Afro', artmap: 'data/movement-art.json', start: 'house', short: 'THE MOVEMENT' },
     { id: 'trap', name: 'Trap', sub: 'Heavy 808s and hard-hitting trap', soon: 1, art: 'assets/logo.png' }
   ];
-  var KEY = 'up1-station', cur = ST[0], m;
-  try { m = /[?&]station=([a-z0-9]+)/.exec(location.search); var want = m ? m[1] : localStorage.getItem(KEY); ST.forEach(function (s) { if (s.id === want && !s.soon) cur = s; }); } catch (e) {}
+  var KEY = 'up1-station', cur = ST[0], m, root = document.documentElement;
+  function byId(id) { for (var i = 0; i < ST.length; i++) if (ST[i].id === id && !ST[i].soon) return ST[i]; return null; }
+  try { m = /[?&]station=([a-z0-9]+)/.exec(location.search); var want = m ? m[1] : localStorage.getItem(KEY); cur = byId(want) || ST[0]; } catch (e) {}
   if (/[?&]ailocal=1/.test(location.search)) window.UP1_AI_URL = 'ai/';   // preview: read the AI lyrics from this PC instead of the live site
-  // Culture Shock opens in one of its three own skins (Culture, Shock, Dubby), a different one each visit; ?skin=name picks one (preview). The others open in their own look.
-  window.UP1_START_SKIN = ''; window.UP1_OWN_SKINS = cur.skins || null; window.UP1_ARTMAP = cur.artmap || '';
-  if (cur.skins) {
-    var OWN = cur.skins, mm = /[?&]skin=(culture|shock|dubby)/.exec(location.search), cm = /[?&]cs=([123])/.exec(location.search), pick = mm ? mm[1] : (cm ? OWN[+cm[1] - 1] : '');
-    if (!pick) { var last = ''; try { last = localStorage.getItem('up1-cs-skin') || ''; } catch (e) {} var all = OWN.filter(function (n) { return n !== last; }); pick = all[Math.floor(Math.random() * all.length)]; }
-    try { localStorage.setItem('up1-cs-skin', pick); } catch (e) {}
-    window.UP1_START_SKIN = pick;
-  } else if (cur.start) { var ms = /[?&]skin=([a-z]+)/.exec(location.search); window.UP1_START_SKIN = ms ? ms[1] : cur.start; }
+  // which skin a station opens in: Culture Shock = one of its three own (a different one each time), the others = their own look, the main station = Nebula
+  function chooseSkin(st, first) {
+    var ms = first && /[?&]skin=([a-z]+)/.exec(location.search), cm = first && /[?&]cs=([123])/.exec(location.search);
+    if (st.skins) {
+      var OWN = st.skins, pick = ms ? ms[1] : (cm ? OWN[+cm[1] - 1] : '');
+      if (!pick) { var last = ''; try { last = localStorage.getItem('up1-cs-skin') || ''; } catch (e) {} var all = OWN.filter(function (n) { return n !== last; }); pick = all[Math.floor(Math.random() * all.length)]; }
+      try { localStorage.setItem('up1-cs-skin', pick); } catch (e) {}
+      return pick;
+    }
+    return ms ? ms[1] : (st.start || '');
+  }
+  function globals(st, first) {
+    window.UP1_STATION = st.id; window.UP1_SCHEDULE = st.sched; window.UP1_ARTMAP = st.artmap || ''; window.UP1_OWN_SKINS = st.skins || null;
+    window.UP1_START_SKIN = chooseSkin(st, first); root.setAttribute('data-station', st.id);
+  }
+  globals(cur, true);
   if (/[?&]nogate=1/.test(location.search)) { var gs = document.createElement('style'); gs.textContent = '#tapgate{display:none!important}'; (document.head || document.documentElement).appendChild(gs); }   // preview only
   try {
     if (sessionStorage.getItem('up1-skipgate') === '1') {
@@ -27,23 +36,44 @@
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', rg); else rg();
     }
   } catch (e) {}
-  window.UP1_SCHEDULE = cur.sched; window.UP1_STATION = cur.id;
-  document.documentElement.setAttribute('data-station', cur.id);
+  var WORDS = 'DIGGING IN THE CRATES \u2605 RARE \u2605 90s UNDERGROUND \u2605 BOOM BAP ARCHIVES \u2605 HIDDEN GEMS \u2605 DEMOS \u2605 VINYL ONLY \u2605 ';
+  function vaultDeco(on) {   // The Vault: a tape ribbon above the lists and big words down both sides
+    document.querySelectorAll('.vtape,.vside').forEach(function (e) { e.remove(); });
+    if (!on) return;
+    var cols = document.querySelector('main .cols');
+    if (cols) { var t = document.createElement('div'); t.className = 'vtape'; t.setAttribute('aria-hidden', 'true'); t.innerHTML = '<div class="vtrack"><span>' + WORDS + WORDS + '</span><span>' + WORDS + WORDS + '</span></div>'; cols.parentNode.insertBefore(t, cols); }
+    ['vl', 'vr'].forEach(function (c) { var d = document.createElement('div'); d.className = 'vside ' + c; d.setAttribute('aria-hidden', 'true'); d.textContent = WORDS + WORDS + WORDS; document.body.appendChild(d); });
+  }
+  var origTitle = document.title, origImg = '', box, logoEl;
+  function paintUI(st) {   // everything on the page that carries the station's name, logo and look
+    var rad = document.querySelector('.logo .rad'), img = document.querySelector('.logo img'), isMain = st.id === '1up';
+    document.title = isMain ? origTitle : st.name + ' \u00b7 1UP Radio';
+    if (rad) rad.textContent = isMain ? 'RADIO (ORIGINAL)' : (st.short || st.name).toUpperCase();
+    if (img) { if (!origImg) origImg = img.getAttribute('src'); img.src = isMain ? origImg : (st.mark || st.art); }
+    if (!isMain) { var na = document.getElementById('npArtist'); if (na && !document.getElementById('play').classList.contains('on')) na.textContent = st.tag + ' \u00b7 all day'; }
+    var sbn = document.getElementById('shareBtn'); if (sbn) { sbn.title = 'Share ' + st.name; sbn.setAttribute('aria-label', 'Share ' + st.name); }
+    vaultDeco(st.id === 'vault');
+    if (box) box.querySelectorAll('.stcard').forEach(function (c) { var on = c.dataset.id === st.id, i = c.querySelector('i'); c.classList.toggle('on', on); if (i && !c.classList.contains('soon')) i.textContent = on ? 'ON AIR' : 'TUNE IN'; });
+  }
+  function stationFromUrl() { var mm = /[?&]station=([a-z0-9]+)/.exec(location.search); return byId(mm ? mm[1] : '1up') || ST[0]; }
+  function switchTo(st, push) {   // change station without reloading the page, so the music never stops
+    if (!st || st.soon || st.id === cur.id) return;
+    cur = st; globals(st, false);
+    try { localStorage.setItem(KEY, st.id); } catch (e) {}
+    if (push) { try { history.pushState({ st: st.id }, '', location.pathname + (st.id === '1up' ? '' : '?station=' + st.id)); } catch (e) {} }
+    paintUI(st);
+    if (window.UP1_SWITCH) window.UP1_SWITCH(st); else location.reload();
+  }
+  window.addEventListener('popstate', function () { switchTo(stationFromUrl(), false); });
   function ready() {
-    var rad = document.querySelector('.logo .rad'), tag = document.querySelector('.top .tag'), img = document.querySelector('.logo img');
-    // Top bar for every station: the name on one line ("1UP RADIO (ORIGINAL)", "1UP CULTURE SHOCK") with "Keep the volume up" underneath
-    var isMain = cur.id === '1up';
-    if (!isMain) document.title = cur.name + ' \u00b7 1UP Radio';
-    if (rad) rad.textContent = isMain ? 'RADIO (ORIGINAL)' : (cur.short || cur.name).toUpperCase();
-    if (img && !isMain) img.src = cur.mark || cur.art;
+    var rad = document.querySelector('.logo .rad');
     var lg = document.querySelector('.logo'), one = lg && lg.querySelector('.one');
-    if (lg && one && rad) {
+    if (lg && one && rad) {   // the name on one line ("1UP RADIO (ORIGINAL)", "1UP CULTURE SHOCK") with "Keep the volume up" underneath
       var wrap = document.createElement('span'); wrap.className = 'stwrap'; var ln = document.createElement('span'); ln.className = 'stline';
       lg.insertBefore(wrap, one); ln.appendChild(one); ln.appendChild(rad); wrap.appendChild(ln);
       var sub = document.createElement('span'); sub.className = 'stsub'; sub.innerHTML = 'Keep the volume up<span class="blink">_</span>'; wrap.appendChild(sub);
     }
-    document.documentElement.classList.add('st-sub');
-    if (!isMain) { var na = document.getElementById('npArtist'); if (na) na.textContent = cur.tag + ' \u00b7 all day'; }
+    root.classList.add('st-sub');
     // Share button after the volume: shares THIS station (1UP Radio = the home page, the others = their own link with a preview card)
     var ctl = document.querySelector('.ctl'), vol = ctl && ctl.querySelector('.vol');
     if (ctl) {
@@ -62,7 +92,7 @@
     }
     var logo = document.querySelector('a.logo'); if (!logo) return;
     logo.setAttribute('aria-haspopup', 'dialog'); logo.insertAdjacentHTML('beforeend', '<span class="stcaret" aria-hidden="true">&#9662;</span>');
-    var box = document.createElement('div'); box.id = 'stations'; box.hidden = true; box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', 'Choose a station');
+    box = document.createElement('div'); box.id = 'stations'; box.hidden = true; box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', 'Choose a station');
     box.innerHTML = '<div class="stbox"><button type="button" class="stx" aria-label="Close">&times;</button><h2>CHOOSE A STATION</h2>' + ST.map(function (s) {
       return '<button type="button" class="stcard' + (s.id === cur.id ? ' on' : '') + (s.soon ? ' soon' : '') + '" data-id="' + s.id + '"' + (s.soon ? ' disabled' : '') + '><img src="' + s.art + '" alt="" width="64" height="64"><span><b>' + s.name + '</b><small>' + s.sub + '</small></span><i>' + (s.soon ? 'COMING SOON' : s.id === cur.id ? 'ON AIR' : 'TUNE IN') + '</i></button>';
     }).join('') + '</div>';
@@ -72,11 +102,11 @@
     box.addEventListener('click', function (e) {
       if (e.target === box || e.target.closest('.stx')) return open(false);
       var c = e.target.closest('.stcard'); if (!c || c.disabled) return;
-      if (c.dataset.id === cur.id) return open(false);
-      try { localStorage.setItem(KEY, c.dataset.id); sessionStorage.setItem('up1-skipgate', '1'); } catch (er) {}   // switching stations goes straight into the player (the start screen is only for the first visit)
-      location.href = location.pathname + (c.dataset.id === '1up' ? '' : '?station=' + c.dataset.id);
+      open(false); if (c.dataset.id !== cur.id) switchTo(byId(c.dataset.id), true);
     });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') open(false); });
+    try { history.replaceState({ st: cur.id }, ''); } catch (e) {}
+    paintUI(cur);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
 })();
@@ -112,14 +142,3 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
 })();
 
-/* The Vault: 90s hip-hop dressing - a tape ribbon above the lists and big words down both sides */
-(function () {
-  if (window.UP1_STATION !== 'vault') return;
-  var WORDS = 'DIGGING IN THE CRATES \u2605 RARE \u2605 90s UNDERGROUND \u2605 BOOM BAP ARCHIVES \u2605 HIDDEN GEMS \u2605 DEMOS \u2605 VINYL ONLY \u2605 ';
-  function ready() {
-    var cols = document.querySelector('main .cols');
-    if (cols) { var t = document.createElement('div'); t.className = 'vtape'; t.setAttribute('aria-hidden', 'true'); t.innerHTML = '<div class="vtrack"><span>' + WORDS + WORDS + '</span><span>' + WORDS + WORDS + '</span></div>'; cols.parentNode.insertBefore(t, cols); }
-    ['vl', 'vr'].forEach(function (c) { var d = document.createElement('div'); d.className = 'vside ' + c; d.setAttribute('aria-hidden', 'true'); d.textContent = WORDS + WORDS + WORDS; document.body.appendChild(d); });
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
-})();

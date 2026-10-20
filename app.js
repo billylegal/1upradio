@@ -8,8 +8,12 @@
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   function split(t) { var i = t.indexOf(' - '); return i > 0 ? [t.slice(0, i), t.slice(i + 3)] : ['', t]; }
 
-  var ART = {};   // Culture Shock: song id -> Apple Music cover (data/culture-art.json, built by tools/culture_art.py)
-  if (window.UP1_ARTMAP) fetch(window.UP1_ARTMAP + '?t=' + Math.floor(Date.now() / 600000)).then(function (r) { return r.json(); }).then(function (j) { ART = j || {}; try { paintNP(); } catch (e) {} }).catch(function () {});
+  var ART = {};   // song id -> album cover for the station's songs (data/<station>-art.json, built by tools/culture_art.py)
+  function loadArt() {
+    ART = {};
+    if (window.UP1_ARTMAP) fetch(window.UP1_ARTMAP + '?t=' + Math.floor(Date.now() / 600000)).then(function (r) { return r.json(); }).then(function (j) { ART = j || {}; try { paintNP(); } catch (e) {} }).catch(function () {});
+  }
+  loadArt();
   function load() {
     return fetch((window.UP1_SCHEDULE || 'schedule.json') + '?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (d) {
       var cur = idx >= 0 && S.plays[idx] ? S.plays[idx].t : null;
@@ -493,7 +497,7 @@
   function init() {
     yt = new YT.Player('ytp', { width: 200, height: 200, host: 'https://www.youtube-nocookie.com', playerVars: { playsinline: 1, rel: 0, controls: 0, disablekb: 1, origin: location.origin }, events: {
       onReady: function () { ready = true; yt.setVolume(+$('vol').value); if (started) playIdx(findNow(), (Date.now() / 1000 - S.delay) - S.plays[findNow()].t); if (gestured) { try { yt.unMute(); } catch (e) {} } },
-      onStateChange: function (e) { var st = YT.PlayerState; if (e.data === st.PLAYING) { errs = 0; setOn(true); } else if (e.data === st.PAUSED) setOn(false); else if (e.data === st.ENDED) next(); },
+      onStateChange: function (e) { var st = YT.PlayerState; if (e.data === st.PLAYING) { if (userPaused) { try { yt.pauseVideo(); } catch (x) {} return; } errs = 0; setOn(true); } else if (e.data === st.PAUSED) setOn(false); else if (e.data === st.ENDED) next(); },
       onError: function () { if (curP) badIds[curP.id] = 1; if (++errs < 8) playIdx(idx, Date.now() / 1000 - S.delay - S.plays[idx].t, curAlt + 1); else { setOn(false); $('hint').textContent = 'Having trouble reaching the music. Please try again in a minute.'; } } } });
   }
   var unmutedAt = 0, gestured = false, lastKick = 0, apiTag = null;
@@ -509,7 +513,11 @@
       else { window.onYouTubeIframeAPIReady = function () { if (!yt) init(); }; loadApi(); }
       return;
     }
-    if (!ready) return; if (playing) yt.pauseVideo(); else yt.playVideo();
+    if (!ready) return;
+    var eff = (btnIntent !== null && Date.now() - btnAt < 2500) ? btnIntent : playing;      // what the button shows right now, even if YouTube has not reported it yet
+    btnAt = Date.now();
+    if (eff) { btnIntent = false; userPaused = true; try { yt.pauseVideo(); } catch (x) {} setOn(false); }
+    else { btnIntent = true; userPaused = false; try { yt.playVideo(); } catch (x) {} }
   });
   $('vol').addEventListener('input', function (e) { $('volv').textContent = e.target.value; if (yt && ready) yt.setVolume(+e.target.value); try { localStorage.setItem('up1-vol', e.target.value); } catch (x) {} });
   try { var v = localStorage.getItem('up1-vol'); if (v) { $('vol').value = v; $('volv').textContent = v; } } catch (x) {}
@@ -555,18 +563,23 @@
 
   // ---- phone lock screen / background: Media Session (title, artwork, play/pause buttons) + a silent looping sound that keeps the page's audio session alive, and a jump back to live whenever the phone wakes the page up ----
   var userPaused = false, keep = new Audio('assets/silence.mp3'); keep.loop = true; keep.setAttribute('playsinline', '');
-  $('play').addEventListener('click', function () { userPaused = playing; }, true);
+  var btnIntent = null, btnAt = 0;   // see the play button's click handler
   function keepSync() { try { if (started && gestured && !userPaused) { var pr = keep.play(); if (pr && pr.catch) pr.catch(function () {}); } else keep.pause(); } catch (e) {} }
-  function goLive() { if (!started || !ready || !S.plays.length) return; userPaused = false; try { var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } catch (e) {} keepSync(); }
+  function goLive() { if (!started || !ready || !S.plays.length) return; userPaused = false; btnIntent = null; try { var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } catch (e) {} keepSync(); }
   var MS = 'mediaSession' in navigator ? navigator.mediaSession : null;
+  function ART_FOR(p) {   // lock-screen picture: the song's cover when we have one, else its YouTube picture, else the logo
+    var list = []; try { if (ART && ART[p.id]) list.push({ src: ART[p.id], sizes: '600x600' }); } catch (e) {}
+    if (p.id) list.push({ src: 'https://i.ytimg.com/vi/' + encodeURIComponent(p.id) + '/hqdefault.jpg', sizes: '480x360', type: 'image/jpeg' });
+    list.push({ src: location.origin + '/assets/icon-512.png', sizes: '512x512', type: 'image/png' }); return list;
+  }
   function msMeta() {
     if (!MS || typeof MediaMetadata === 'undefined') return; var p = curP || S.plays[idx]; if (!p) return; var a = split(p.title);
-    try { MS.metadata = new MediaMetadata({ title: a[1] || p.title, artist: a[0] || '1UP Radio', album: '1UP Radio · Keep the volume up', artwork: [{ src: 'assets/logo.png', sizes: '512x512', type: 'image/png' }] }); MS.playbackState = playing ? 'playing' : 'paused'; } catch (e) {}
+    try { MS.metadata = new MediaMetadata({ title: a[1] || p.title, artist: a[0] || '1UP Radio', album: '1UP Radio · Keep the volume up', artwork: ART_FOR(p) }); MS.playbackState = playing ? 'playing' : 'paused'; } catch (e) {}
   }
   if (MS) {
     try { MS.setActionHandler('play', function () { if (!started) { $('play').click(); return; } goLive(); }); } catch (e) {}
-    try { MS.setActionHandler('pause', function () { userPaused = true; try { yt.pauseVideo(); } catch (e) {} keepSync(); }); } catch (e) {}
-    try { MS.setActionHandler('stop', function () { userPaused = true; try { yt.pauseVideo(); } catch (e) {} keepSync(); }); } catch (e) {}
+    try { MS.setActionHandler('pause', function () { userPaused = true; btnIntent = false; try { yt.pauseVideo(); } catch (e) {} keepSync(); }); } catch (e) {}
+    try { MS.setActionHandler('stop', function () { userPaused = true; btnIntent = false; try { yt.pauseVideo(); } catch (e) {} keepSync(); }); } catch (e) {}
     try { MS.setActionHandler('nexttrack', null); MS.setActionHandler('previoustrack', null); } catch (e) {}
   }
   setInterval(function () { msMeta(); keepSync(); }, 2000);
@@ -601,6 +614,19 @@
     if (document.getElementById('tapgate')) window.addEventListener('up1-start', begin, { once: true }); else begin();
   });
   setInterval(load, 3 * 60 * 1000);
+  // ---- the station picker / the browser's Back button change station right here, without reloading: the music carries on ----
+  window.UP1_SWITCH = function (st) {
+    var wasPlaying = playing;
+    clearNext(); stopJingle(); selDay = null; curP = null; idx = -1; S = { plays: [], delay: 0 };
+    loadArt();
+    try { applySkin(Math.max(0, SKINS.indexOf(window.UP1_START_SKIN || 'nebula'))); } catch (e) {}
+    return load().then(function () {
+      if (!S.plays.length) return;
+      var k = findNow();
+      if (started && ready && wasPlaying) { userPaused = false; playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); }
+      else { idx = k; curP = S.plays[k]; paintNP(); paintLists(); }
+    });
+  };
 })();
 
 ;(function(){var g=document.getElementById("tapgate");if(!g)return;function go(e){if(!g||!e.isTrusted)return;if(e.type==="click"){e.preventDefault();e.stopPropagation()}g.remove();g=null;window.dispatchEvent(new Event("up1-start"))}window.addEventListener("click",go,true);window.addEventListener("keydown",go,true)})();
