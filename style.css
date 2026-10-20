@@ -1244,3 +1244,6 @@ html[data-skin=vault] .vside{display:block}
 html[data-station=movement] .top .logo img{border-radius:0!important;box-shadow:none!important;background:none}
 /* The Vault: the b-boy dragging the 1UP logo is the logo (no circle) */
 html[data-station=vault] .top .logo img{border-radius:0!important;box-shadow:none!important;background:none}
+
+/* the rights-holder line is plain and small */
+.takedown p{font-size:12px;letter-spacing:0;text-align:center}
