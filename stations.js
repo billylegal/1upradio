@@ -30,19 +30,19 @@
   document.documentElement.setAttribute('data-station', cur.id);
   function ready() {
     var rad = document.querySelector('.logo .rad'), tag = document.querySelector('.top .tag'), img = document.querySelector('.logo img');
-    if (cur.id !== '1up') {
-      document.title = cur.name + ' · 1UP Radio';
-      if (rad) rad.textContent = cur.name.toUpperCase();
-      if (img) img.src = cur.mark || cur.art;
-      var lg = document.querySelector('.logo'), one = lg && lg.querySelector('.one');
-      if (lg && one && rad) {   // "1UP CULTURE SHOCK" on one line with "Keep the volume up" underneath, so the bar stays narrow
-        var wrap = document.createElement('span'); wrap.className = 'stwrap'; var ln = document.createElement('span'); ln.className = 'stline';
-        lg.insertBefore(wrap, one); ln.appendChild(one); ln.appendChild(rad); wrap.appendChild(ln);
-        var sub = document.createElement('span'); sub.className = 'stsub'; sub.textContent = 'Keep the volume up'; wrap.appendChild(sub);
-      }
-      document.documentElement.classList.add('st-sub');
-      var na = document.getElementById('npArtist'); if (na) na.textContent = cur.tag + ' · all day';
+    // Top bar for every station: the name on one line ("1UP RADIO (ORIGINAL)", "1UP CULTURE SHOCK") with "Keep the volume up" underneath
+    var isMain = cur.id === '1up';
+    if (!isMain) document.title = cur.name + ' \u00b7 1UP Radio';
+    if (rad) rad.textContent = isMain ? 'RADIO (ORIGINAL)' : cur.name.toUpperCase();
+    if (img && !isMain) img.src = cur.mark || cur.art;
+    var lg = document.querySelector('.logo'), one = lg && lg.querySelector('.one');
+    if (lg && one && rad) {
+      var wrap = document.createElement('span'); wrap.className = 'stwrap'; var ln = document.createElement('span'); ln.className = 'stline';
+      lg.insertBefore(wrap, one); ln.appendChild(one); ln.appendChild(rad); wrap.appendChild(ln);
+      var sub = document.createElement('span'); sub.className = 'stsub'; sub.innerHTML = 'Keep the volume up<span class="blink">_</span>'; wrap.appendChild(sub);
     }
+    document.documentElement.classList.add('st-sub');
+    if (!isMain) { var na = document.getElementById('npArtist'); if (na) na.textContent = cur.tag + ' \u00b7 all day'; }
     // Share button after the volume: shares THIS station (1UP Radio = the home page, the others = their own link with a preview card)
     var ctl = document.querySelector('.ctl'), vol = ctl && ctl.querySelector('.vol');
     if (ctl) {

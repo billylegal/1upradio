@@ -1079,13 +1079,13 @@ html[data-skin=culture] .top,html[data-skin=shock] .top,html[data-skin=dubby] .t
 html[data-skin=culture]{--bg:#070a05;--bg2:rgba(245,197,24,.06)!important;--line:rgba(245,197,24,.32)!important;--txt:#fff7e0;--dim:#b5ad8a;--g:#f5c518;--gr:245,197,24;--g2:#ffe27a;--red:#e8312f;
   background:linear-gradient(160deg,#e8312f 0%,#f5c518 48%,#1fa54a 100%),#07050F url(assets/nebula-bg.jpg) center/cover fixed;background-blend-mode:color,normal}
 html[data-skin=culture] body{color:#fff7e0}
-html[data-skin=culture] .onair.on{color:#35d46a}html[data-skin=culture] .onair.on i{background:#35d46a;box-shadow:0 0 14px #35d46a}
+html[data-skin=culture] .onair.on{color:#ff5a4d}html[data-skin=culture] .onair.on i{background:#ff2a2a;box-shadow:0 0 14px #ff2a2a}
 /* Dubby: deep green space, gold stars */
 html[data-skin=dubby]{--bg:#03100a;--bg2:rgba(31,165,74,.09)!important;--line:rgba(212,175,55,.38)!important;--txt:#f3efd8;--dim:#9db59f;--g:#d4af37;--gr:212,175,55;--g2:#f1d98a;--red:#e8312f;
   background:linear-gradient(200deg,#0b6b3a 0%,#06301b 55%,#02100a 100%),#07050F url(assets/nebula-bg.jpg) center/cover fixed;background-blend-mode:color,normal}
 html[data-skin=dubby] body{color:#f3efd8}
 html[data-skin=dubby] .player,html[data-skin=dubby] .card{border-color:rgba(212,175,55,.45);box-shadow:0 0 50px rgba(31,165,74,.22),inset 0 0 40px rgba(212,175,55,.05)}
-html[data-skin=dubby] .onair.on{color:#35d46a}html[data-skin=dubby] .onair.on i{background:#35d46a;box-shadow:0 0 14px #35d46a}
+html[data-skin=dubby] .onair.on{color:#ff5a4d}html[data-skin=dubby] .onair.on i{background:#ff2a2a;box-shadow:0 0 14px #ff2a2a}
 html[data-skin=dubby] .title{text-shadow:0 0 24px rgba(212,175,55,.55)}
 /* Shock: a hot red and orange sunset with green controls */
 html[data-skin=shock]{--bg:#12050a;--bg2:rgba(232,49,47,.08)!important;--line:rgba(255,160,80,.36)!important;--txt:#fff1e6;--dim:#c9a38d;--g:#35d46a;--gr:53,212,106;--g2:#ffb347;--red:#ff6a3d;
@@ -1128,3 +1128,7 @@ html[data-skin=shock] .player,html[data-skin=shock] .card{border-color:rgba(255,
 /* Caption under Billy Legal's big head sticker (desktop only, like the sticker) */
 .bigcap{display:block;margin-top:10px;text-align:center;font:700 clamp(13px,1.25vw,19px)/1.2 'Barlow Condensed',sans-serif!important;letter-spacing:.16em;text-transform:uppercase;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.85),0 0 16px rgba(var(--gr),.55)}
 a.bigst,a.bigst:hover,.bigcap{text-decoration:none}
+
+/* ON AIR light: always a blinking red - except on the red Shock skin, where it is a blinking green */
+html[data-skin=culture] .onair.on i,html[data-skin=dubby] .onair.on i,html[data-skin=shock] .onair.on i{animation:bl 1.2s steps(2) infinite}
+html[data-skin=shock] .onair.on{color:#35d46a}html[data-skin=shock] .onair.on i{background:#35d46a;box-shadow:0 0 14px #35d46a}
