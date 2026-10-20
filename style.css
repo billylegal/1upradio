@@ -889,3 +889,12 @@ html[data-skin=meters] .npart,html[data-skin=wormhole] .npart{display:none}
   .np:has(.npart:not([hidden])) .title{font-size:clamp(20px,6.2vw,28px);line-height:1.1}
   .np:has(.npart:not([hidden])) .artist{letter-spacing:.08em}
 }
+
+/* Now-playing text: smaller and airier on every skin (it was huge and bunched up); meter bars never run past the player's padding on phones */
+html[data-skin]:not([data-skin=gameboy]):not([data-skin=wormhole]):not([data-skin=meters]) .title{font-size:clamp(20px,2.4vw,30px)!important;line-height:1.25!important;letter-spacing:.03em!important;margin:10px 0 4px!important}
+html[data-skin]:not([data-skin=wormhole]):not([data-skin=meters]) .artist{font-size:13px!important;letter-spacing:.12em!important;line-height:1.4}
+html[data-skin=nebula] .eq,html[data-skin=space] .eq{gap:0;overflow:hidden}
+@media(max-width:720px){
+  html[data-skin]:not([data-skin=gameboy]):not([data-skin=wormhole]):not([data-skin=meters]) .title{font-size:19px!important;line-height:1.3!important}
+  .player .bar{margin-inline:0}
+}
