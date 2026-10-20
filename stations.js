@@ -27,11 +27,11 @@
     // Share button after the volume: shares THIS station (1UP Radio = the home page, the others = their own link with a preview card)
     var ctl = document.querySelector('.ctl'), vol = ctl && ctl.querySelector('.vol');
     if (ctl) {
-      var sb = document.createElement('button'); sb.type = 'button'; sb.id = 'shareBtn'; sb.className = 'savebtn sharebtn'; sb.textContent = '\u2197 Share'; sb.setAttribute('aria-label', 'Share ' + cur.name);
+      var sb = document.createElement('button'); sb.type = 'button'; sb.id = 'shareBtn'; sb.className = 'sharebtn'; sb.title = 'Share ' + cur.name; sb.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="sharetip" hidden></span>'; sb.setAttribute('aria-label', 'Share ' + cur.name);
       if (vol && vol.nextSibling) ctl.insertBefore(sb, vol.nextSibling); else ctl.appendChild(sb);
       sb.addEventListener('click', function () {
         var url = location.origin + (cur.id === '1up' ? '/' : '/s/' + cur.id + '/'), title = cur.name + ' \u00b7 1UP Radio', txt = 'Listen to ' + cur.name + ' on 1UP Radio. Keep the volume up.';
-        var flash = function (m) { sb.textContent = m; setTimeout(function () { sb.textContent = '\u2197 Share'; }, 1800); };
+        var flash = function (m) { var t = sb.querySelector('.sharetip'); t.textContent = m; t.hidden = false; setTimeout(function () { t.hidden = true; }, 1800); };
         var copy = function () {
           var ta = document.createElement('textarea'); ta.value = url; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select();
           var ok = false; try { ok = document.execCommand('copy'); } catch (e) {} ta.remove();

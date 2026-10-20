@@ -974,3 +974,13 @@ html[data-station=cultureshock][data-skin=nebula][data-cs="3"] .player,html[data
   .ctl .sharebtn{margin-left:auto;flex:none;padding:8px 10px}
   html[data-skin=nebula] .ctl .sharebtn{padding:8px 12px;letter-spacing:.14em;font-size:11px}
 }
+
+/* Share: a round button like play/pause, with a share icon */
+.ctl .sharebtn,html[data-skin] .ctl .sharebtn{position:relative;flex:none;width:52px;height:52px;margin:0 0 0 8px;padding:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;
+  background:rgba(var(--gr),.12);color:var(--g);border:1px solid rgba(var(--gr),.7);box-shadow:0 0 30px rgba(var(--gr),.35),inset 0 0 18px rgba(var(--gr),.2);letter-spacing:0;font-size:0;backdrop-filter:blur(4px);transition:transform .1s,background .15s}
+.ctl .sharebtn:hover{background:rgba(var(--gr),.28);transform:scale(1.04)}.ctl .sharebtn:active{transform:scale(.97)}
+.ctl .sharebtn svg{width:22px;height:22px;fill:currentColor;display:block}
+.ctl .sharebtn .sharetip{position:absolute;bottom:calc(100% + 8px);right:0;white-space:nowrap;background:#000;color:#fff;border:1px solid var(--g);border-radius:999px;padding:6px 12px;font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:.14em;text-transform:uppercase;pointer-events:none}
+.ctl .sharebtn .sharetip[hidden]{display:none}
+.ctl .vol{margin-right:6px}
+@media(max-width:720px){.ctl .sharebtn,html[data-skin] .ctl .sharebtn{width:46px;height:46px;padding:0;margin-left:auto}.ctl .sharebtn svg{width:20px;height:20px}}

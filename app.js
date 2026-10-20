@@ -493,14 +493,14 @@
   }
   var unmutedAt = 0, gestured = false, lastKick = 0, apiTag = null;
   function loadApi() { if (apiTag || (window.YT && YT.Player)) return; apiTag = document.createElement('script'); apiTag.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(apiTag); }
-  window.onYouTubeIframeAPIReady = function () { if (started && !yt) init(); };
+  window.onYouTubeIframeAPIReady = function () { if (!yt) init(); };   // build the player BEFORE the first tap, so the tap itself can start it (in-app browsers like Instagram's only allow playback begun directly inside a tap)
   loadApi();
   $('play').addEventListener('click', function () {
     if (Date.now() - unmutedAt < 700) return;
     if (!S.plays.length) return;
     if (!started) {
       started = true; $('hint').innerHTML = LIVE_HTML; $('npTitle').textContent = 'Tuning in…';
-      if (window.YT && YT.Player) { if (!yt) init(); else { var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } }
+      if (window.YT && YT.Player) { if (!yt) init(); else if (ready) { var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } }   // not ready yet: onReady starts it
       else { window.onYouTubeIframeAPIReady = function () { if (!yt) init(); }; loadApi(); }
       return;
     }
