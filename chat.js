@@ -27,7 +27,7 @@
   }
   function pollMsgs() {
     var st = station();
-    if (st !== shown) { shown = st; lastId = 0; list.textContent = ''; title.textContent = (document.title.split(' · ')[0] || '1UP Radio') + ' chat'; }
+    if (st !== shown) { shown = st; lastId = 0; list.textContent = ''; title.textContent = ({ '1up': '1UP Radio', cultureshock: 'Culture Shock', vault: 'The Vault', movement: 'The Movement' }[st] || '1UP Radio') + ' chat'; }
     api('messages?select=id,nick,body&station=eq.' + encodeURIComponent(st) + '&order=id.desc&limit=40').then(function (rows) {
       rows.reverse(); var top = rows.length ? rows[rows.length - 1].id : 0;
       if (top !== lastId || !list.childNodes.length) { lastId = top; paintMsgs(rows); }

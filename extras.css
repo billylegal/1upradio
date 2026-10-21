@@ -21,3 +21,21 @@
 #factbubble.pop{animation:factpop .45s cubic-bezier(.2,1.6,.4,1)}
 @keyframes factpop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
 @media(max-width:600px){#factbubble{left:12px;right:12px;bottom:12px;max-width:none}}
+
+/* the control row stays on ONE line on every screen: volume shrinks, round buttons keep their size */
+.ctl{flex-wrap:nowrap!important}
+.ctl .vol{flex:1 1 90px;min-width:64px}
+.ctl .vol input[type=range]{flex:1 1 auto;min-width:0;width:auto}
+.ctl .sharebtn,.ctl .play{flex:0 0 auto}
+.ctl .xbtn,.ctl #shareBtn{padding:9px 10px}
+@media(max-width:600px){
+  .ctl{gap:7px!important}
+  .ctl .vol b{display:none}
+  .ctl .vol input{min-width:36px}
+  html .ctl .play{width:50px!important;height:50px!important;flex:0 0 50px!important}
+  .ctl .vol{flex:1 1 40px;min-width:0!important}
+  .ctl .vol span{display:none}
+  html .ctl .xbtn,html .ctl #shareBtn{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;max-width:34px!important;padding:0!important;margin:0!important;border-radius:50%!important;display:inline-flex!important;align-items:center;justify-content:center;flex:0 0 34px!important;box-sizing:border-box}
+  .xbtn svg,.ctl #shareBtn svg{width:17px;height:17px}
+  .xbtn em{position:absolute;top:-5px;right:-5px;margin:0;padding:1px 4px;border-radius:7px;background:var(--g,#ffd34d);color:#000;font-size:9px}
+}

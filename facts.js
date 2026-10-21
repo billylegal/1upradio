@@ -15,7 +15,7 @@
   var bubble, btn, hideT = null, songId = '', songT0 = 0, shown = 0, facts = null, token = 0;
   function build() {
     bubble = document.createElement('aside'); bubble.id = 'factbubble'; bubble.hidden = true; bubble.setAttribute('aria-live', 'polite');
-    bubble.innerHTML = '<b>💡 DID YOU KNOW?</b><p></p><small><a target="_blank" rel="noopener">Wikipedia</a></small><button type="button" aria-label="Close">✕</button>';
+    bubble.innerHTML = '<b>💡 DID YOU KNOW?</b><p></p><button type="button" aria-label="Close">✕</button>';
     document.body.appendChild(bubble);
     bubble.querySelector('button').addEventListener('click', hide);
     var share = document.getElementById('shareBtn');
@@ -29,7 +29,7 @@
   function toggle() { on = !on; try { localStorage.setItem(KEY, on ? 'on' : 'off'); } catch (e) {} paintBtn(); if (!on) hide(); }
   function hide() { if (bubble) bubble.hidden = true; clearTimeout(hideT); }
   function pop(f, who, withSrc) {
-    bubble.querySelector('p').textContent = f; var sm = bubble.querySelector('small'), a = bubble.querySelector('a'); sm.hidden = true; if (who.url) { a.href = who.url; a.textContent = 'Wikipedia · ' + who.name; } else { a.removeAttribute('href'); a.textContent = who.name; }
+    bubble.querySelector('p').textContent = f; 
     bubble.hidden = false; bubble.classList.remove('pop'); void bubble.offsetWidth; bubble.classList.add('pop');
     clearTimeout(hideT); hideT = setTimeout(hide, 13000);
   }
