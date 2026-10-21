@@ -73,11 +73,12 @@
     if (!f || !f.id) { fcard.hidden = true; return; }
     fcard.hidden = false; fcard.querySelector('.ftitle').textContent = f.title || ''; fcard.querySelector('.fnote').textContent = f.note || '';
     fcard.querySelector('.fyt').href = 'https://www.youtube.com/watch?v=' + encodeURIComponent(f.id); fcard.querySelector('.fytm').href = 'https://music.youtube.com/watch?v=' + encodeURIComponent(f.id);
+    var fm = fcard.querySelector('.fmore'); fm.hidden = !f.link; if (f.link) { fm.href = f.link; fm.textContent = (f.linkText || 'More') + ' \u2197'; }
   }
   function featInit() {
     var cols = $('.cols'); if (!cols) return;
     fcard = document.createElement('section'); fcard.className = 'card featured'; fcard.hidden = true;
-    fcard.innerHTML = '<h2>★ Song of the week</h2><div class="ftitle"></div><div class="fnote"></div><div class="flinks"><a class="chip found fyt" target="_blank" rel="noopener">YouTube ✓</a><a class="chip found fytm" target="_blank" rel="noopener">YT Music ✓</a></div>';
+    fcard.innerHTML = '<h2>★ Song of the week</h2><div class="ftitle"></div><div class="fnote"></div><div class="flinks"><a class="chip found fyt" target="_blank" rel="noopener">YouTube ✓</a><a class="chip found fytm" target="_blank" rel="noopener">YT Music ✓</a><a class="chip found fmore" target="_blank" rel="noopener" hidden></a></div>';
     cols.parentNode.insertBefore(fcard, cols);
     fetch('data/featured.json?t=' + Math.floor(Date.now() / 600000)).then(function (r) { return r.json(); }).then(function (j) { feat = j || {}; featPaint(); }).catch(function () {});
     var last = station(); setInterval(function () { if (station() !== last) { last = station(); featPaint(); } }, 1500);
