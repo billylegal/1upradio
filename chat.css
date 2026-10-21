@@ -68,7 +68,7 @@ html[data-skin=meters] #live,html[data-skin=wormhole] #live{bottom:96px}
 @media(prefers-reduced-motion:reduce){.lvchat.attn{animation:none;box-shadow:0 0 0 4px rgba(var(--gr,255,211,77),.5)}}
 /* phones: a blank slate with one button at the bottom; tapping it opens the room (reactions, comments, comment bar), tapping the cross closes it again */
 @media(max-width:699px){
-  #live.min .lvrail button[data-k]{display:none}
+  #live.min:not(.rx) .lvrail button[data-k]{display:none}
   html.has-live body{padding-bottom:84px}
   html.has-live.live-open body{padding-bottom:230px}
   #live:not(.min) .lvchat svg{display:none}

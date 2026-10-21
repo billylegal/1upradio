@@ -26,7 +26,15 @@
   var badge = chatB.querySelector('i');
   function minimised() { return live.classList.contains('min'); }
   function setMin(on) { live.classList.toggle('min', on); document.documentElement.classList.toggle('live-open', !on); chatB.setAttribute('aria-pressed', String(!on)); if (!on) { chatB.classList.remove('attn'); store('up1-chat-seen', '1'); } if (!on) { seen = lastId; badge.hidden = true; list.scrollTop = list.scrollHeight; } }
-  chatB.addEventListener('click', function () { setMin(!minimised()); });
+  var PHONE = window.matchMedia ? matchMedia('(max-width:699px)') : { matches: false };
+  function seenIt() { chatB.classList.remove('attn'); store('up1-chat-seen', '1'); }
+  chatB.addEventListener('click', function () {
+    if (!PHONE.matches) { setMin(!minimised()); return; }                       // computers: the button just opens / closes the chat
+    var rx = live.classList.contains('rx');
+    if (!rx && minimised()) { live.classList.add('rx'); seenIt(); }              // phones, tap 1: the reaction buttons come out (no chat yet)
+    else if (rx && minimised()) setMin(false);                                   // tap 2: the chat opens
+    else { setMin(true); live.classList.remove('rx'); }                          // tap 3: everything folds back into the one button
+  });
   if (store('up1-chat-seen') !== '1') chatB.classList.add('attn');   // until it has been opened once, the 💬 button pulses so people know to tap it
   setMin(true);   // the chat always starts closed, on every device; only the 💬 button opens it
 
