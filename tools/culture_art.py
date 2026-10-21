@@ -75,6 +75,33 @@ def discogs_cover(art, tr):
         img = x.get('cover_image') or ''
         if img and 'spacer' not in img and A and (A <= who or who <= A): return img
     return ''
+
+MB_UA = {'User-Agent': '1upradio/1.0 ( https://1upradio.com )'}
+def mb_cover(art, tr):
+    """MusicBrainz + Cover Art Archive (no key): the sleeve scan of a release that has this recording by this artist - often the real record / vinyl cover"""
+    if not art or not tr: return ''
+    q = 'recording:"%s" AND artist:"%s"' % (tr.replace('"', ' '), art.replace('"', ' '))
+    try:
+        with urllib.request.urlopen(urllib.request.Request('https://musicbrainz.org/ws/2/recording?fmt=json&limit=6&query=' + urllib.parse.quote(q), headers=MB_UA), timeout=25) as r: rs = json.load(r).get('recordings', [])
+    except Exception: return ''
+    finally: time.sleep(1.1)
+    T, A = toks(tr), toks(art); tried = 0
+    for x in rs:
+        if x.get('score', 0) < 90: continue
+        xa = toks(' '.join(c.get('name', '') for c in (x.get('artist-credit') or []) if isinstance(c, dict)))
+        if not ok_match(T, A, toks(x.get('title')), xa): continue
+        for rel in (x.get('releases') or [])[:6]:
+            if tried >= 6: return ''
+            tried += 1
+            try:
+                with urllib.request.urlopen(urllib.request.Request('https://coverartarchive.org/release/' + rel['id'], headers=MB_UA), timeout=25) as r: im = json.load(r).get('images', [])
+            except Exception: im = []
+            finally: time.sleep(1.1)
+            for i in im:
+                if i.get('front'):
+                    u = (i.get('thumbnails') or {}).get('500') or (i.get('thumbnails') or {}).get('large') or ''
+                    if u: return u.replace('http://', 'https://')
+    return ''
 ARTIST = {}
 def artist_cover(art):
     """no exact song found: the cover of the artist's best-known album (Deezer first, then Apple)"""
@@ -119,9 +146,13 @@ def find(title):
     for art, tr in cs:                                         # 4. Discogs (original sleeves and labels of old singles)
         c = discogs_cover(art, tr)
         if c: return c
+    for art, tr in cs:                                         # 5. MusicBrainz / Cover Art Archive (sleeve scans)
+        c = mb_cover(art, tr)
+        if c: return c
     return ''                                                  # not found: the site keeps the song's own YouTube picture (no guessing with another album)
 RETRY = 3 * 86400          # a song with no cover yet is searched again every 3 days (labels and catalogs keep growing)
-STATIONS = [('culture', 'data/culture-videos.json', 'data/culture-art.json', 'schedule-culture.json'),
+STATIONS = [('main', 'data/main-videos.json', 'data/main-art.json', 'schedule.json'),
+            ('culture', 'data/culture-videos.json', 'data/culture-art.json', 'schedule-culture.json'),
             ('movement', 'data/movement-videos.json', 'data/movement-art.json', 'schedule-movement.json'),
             ('hiphopvinyl', 'data/hiphopvinyl-videos.json', 'data/hiphopvinyl-art.json', 'schedule-hiphopvinyl.json')]
 def station(name, vfile, afile, sfile, budget):

@@ -64,10 +64,9 @@
       lk += '<a class="chip found" href="https://www.youtube.com/watch?v=' + encodeURIComponent(s.id) + '" target="_blank" rel="noopener">YouTube ✓</a>';
       if (L && L.apple) lk += '<a class="chip found" href="' + esc(L.apple) + '" target="_blank" rel="noopener">Apple ✓</a>';
       if (L && L.deezer) lk += '<a class="chip found" href="' + esc(L.deezer) + '" target="_blank" rel="noopener">Deezer ✓</a>';
-      lk += '<a class="chip found" href="https://open.spotify.com/search/' + q + '" target="_blank" rel="noopener" title="Search Spotify">Spotify ⌕</a>' +
-        '<a class="chip found" href="https://music.youtube.com/search?q=' + q + '" target="_blank" rel="noopener" title="Search YouTube Music">YT Music ⌕</a>' +
-        '<a class="chip found" href="https://music.amazon.com/search/' + q + '" target="_blank" rel="noopener" title="Search Amazon Music">Amazon ⌕</a>' +
-        '<a class="chip found" href="https://listen.tidal.com/search?q=' + q + '" target="_blank" rel="noopener" title="Search Tidal">Tidal ⌕</a>';
+      var sid = encodeURIComponent(s.id);
+      lk += '<a class="chip found" href="https://music.youtube.com/watch?v=' + sid + '" target="_blank" rel="noopener">YT Music ✓</a>' +
+        '<a class="chip found" href="https://song.link/y/' + sid + '" target="_blank" rel="noopener" title="Spotify, Amazon Music, Tidal and more: one page with every service that has this song">Spotify · Amazon · Tidal ✓</a>';
       lk += !(L && L.apple !== undefined && L.deezer !== undefined) ? '<span class="snf">checking Apple &amp; Deezer…</span>' : (L.apple || L.deezer ? '' : '<span class="snf">not found on Apple or Deezer</span>');
       var LY = s.ly && s.ly.text ? s.ly : null;
       var lyb = '';

@@ -1,8 +1,8 @@
 /* Station picker: tap the 1UP logo to choose a station. Runs before app.js and tells it which schedule file to follow. */
 (function () {
   var ST = [
-    { id: '1up', name: '1UP Radio', sub: 'The main station: deep house, melodic, electronic, all day', sched: 'schedule.json', art: 'assets/logo.png', tag: 'Keep the volume up' },
-    { id: 'cultureshock', name: 'Culture Shock', sub: 'Roots reggae and dub, all day', sched: 'schedule-culture.json', art: 'assets/cultureshock.svg?v=2', mark: 'assets/cultureshock-mark.svg?v=1', tag: 'Roots · reggae · dub', artmap: 'data/culture-art.json', skins: ['culture', 'shock', 'dubby'] },
+    { id: '1up', name: '1UP Radio', sub: 'The main station: deep house, melodic, electronic, all day', sched: 'schedule.json', art: 'assets/logo.png', tag: 'Keep the volume up', artmap: 'data/main-art.json' },
+    { id: 'cultureshock', name: 'Culture Shock', sub: 'Roots reggae and dub, all day', sched: 'schedule-culture.json', art: 'assets/cultureshock.svg?v=2', mark: 'assets/cultureshock-mark.svg?v=3', tag: 'Roots · reggae · dub', artmap: 'data/culture-art.json', skins: ['culture', 'shock', 'dubby'] },
     { id: 'vault', name: 'The Vault', sub: 'Hip hop vinyl: 90s underground demos, boom bap archives, digging in the crates', sched: 'schedule-hiphopvinyl.json', art: 'assets/vault-art.png?v=2', mark: 'assets/vault-mark.svg?v=3', tag: 'Hip hop vinyl · underground · boom bap', artmap: 'data/hiphopvinyl-art.json', start: 'vault', short: 'THE VAULT' },
     { id: 'movement', name: 'The Movement', sub: 'Hand-selected house and Afro tracks', sched: 'schedule-movement.json', art: 'assets/movement-art.png?v=2', mark: 'assets/movement-mark.svg?v=3', tag: 'House · Afro', artmap: 'data/movement-art.json', start: 'house', short: 'THE MOVEMENT' },
     { id: 'trap', name: 'Trap', sub: 'Heavy 808s and hard-hitting trap', soon: 1, art: 'assets/logo.png' }
@@ -79,18 +79,6 @@
     if (ctl) {
       var sb = document.createElement('button'); sb.type = 'button'; sb.id = 'shareBtn'; sb.className = 'sharebtn'; sb.title = 'Share ' + cur.name; sb.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="sharetip" hidden></span>'; sb.setAttribute('aria-label', 'Share ' + cur.name);
       if (vol && vol.nextSibling) ctl.insertBefore(sb, vol.nextSibling); else ctl.appendChild(sb);
-      // Pop-out button (computers): the player in its own small window you can drop in a corner or move anywhere - it keeps playing while you browse
-      var pb = document.createElement('button'); pb.type = 'button'; pb.id = 'popBtn'; pb.className = 'sharebtn popbtn'; pb.title = 'Pop out the player'; pb.setAttribute('aria-label', 'Pop out the player');
-      pb.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h9v2H6v11h11v-7h2v9H4z"/><path d="M14 4h7v7h-2V7.4l-6.3 6.3-1.4-1.4L17.6 6H14z"/></svg><span class="sharetip" hidden></span>';
-      sb.parentNode.insertBefore(pb, sb.nextSibling);
-      pb.addEventListener('click', function () {
-        var w = 400, h = 240, left = Math.max(0, (screen.availLeft || 0) + screen.availWidth - w - 24), top = (screen.availTop || 0) + 24;
-        var win = null; try { win = window.open('player.html?station=' + cur.id, 'up1pop', 'popup=yes,width=' + w + ',height=' + h + ',left=' + left + ',top=' + top); } catch (e) {}
-        var tip = pb.querySelector('.sharetip');
-        if (!win) { tip.textContent = 'Allow pop-ups to use this'; tip.hidden = false; setTimeout(function () { tip.hidden = true; }, 2600); return; }
-        var pl = document.getElementById('play'); if (pl && pl.classList.contains('on')) pl.click();   // the pop-out takes over, so the music is not doubled
-        try { win.focus(); } catch (e) {}
-      });
       sb.addEventListener('click', function () {
         var url = location.origin + (cur.id === '1up' ? '/' : '/s/' + cur.id + '/'), title = cur.name + ' \u00b7 1UP Radio', txt = 'Listen to ' + cur.name + ' on 1UP Radio. Keep the volume up.';
         var flash = function (m) { var t = sb.querySelector('.sharetip'); t.textContent = m; t.hidden = false; setTimeout(function () { t.hidden = true; }, 1800); };
