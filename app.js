@@ -245,15 +245,16 @@
     $('lyB').scrollTop = 0;
   }
   function lyrPos() { if (!yt || !ready) return null; try { return yt.getCurrentTime() + lyr.adj; } catch (e) { return null; } }
-  $('lyrBtn').addEventListener('click', function () { if (!lyr.data) return; if (lyBox.classList.contains('hidden')) { lyrPaint(); lyBox.classList.remove('hidden'); } else lyBox.classList.add('hidden'); });
+  var lyWant = false, lyDesk = window.matchMedia ? matchMedia('(min-width:700px)') : { matches: false };   // lyWant: the listener opened the lyrics and has not closed them, so on a computer they come back by themselves for the next song that has words
+  $('lyrBtn').addEventListener('click', function () { if (!lyr.data) return; if (lyBox.classList.contains('hidden')) { lyrPaint(); lyBox.classList.remove('hidden'); lyWant = true; } else { lyBox.classList.add('hidden'); lyWant = false; } });
   $('lyC').addEventListener('click', function () {   // copy the words (plain, one line per row) to the clipboard
     var d = lyr.data; if (!d) return; var txt = (d.sync ? d.sync.map(function (r) { return r.l; }).join('\n') : d.text);
     var b = $('lyC'); function ok() { b.textContent = '✓ Copied'; b.classList.add('done'); setTimeout(function () { b.textContent = '⧉ Copy'; b.classList.remove('done'); }, 1500); }
     function old() { var ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); ok(); } catch (e) {} ta.remove(); }
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok, old); else old();
   });
-  $('lyX').addEventListener('click', function () { lyBox.classList.add('hidden'); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') lyBox.classList.add('hidden'); });
+  $('lyX').addEventListener('click', function () { lyBox.classList.add('hidden'); lyWant = false; });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { lyBox.classList.add('hidden'); lyWant = false; } });
   $('lyM').addEventListener('click', function () { lyr.adj -= 0.5; }); $('lyP').addEventListener('click', function () { lyr.adj += 0.5; });
   $('lyB').addEventListener('click', function (e) {   // tap the line you hear -> lock the timing to it
     var ln = e.target.closest('.ll'); if (!ln || !lyr.data || !lyr.data.sync || !yt || !ready) return;
@@ -264,7 +265,8 @@
   setInterval(lyrCheck, 1000);
   (function follow() {
     requestAnimationFrame(follow);
-    if (lyBox.classList.contains('hidden')) return;
+    document.documentElement.classList.toggle('lyopen', !lyBox.classList.contains('hidden'));
+    if (lyBox.classList.contains('hidden')) { if (lyWant && lyDesk.matches && lyr.data) { lyrPaint(); lyBox.classList.remove('hidden'); } return; }
     if (!lyr.data) { lyBox.classList.add('hidden'); return; }
     if (lyBox.dataset.k !== lyr.key) lyrPaint();   // next song started while the window was open
     var d = lyr.data, hint = $('lyH'); if (!d.sync) { hint.textContent = 'Words only · no timing for this song'; return; }

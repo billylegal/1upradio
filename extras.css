@@ -40,6 +40,15 @@
   .xbtn em{position:absolute;top:-5px;right:-5px;margin:0;padding:1px 4px;border-radius:7px;background:var(--g,#ffd34d);color:#000;font-size:9px}
 }
 
+/* save hearts: at the left of each row on every screen, clear of the reaction column and the chat box */
+html .list li .hb{order:-1;margin-left:0;margin-right:-2px;width:32px;height:30px}
+/* computers: the lyrics are a side window in the bottom-left corner (not a pop-up over the page), so people can read along without losing the screen */
+@media(min-width:700px){
+  html #lyrics{left:16px;top:auto;bottom:16px;transform:none;width:min(360px,calc(50vw - 40px));height:min(46vh,380px);z-index:70;border-width:1px;box-shadow:0 14px 44px rgba(0,0,0,.6)}
+  html #lyrics.sync #lyB{padding:120px 16px}
+  html #lyrics .lh{padding:11px 14px}
+  html.lyopen #factbubble{bottom:calc(min(46vh,380px) + 32px)}   /* the did-you-know pop-up rides above the lyrics window while it is open */
+}
 /* phones only (the computer layout is unchanged): the shuttle is off for now, the did-you-know banner sits in its lane under the top bar, and the save hearts sit at the left of each row, clear of the reaction column */
 @media(max-width:699px){
   .sh{display:none!important}
@@ -47,5 +56,4 @@
   html #factbubble::after{display:none}
   html #factbubble.pop{animation:factdrop .4s cubic-bezier(.2,1.2,.4,1)}
   @keyframes factdrop{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
-  html .list li .hb{order:-1;margin-left:0;margin-right:-2px;width:32px;height:30px}
 }
