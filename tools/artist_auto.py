@@ -20,6 +20,20 @@ def main_artist(seg):
     return seg.strip()
 
 
+def upcoming_names():
+    names = set()
+    for st, f in (('main', 'schedule.json'), ('culture', 'schedule-culture.json'), ('vault', 'schedule-hiphopvinyl.json'), ('movement', 'schedule-movement.json')):
+        try:
+            with urllib.request.urlopen(urllib.request.Request('https://1upradio.com/%s?x=%d' % (f, time.time()), headers=UA), timeout=40) as r: s = json.load(r)
+        except Exception: continue
+        now = time.time() - s.get('delay', 0)
+        for p in s.get('plays', []):
+            if now - 600 <= p['t'] <= now + 36 * 3600:
+                parts = re.split(r'\s[-\u2013\u2014]\s', p['title'])
+                for c in [parts[0]] + ([parts[-1]] if len(parts) > 1 and st == 'culture' else []): names.add(nrm(main_artist(c)))
+    return names
+
+
 def artists():
     out = {}
     for st, f in FILES:
@@ -29,7 +43,8 @@ def artists():
             for c in cand:
                 a = main_artist(c); n = nrm(a)
                 if 2 < len(n) < 40 and not n.startswith('various'): out.setdefault(n, [a, 0])[1] += 1
-    return sorted(out.items(), key=lambda kv: -kv[1][1])
+    soon = upcoming_names()
+    return sorted(out.items(), key=lambda kv: (kv[0] not in soon, -kv[1][1]))   # songs about to air first, then by how often the artist appears
 
 
 def lookup(name):
@@ -46,14 +61,33 @@ def lookup(name):
 def links(mbid):
     u = 'https://musicbrainz.org/ws/2/artist/%s?fmt=json&inc=url-rels' % mbid
     with urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=30) as r: j = json.load(r)
-    out = {}
+    out, qid = {}, None
     for rel in j.get('relations', []):
         url = ((rel.get('url') or {}).get('resource') or '').strip()
         m = re.match(r'https?://(?:www\.|mobile\.)?(twitter\.com|x\.com)/([A-Za-z0-9_]{1,15})/?(?:\?.*)?$', url)
         if m and 'x' not in out: out['x'] = 'https://x.com/' + m.group(2); continue
         m = re.match(r'https?://(?:www\.)?instagram\.com/([A-Za-z0-9_.]{1,30})/?(?:\?.*)?$', url)
         if m and 'ig' not in out: out['ig'] = 'https://www.instagram.com/' + m.group(1) + '/'; continue
+        m = re.match(r'https?://(?:www\.|m\.)?tiktok\.com/@([A-Za-z0-9_.]{1,30})/?(?:\?.*)?$', url)
+        if m and 'tt' not in out: out['tt'] = 'https://www.tiktok.com/@' + m.group(1); continue
         if re.match(r'https?://(?:www\.|m\.)?youtube\.com/(channel/|user/|c/|@)[^/?#]+/?$', url) and 'yt' not in out: out['yt'] = url.rstrip('/')
+        m = re.match(r'https?://(?:www\.)?wikidata\.org/wiki/(Q\d+)', url)
+        if m: qid = m.group(1)
+    if qid and len(out) < 4:   # fill what MusicBrainz lacks from Wikidata (official accounts entered there)
+        try:
+            time.sleep(0.4)
+            with urllib.request.urlopen(urllib.request.Request('https://www.wikidata.org/w/api.php?action=wbgetentities&props=claims&format=json&ids=' + qid, headers=UA), timeout=30) as r: cl = json.load(r)['entities'][qid]['claims']
+            def one(pid):
+                for c in cl.get(pid, []):
+                    if c.get('rank') == 'deprecated': continue
+                    v = (c.get('mainsnak', {}).get('datavalue') or {}).get('value')
+                    if isinstance(v, str) and v: return v
+            tw, ig, tt, yt = one('P2002'), one('P2003'), one('P7085'), one('P2397')
+            if tw and 'x' not in out and re.fullmatch(r'[A-Za-z0-9_]{1,15}', tw): out['x'] = 'https://x.com/' + tw
+            if ig and 'ig' not in out and re.fullmatch(r'[A-Za-z0-9_.]{1,30}', ig): out['ig'] = 'https://www.instagram.com/' + ig + '/'
+            if tt and 'tt' not in out and re.fullmatch(r'[A-Za-z0-9_.]{1,30}', tt): out['tt'] = 'https://www.tiktok.com/@' + tt
+            if yt and 'yt' not in out and re.fullmatch(r'UC[A-Za-z0-9_-]{22}', yt): out['yt'] = 'https://www.youtube.com/channel/' + yt
+        except Exception: pass
     return out
 
 
