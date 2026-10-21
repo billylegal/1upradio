@@ -1,64 +1,58 @@
-/* reactions strip (under the play row) + YouTube-style live chat popup (chat.js). Colours follow the active skin through --g / --gr. */
-.reactstrip{position:relative;display:flex;align-items:center;gap:6px;width:fit-content;max-width:100%;margin:14px 0 0;padding:5px 6px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.reactstrip[hidden]{display:none}
-#chatreact{display:flex;gap:2px}
-#chatreact button{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:40px;height:38px;padding:0 9px;border-radius:999px;border:0;background:transparent;color:inherit;font:inherit;font-size:20px;line-height:1;cursor:pointer;transition:transform .14s,background .14s}
-#chatreact button:hover:not(:disabled){background:rgba(255,255,255,.14);transform:translateY(-2px) scale(1.12)}
-#chatreact button:active:not(:disabled){transform:scale(.9)}
-#chatreact button:disabled{opacity:.35;cursor:default}
-#chatreact button:focus-visible,.chatopen:focus-visible,#chatclose:focus-visible{outline:2px solid var(--g,#ffd34d);outline-offset:2px}
-#chatreact i{font-style:normal;font-size:11px;min-width:1ch;opacity:.8;font-weight:600}
-.rsep{width:1px;height:22px;background:rgba(255,255,255,.2);margin:0 2px}
-.chatopen{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 15px 0 12px;border-radius:999px;border:1px solid rgba(var(--gr,255,211,77),.55);background:rgba(var(--gr,255,211,77),.14);color:inherit;font:600 12px 'Barlow Condensed',system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:background .14s,transform .14s;position:relative}
-.chatopen:hover{background:rgba(var(--gr,255,211,77),.3)}
-.chatopen:active{transform:scale(.96)}
-.chatopen svg{width:17px;height:17px;fill:currentColor}
-#chatbadge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#ff3b3b;color:#fff;font:700 11px/18px system-ui,sans-serif;letter-spacing:0;text-align:center}
-#chatbadge[hidden]{display:none}
-/* flames: emojis rise from the strip */
-#reactfx{position:absolute;left:0;right:0;bottom:100%;height:210px;pointer-events:none;overflow:visible;z-index:5}
-.rfx{position:absolute;bottom:2px;animation:rfxup 2.3s cubic-bezier(.2,.7,.3,1) forwards;filter:drop-shadow(0 3px 8px rgba(0,0,0,.45));will-change:transform,opacity}
-@keyframes rfxup{0%{transform:translate(0,0) scale(.5);opacity:0}10%{opacity:1;transform:translate(0,-18px) scale(1.15)}45%{transform:translate(calc(var(--dx,0px)*.4),-90px) scale(1)}100%{transform:translate(var(--dx,0px),-200px) scale(.85);opacity:0}}
-@media(prefers-reduced-motion:reduce){.rfx{animation-duration:1s}}
-/* chat popup */
-.chatpop{position:fixed;right:18px;bottom:18px;width:372px;max-width:calc(100vw - 24px);height:min(540px,calc(100vh - 36px));display:flex;flex-direction:column;z-index:90;border-radius:16px;overflow:hidden;background:rgba(12,14,13,.97);border:1px solid rgba(255,255,255,.14);box-shadow:0 18px 60px rgba(0,0,0,.6),0 0 0 1px rgba(var(--gr,255,211,77),.12);color:#eee;animation:cpin .22s ease-out;margin:0;padding:0}
-.chatpop[hidden],.chatback[hidden]{display:none}
-@keyframes cpin{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
-.cphead{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04)}
-.cphead h2{margin:0;font:600 15px/1.2 'Barlow Condensed',system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase}
-.cphead small{display:flex;align-items:center;gap:6px;font-size:11px;opacity:.7;margin-top:3px;letter-spacing:.06em}
-.cphead small::before{content:"";width:7px;height:7px;border-radius:50%;background:#2ee66b;box-shadow:0 0 8px #2ee66b}
-#chatclose{width:34px;height:34px;border-radius:50%;border:0;background:transparent;color:inherit;font-size:24px;line-height:1;cursor:pointer}
-#chatclose:hover{background:rgba(255,255,255,.12)}
-#chatlist{flex:1 1 auto;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:2px;overscroll-behavior:contain}
-.chatmsg{display:flex;gap:9px;align-items:flex-start;padding:5px 0;font-size:14px;line-height:1.35;word-break:break-word}
-.chatmsg .av{flex:0 0 26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:700 12px system-ui,sans-serif;color:#fff;text-transform:uppercase}
+/* Live room, Instagram-Live style (chat.js): comments float bottom-left, reactions in a column on the right (thumb side), flames rise the full height of the screen. Colours follow the skin via --g / --gr. */
+.live{position:fixed;left:0;right:0;bottom:0;z-index:80;pointer-events:none;display:flex;flex-direction:column;justify-content:flex-end;padding:0 12px calc(12px + env(safe-area-inset-bottom,0px));font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#fff}
+.live[hidden]{display:none}
+html.has-live body{padding-bottom:230px}
+/* the comments */
+.lvstream{pointer-events:none;margin:0 62px 8px 0;max-height:26vh;overflow:hidden;padding:18px 10px 6px;border-radius:16px;background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,.62) 55%);display:flex;flex-direction:column;justify-content:flex-end;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 38%);mask-image:linear-gradient(to bottom,transparent 0,#000 38%)}
+#chatlist{display:contents}
+.chatmsg{display:flex;gap:8px;align-items:flex-start;padding:4px 0;font-size:14px;line-height:1.3;word-break:break-word;text-shadow:0 1px 3px rgba(0,0,0,.7);animation:cmin .28s ease-out}
+@keyframes cmin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.chatmsg .av{flex:0 0 28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:700 12px system-ui,sans-serif;color:#fff;text-transform:uppercase;box-shadow:0 0 0 1.5px rgba(255,255,255,.35)}
 .chatmsg div{min-width:0}
-.chatmsg b{margin-right:7px;font-weight:600;font-size:13px;opacity:.9}
-.chatmsg span.t{opacity:.95}
-.chatempty{opacity:.6;font-size:14px;padding:16px 0;text-align:center}
-#chatform{display:flex;gap:8px;padding:10px 12px 8px;border-top:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03)}
-#chatform input{min-width:0;padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:inherit;font:inherit;font-size:14px}
-#chatform input:focus{outline:2px solid rgba(var(--gr,255,211,77),.6);outline-offset:0;border-color:transparent}
-#chatform #chatnick{flex:0 1 96px}
+.chatmsg b{margin-right:6px;font-weight:700;font-size:13px}
+.chatmsg .t{opacity:.97}
+.chatempty{opacity:.75;font-size:14px;padding:6px 0;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+/* the comment bar */
+#chatform{pointer-events:auto;display:flex;align-items:center;gap:6px;padding:5px 6px 5px 14px;border-radius:999px;background:rgba(10,12,11,.62);border:1px solid rgba(255,255,255,.28);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#chatform input{min-width:0;border:0;background:transparent;color:#fff;font:inherit;font-size:15px;padding:9px 4px}
+#chatform input::placeholder{color:rgba(255,255,255,.72)}
+#chatform input:focus{outline:0}
+#chatform #chatnick{flex:0 1 92px;border-right:1px solid rgba(255,255,255,.25);margin-right:4px;padding-right:8px}
 #chatform #chatmsg{flex:1 1 auto}
-#chatform button{flex:0 0 auto;padding:0 16px;border-radius:999px;border:0;background:var(--g,#ffd34d);color:#111;font:700 13px system-ui,sans-serif;cursor:pointer}
-#chatform button:disabled{opacity:.5}
-#chaterr{min-height:16px;padding:0 14px 8px;font-size:12px;color:#ff8a8a}
-.chatback{position:fixed;inset:0;z-index:85;background:transparent}
-@media(max-width:600px){
-  .reactstrip{width:100%;justify-content:space-between;padding:4px 5px}
-  #chatreact{flex:1 1 auto;justify-content:space-between}
-  #chatreact button{min-width:0;flex:1 1 0;padding:0;font-size:19px}
-  #chatreact i{position:absolute;top:0;right:0;font-size:9px;line-height:1;opacity:.95;background:rgba(0,0,0,.55);border-radius:6px;padding:2px 3px;min-width:0}
-  #chatreact i:empty{display:none}
-  .rsep{margin:0 1px}
-  .chatopen{flex:0 0 auto;gap:5px;padding:0 11px 0 9px;letter-spacing:.1em;font-size:11px}
-  .chatopen svg{width:15px;height:15px}
-  .chatback{background:rgba(0,0,0,.5)}
-  .chatpop{right:0;left:0;bottom:0;width:auto;max-width:none;height:72vh;height:72dvh;border-radius:18px 18px 0 0;animation:cpup .26s ease-out}
-  @keyframes cpup{from{transform:translateY(100%)}to{transform:none}}
-  #chatform #chatnick{flex:0 1 84px}
+#chatform.hasnick #chatnick{display:none}
+.lvedit{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:14px;cursor:pointer}
+.lvedit[hidden]{display:none}
+#chatform button[type=submit]{flex:0 0 auto;height:34px;padding:0 16px;border-radius:999px;border:0;background:var(--g,#ffd34d);color:#111;font:700 13px system-ui,sans-serif;cursor:pointer}
+#chatform button[type=submit]:disabled{opacity:.5}
+#chaterr{pointer-events:none;min-height:0;font-size:12px;color:#ffb0b0;text-shadow:0 1px 3px #000;padding:0 14px}
+#chaterr:not(:empty){margin-top:6px}
+/* the column on the right: where the thumb is */
+.lvrail{pointer-events:none;position:absolute;right:12px;bottom:calc(66px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:9px;align-items:center}
+.lvrail button{pointer-events:auto;position:relative;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(10,12,11,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;font-size:24px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:transform .12s,background .12s;-webkit-tap-highlight-color:transparent}
+.lvrail button:hover:not(:disabled){background:rgba(255,255,255,.22)}
+.lvrail button:active:not(:disabled){transform:scale(.86)}
+.lvrail button:disabled{opacity:.45;cursor:default}
+.lvrail button:focus-visible,#chatform button:focus-visible,.lvedit:focus-visible{outline:2px solid var(--g,#ffd34d);outline-offset:2px}
+.lvrail i{font-style:normal;position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.3);font:700 10px/15px system-ui,sans-serif;text-align:center}
+.lvrail i:empty{display:none}
+.lvchat svg{width:22px;height:22px;fill:currentColor}
+.lvrail .lvchat{background:rgba(var(--gr,255,211,77),.25);border-color:rgba(var(--gr,255,211,77),.7)}
+#chatbadge{background:#ff3b3b!important;border-color:#ff3b3b!important}
+#chatbadge[hidden]{display:none}
+.live.min .lvstream,.live.min #chatform,.live.min #chaterr{display:none}
+.live.min{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+.live.min .lvrail{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+/* flames: fly from the bottom of the screen to the top */
+#reactfx{position:fixed;right:0;bottom:0;top:0;width:150px;pointer-events:none;overflow:hidden;z-index:95}
+.rfx{position:absolute;bottom:-30px;animation:rfxup 3s cubic-bezier(.25,.6,.35,1) forwards;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45));will-change:transform,opacity}
+@keyframes rfxup{0%{transform:translate(0,0) scale(.5);opacity:0}8%{opacity:1;transform:translate(0,-30px) scale(1.15)}30%{transform:translate(calc(var(--dx,0px)*.7),calc(var(--rise,-600px)*.28)) scale(1.05)}65%{transform:translate(calc(var(--dx,0px)*-.4),calc(var(--rise,-600px)*.64)) scale(1)}100%{transform:translate(calc(var(--dx,0px)*.3),var(--rise,-600px)) scale(.8);opacity:0}}
+@media(prefers-reduced-motion:reduce){.rfx{animation-name:rfxfade}@keyframes rfxfade{from{opacity:1}to{opacity:0}}}
+/* computers: same thing as a narrow panel in the bottom-right corner */
+@media(min-width:700px){
+  .live{left:auto;right:16px;width:390px;padding:0 0 16px}
+  .lvrail{right:0}
+  #reactfx{width:200px;right:6px}
+  html.has-live body{padding-bottom:0}
 }
-/* skins that pin the control row to the bottom of the screen: the strip rides just above it */
-html[data-skin=meters] .reactstrip,html[data-skin=wormhole] .reactstrip{position:fixed;left:50%;transform:translateX(-50%);bottom:94px;margin:0;z-index:4}
+/* skins that pin the control row to the bottom of the screen: the room rides above it */
+html[data-skin=meters] .live,html[data-skin=wormhole] .live{bottom:96px}
