@@ -33,6 +33,14 @@
     }).then(function (res) { cache[k] = res || false; save(); return res || false; }).catch(function () { return false; });
   }
 
+  var DATA = { genre: null, st: {} };
+  function loadData(st) {
+    var g = DATA.genre ? Promise.resolve() : fetch('data/genre-facts.json?t=' + Math.floor(Date.now() / 3600000)).then(function (r) { return r.json(); }).then(function (j) { DATA.genre = j || {}; }).catch(function () { DATA.genre = {}; });
+    var key = st === '1up' ? 'main' : st === 'cultureshock' ? 'culture' : st === 'vault' ? 'hiphopvinyl' : st;
+    var f = DATA.st[st] ? Promise.resolve() : fetch('data/facts-' + key + '.json?t=' + Math.floor(Date.now() / 3600000)).then(function (r) { return r.json(); }).then(function (j) { DATA.st[st] = j || {}; }).catch(function () { DATA.st[st] = {}; });
+    return Promise.all([g, f]);
+  }
+  function hash(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
   var bubble, btn, hideT = null, songId = '', songT0 = 0, shown = 0, facts = null, token = 0;
   function build() {
     bubble = document.createElement('aside'); bubble.id = 'factbubble'; bubble.hidden = true; bubble.setAttribute('aria-live', 'polite');
@@ -49,18 +57,29 @@
   function paintBtn() { if (!btn) return; btn.classList.toggle('on', on); btn.title = on ? 'Did-you-know pop-ups: on (tap to turn off)' : 'Did-you-know pop-ups: off (tap to turn on)'; }
   function toggle() { on = !on; try { localStorage.setItem(KEY, on ? 'on' : 'off'); } catch (e) {} paintBtn(); if (!on) hide(); }
   function hide() { if (bubble) bubble.hidden = true; clearTimeout(hideT); }
-  function pop(f, who) {
-    bubble.querySelector('p').textContent = f; var a = bubble.querySelector('a'); a.href = who.url; a.textContent = 'Wikipedia · ' + who.name;
+  function pop(f, who, withSrc) {
+    bubble.querySelector('p').textContent = f; var sm = bubble.querySelector('small'), a = bubble.querySelector('a'); sm.hidden = !who.name || !withSrc; if (who.url) { a.href = who.url; a.textContent = 'Wikipedia · ' + who.name; } else { a.removeAttribute('href'); a.textContent = who.name; }
     bubble.hidden = false; bubble.classList.remove('pop'); void bubble.offsetWidth; bubble.classList.add('pop');
     clearTimeout(hideT); hideT = setTimeout(hide, 13000);
   }
+  function station2() { return window.UP1_STATION || '1up'; }
   function tick() {
     var p = window.UP1_NOW, play = document.getElementById('play'), playing = !!(play && play.classList.contains('on'));
     if (!p || !p.id) return;
-    if (p.id !== songId) { songId = p.id; songT0 = Date.now(); shown = 0; facts = null; hide(); var my = ++token; var cands = names(p.title); (function go(i) { if (i >= cands.length) return; lookup(cands[i]).then(function (r) { if (my !== token) return; if (r) facts = r; else go(i + 1); }); })(0); }
+    if (p.id !== songId) { songId = p.id; songT0 = Date.now(); shown = 0; facts = null; hide(); var my = ++token, st = station2(), sid = p.id, cands = names(p.title);
+      loadData(st).then(function () {
+        if (my !== token) return;
+        var pre = (DATA.st[st] || {})[sid] || [], gen = (DATA.genre || {})[st] || [], g = gen.length ? [gen[hash(sid) % gen.length]] : [];
+        if (pre.length) { facts = { name: 'Wikipedia', url: '', src: Math.min(3, pre.length), facts: pre.slice(0, 3).concat(g) }; return; }
+        (function go(i) {
+          if (i >= cands.length) { if (my === token && g.length) facts = { name: '', url: '', src: 0, facts: g.concat(gen.length > 1 ? [gen[(hash(sid) + 3) % gen.length]] : []) }; return; }
+          lookup(cands[i]).then(function (r) { if (my !== token) return; if (r) facts = { name: r.name, url: r.url, src: Math.min(3, r.facts.length), facts: r.facts.slice(0, 3).concat(g) }; else go(i + 1); });
+        })(0);
+      });
+    }
     if (!on || !playing || !facts) return;
     var secs = (Date.now() - songT0) / 1000, due = [20, 85, 150, 215][shown];
-    if (due !== undefined && secs >= due && secs < due + 40) { pop(facts.facts[shown % facts.facts.length], facts); shown++; }
+    if (due !== undefined && secs >= due && secs < due + 40) { pop(facts.facts[shown % facts.facts.length], facts, shown < (facts.src || 0)); shown++; }
   }
   function init() { build(); setInterval(tick, 1000); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(init, 600); }); else setTimeout(init, 600);
