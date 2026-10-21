@@ -242,7 +242,7 @@
       var facts = [];
       (hand || []).forEach(function (a) { if (a.n.some(function (n) { return alNorm(n) === key; })) facts = facts.concat(a.f); });
       if (!own) ((auto || {})[key] || []).forEach(function (f) { if (facts.indexOf(f) < 0) facts.push(f); });
-      var pic = own ? 'assets/head-big.png' : (dz && dz.pic) || '';
+      var pic = own ? 'assets/billy-beatport.jpg' : (dz && dz.pic) || '';
       var bio = own ? 'Billy Legal, Toronto. The genre killer: house, deep house, afro house, tech house, hip hop, trap, downtempo, electronica and reggae.' : (wk && wk.text) || '';
       var h = '<div class="acl">1UP Radio · Artist profile</div><div class="achead">' + (pic ? '<img class="acpic" src="' + esc(pic) + '" alt="" referrerpolicy="no-referrer">' : '<div class="acpic ph">' + esc(name.charAt(0)) + '</div>') +
         '<div><h3>' + esc(name) + '</h3>' + (dz && dz.fans ? '<div class="acmeta">' + Number(dz.fans).toLocaleString() + ' fans on Deezer</div>' : '') + '</div></div>';

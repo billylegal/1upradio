@@ -80,7 +80,7 @@
   function faceFor(name, img) {   // the artist's picture beside the button (Deezer; Billy Legal uses his own head)
     if (!img) return; img.hidden = true; if (!name) return;
     function show(u) { if (u && station() && img.isConnected) { img.src = u; img.hidden = false; } }
-    if (/^billy legal$/i.test(name)) { show('assets/1up-sticker.png'); return; }
+    if (/^billy legal$/i.test(name)) { show('assets/billy-beatport.jpg'); return; }
     if (faces[name] !== undefined) { show(faces[name]); return; }
     var cb = 'upf' + Math.floor(Math.random() * 1e9), s = document.createElement('script');
     window[cb] = function (d) { var k = String(name).toLowerCase(), h = ((d && d.data) || []).filter(function (a) { return String(a.name).toLowerCase() === k; })[0]; faces[name] = h ? (h.picture_medium || '') : ''; show(faces[name]); delete window[cb]; s.remove(); };
