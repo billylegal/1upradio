@@ -25,8 +25,9 @@
   var chatB = document.createElement('button'); chatB.type = 'button'; chatB.id = 'chatopen'; chatB.className = 'lvchat'; chatB.setAttribute('aria-label', 'Show or hide the chat'); chatB.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg><i id="chatbadge" hidden></i>';
   var badge = chatB.querySelector('i');
   function minimised() { return live.classList.contains('min'); }
-  function setMin(on) { live.classList.toggle('min', on); chatB.setAttribute('aria-pressed', String(!on)); if (!on) { seen = lastId; badge.hidden = true; list.scrollTop = list.scrollHeight; } }
+  function setMin(on) { live.classList.toggle('min', on); document.documentElement.classList.toggle('live-open', !on); chatB.setAttribute('aria-pressed', String(!on)); if (!on) { chatB.classList.remove('attn'); store('up1-chat-seen', '1'); } if (!on) { seen = lastId; badge.hidden = true; list.scrollTop = list.scrollHeight; } }
   chatB.addEventListener('click', function () { setMin(!minimised()); });
+  if (store('up1-chat-seen') !== '1') chatB.classList.add('attn');   // until it has been opened once, the 💬 button pulses so people know to tap it
   setMin(true);   // the chat always starts closed, on every device; only the 💬 button opens it
 
   // ---- comments: the last few float over the bottom-left ----

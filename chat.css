@@ -62,3 +62,16 @@ html.has-live body{padding-bottom:230px}
 }
 /* skins that pin the control row to the bottom of the screen: the room rides above it */
 html[data-skin=meters] #live,html[data-skin=wormhole] #live{bottom:96px}
+/* the 💬 button pulses until the room has been opened once */
+.lvchat.attn{animation:lvpulse 1.5s ease-out infinite}
+@keyframes lvpulse{0%{box-shadow:0 0 0 0 rgba(var(--gr,255,211,77),.75);transform:scale(1)}60%{box-shadow:0 0 0 16px rgba(var(--gr,255,211,77),0);transform:scale(1.08)}100%{box-shadow:0 0 0 0 rgba(var(--gr,255,211,77),0);transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.lvchat.attn{animation:none;box-shadow:0 0 0 4px rgba(var(--gr,255,211,77),.5)}}
+/* phones: a blank slate with one button at the bottom; tapping it opens the room (reactions, comments, comment bar), tapping the cross closes it again */
+@media(max-width:699px){
+  #live.min .lvrail button[data-k]{display:none}
+  html.has-live body{padding-bottom:84px}
+  html.has-live.live-open body{padding-bottom:230px}
+  #live:not(.min) .lvchat svg{display:none}
+  #live:not(.min) .lvchat::after{content:"\00d7";font-size:30px;line-height:1;margin-top:-3px}
+  .lvchat{width:52px;height:52px}
+}
