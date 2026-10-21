@@ -88,9 +88,8 @@
     var share = document.getElementById('shareBtn');
     if (!share) { if (init.n++ < 40) setTimeout(init, 300); return; }
     sb = mk('sleepBtn', 'Sleep timer', '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/></svg><em></em>');
-    var cb = mk('cardBtn', 'Make a share card of this song', '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM6 7v10h12V7zM8 15l3-4 2 3 1.5-2L17 15z"/></svg>');
-    share.parentNode.insertBefore(sb, share.nextSibling); share.parentNode.insertBefore(cb, sb.nextSibling);
-    sb.addEventListener('click', sleepSet); cb.addEventListener('click', function () { cardMake(cb); });
+    share.parentNode.insertBefore(sb, share.nextSibling);
+    sb.addEventListener('click', sleepSet);
     featInit();
   }
   init.n = 0;
