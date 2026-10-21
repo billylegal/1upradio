@@ -159,3 +159,8 @@ html .artlinks .azlink{white-space:nowrap}
 .aclr{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;border-top:1px solid rgba(255,255,255,.08)}
 .aclr b{font-weight:600;flex:1 1 auto;min-width:0}
 .aclr .sico{width:24px;height:24px;margin:0}
+html .artlinks{display:none!important}
+.artbtn{position:absolute;right:178px;top:50%;transform:translateY(-50%);padding:7px 14px;border-radius:999px;border:1px solid color-mix(in srgb,currentColor 35%,transparent);background:transparent;color:inherit;font:600 11px 'Barlow Condensed',system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;cursor:pointer}
+.artbtn:hover{background:color-mix(in srgb,currentColor 12%,transparent)}
+.acaz{display:inline-block;margin-top:10px}
+@media(max-width:900px){.artbtn{position:static;transform:none;margin-left:auto}.artbtn+.onair{margin-left:10px}}

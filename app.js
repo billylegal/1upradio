@@ -252,6 +252,9 @@
       var known = []; if (own) known = [['Website', 'https://billylegal.com'], ['Apple Music', 'https://music.apple.com/ca/artist/billy-legal/6788113036'], ['Deezer', 'https://www.deezer.com/artist/401877641'], ['Spotify', OWN['billy legal'].sp], ['Beatport', OWN['billy legal'].bp]]; else { if (wk && wk.url) known.push(['Wikipedia', wk.url]); if (dz && dz.link) known.push(['Deezer', dz.link]); }
       h += '<div class="acacc" id="acacc">' + profAccounts(name) + '</div><div class="aclinks" id="aclinks">' + profPills(known, []) + '</div>';
       h += '<div class="aclabs" id="aclabs"></div>';
+      var npn = window.UP1_NOW && alNorm((credits(window.UP1_NOW.title)[0]) || '') === key;
+      if (npn && /^(1up|movement)$/.test(window.UP1_STATION || '1up')) { var sp = split(window.UP1_NOW.title), bq = encodeURIComponent(sp[0] ? sp[0] + ' ' + sp[1] : sp[1]); h += '<div class="aclr"><b>This track</b>' + sico('beatport', 'https://www.beatport.com/search?q=' + bq, 'Find this track on Beatport') + '</div>'; }
+      h += '<a class="azlink acaz" href="#">All artists A\u2013Z \u203a</a>';
       var cr = []; if (dz && dz.link && !own) cr.push('Photo and fans: <a href="' + esc(dz.link) + '" target="_blank" rel="noopener">Deezer</a>');
       if (wk && wk.url && !own) cr.push('Text: <a href="' + esc(wk.url) + '" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA)');
       if (!own) cr.push('Links: MusicBrainz');
@@ -323,7 +326,11 @@
       azRender();
     }).catch(function () { azRender(); });
   }
-  document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('#azBtn, .azlink')) { e.preventDefault(); openAZ(); } });
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest && e.target.closest('#azBtn, .azlink, #artBtn'); if (!t) return; e.preventDefault();
+    if (t.id === 'artBtn') { var who = window.UP1_NOW && credits(window.UP1_NOW.title)[0]; if (who) { openArtistCard(who); return; } }
+    openAZ();
+  });
   function paintArtLinks(p) {
     var box = $('artlinks'); if (!box) return;
     var key = (p && p.id || '') + '|' + (ALINKS ? 1 : 0) + (LABELS ? 1 : 0); if (key === alKey) return; alKey = key;
@@ -347,7 +354,7 @@
       var sp = split(p.title), bq = encodeURIComponent(sp[0] ? sp[0] + ' ' + sp[1] : sp[1]);
       html += grp('Track', 'Find on Beatport', sico('beatport', 'https://www.beatport.com/search?q=' + bq, 'Find this track on Beatport'));
     }
-    box.innerHTML = html ? '<div class="alkhead"><span class="alklab">Playing now · artist &amp; label accounts</span><a class="azlink" href="#">All artists A–Z ›</a></div>' + html : ''; box.hidden = !html;
+    box.innerHTML = ''; html = html ? '<div class="alkhead"><span class="alklab">Playing now · artist &amp; label accounts</span><a class="azlink" href="#">All artists A–Z ›</a></div>' + html : ''; box.hidden = true;
     try { linkArtistLine(); } catch (e) {}
   }
   function paintSaved() {
