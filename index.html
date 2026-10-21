@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Fraunces:ital,wght@0,700;1,700&family=IBM+Plex+Mono:wght@500;700&family=Archivo+Black&display=swap">
 <link rel="stylesheet" href="style.css?v=1792534000">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Permanent+Marker&family=Black+Ops+One&family=Special+Elite&display=swap">
-<link rel="stylesheet" href="chat.css?v=3">
+<link rel="stylesheet" href="chat.css?v=5">
 <link rel="stylesheet" href="extras.css?v=8">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#050805"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="1UP Radio"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -49,6 +49,7 @@
       <button id="play" class="play" aria-label="Play 1UP Radio"><svg class="ip" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg><svg class="ia" viewBox="0 0 24 24"><path d="M6 4.5h4v15H6zM14 4.5h4v15h-4z"/></svg></button>
       <div class="vol"><span>VOL</span><input id="vol" type="range" min="0" max="100" value="100" aria-label="Volume"><b id="volv">100</b></div>
     </div>
+    <div class="reactstrip" id="reactstrip" hidden><div id="chatreact" role="group" aria-label="React to the song that is playing"></div><span class="rsep" aria-hidden="true"></span><button id="chatopen" class="chatopen" type="button" aria-expanded="false" aria-controls="chatcard"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>Chat<i id="chatbadge" hidden></i></button></div>
     <p class="hint" id="hint">Tap play once so your browser lets the music start. After that it keeps going on its own.</p>
   </section>
 
@@ -57,12 +58,11 @@
     <div class="card"><h2>Just played</h2><ol class="list" id="prev"></ol></div>
   </section>
 
-  <section class="card chat" id="chatcard" hidden><h2 id="chattitle">Chat</h2>
-    <div id="chatreact" aria-label="React to the song that is playing"></div>
+  <aside class="chatpop" id="chatcard" hidden role="dialog" aria-label="Live chat"><div class="cphead"><div><h2 id="chattitle">Chat</h2><small>Live chat</small></div><button id="chatclose" type="button" aria-label="Close chat">&times;</button></div>
     <div id="chatlist" aria-live="polite"></div>
-    <form id="chatform" autocomplete="off"><input id="chatnick" maxlength="20" placeholder="Nickname" aria-label="Nickname"><input id="chatmsg" maxlength="200" placeholder="Say something nice..." aria-label="Message"><button type="submit">Send</button></form>
+    <form id="chatform" autocomplete="off"><input id="chatnick" maxlength="20" placeholder="Name" aria-label="Nickname"><input id="chatmsg" maxlength="200" placeholder="Say something nice..." aria-label="Message"><button type="submit">Send</button></form>
     <div id="chaterr"></div>
-  </section>
+  </aside><div class="chatback" id="chatback" hidden></div>
 
   <div id="lyrics" class="hidden" role="dialog" aria-label="Lyrics"><div class="lh"><div><div id="lyT"></div><div id="lyA"></div></div><span class="lbt"><button id="lyC" type="button" title="Copy the lyrics">⧉ Copy</button><button id="lyX" type="button" aria-label="Close lyrics">✕</button></span></div><div id="lyB"></div><div class="lf"><span id="lyH"></span><span class="lyn"><button id="lyM" type="button" title="Lyrics too early? Nudge later">−0.5s</button><button id="lyP" type="button" title="Lyrics too late? Nudge earlier">+0.5s</button></span></div></div>
 
@@ -81,7 +81,7 @@
 <div id="yt" aria-hidden="true"><div id="ytp"></div></div>
 <script src="gestures.js?v=1792534000" defer></script>
 <script src="chat-config.js?v=1"></script>
-<script src="chat.js?v=4" defer></script>
+<script src="chat.js?v=5" defer></script>
 <script src="extras.js?v=2" defer></script>
 <script src="facts.js?v=3" defer></script>
 <script src="app.js?v=1792558828" defer></script>
