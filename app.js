@@ -71,7 +71,7 @@
   };
   function sico(k, href, title) { return '<a class="sico" href="' + esc(href) + '" target="_blank" rel="noopener" title="' + title + '" aria-label="' + title + '"><svg viewBox="0 0 40 40" aria-hidden="true">' + SICO[k] + '</svg></a>'; }
   // ---- the artists' own accounts under the player: everyone credited on the song (artist, featured artists, the remixer), official links only (data/artist-links.json, from MusicBrainz) ----
-  var ALINKS = null, alKey = '';
+  var ALINKS = null, LABELS = null, alKey = '';   // LABELS: data/labels.json {video id: record label}
   function alNorm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
   function credits(title) {
     var t = String(title || ''), parts = t.split(/\s[-\u2013\u2014]\s/), segs = [parts[0]], names = [], seen = {};
@@ -102,14 +102,14 @@
     });
     return { out: out, qid: qid };
   }
-  function liveLinks(name) {
-    var k = alNorm(name); if (!k || LIVE_TRIED[k]) return; LIVE_TRIED[k] = 1;
+  function liveLinks(name, kind) {
+    kind = kind || 'artist'; var nk = alNorm(name), k = (kind === 'label' ? 'label:' : '') + nk; if (!nk || LIVE_TRIED[k]) return; LIVE_TRIED[k] = 1;
     try { var c = JSON.parse(localStorage.getItem('up1-al:' + k) || 'null'); if (c && Date.now() - c.t < 30 * 864e5) { ALINKS[k] = c.l; return; } } catch (e) {}
     LIVEQ = LIVEQ.then(function () {
-      return alGet('https://musicbrainz.org/ws/2/artist/?fmt=json&limit=3&query=' + encodeURIComponent('artist:"' + name.replace(/"/g, ' ') + '"')).then(function (j) {
-        var a = (j.artists || []).filter(function (x) { return x.score >= 96 && [x.name].concat((x.aliases || []).map(function (y) { return y.name; })).some(function (n) { return alNorm(n) === k; }); })[0];
+      return alGet('https://musicbrainz.org/ws/2/' + kind + '/?fmt=json&limit=3&query=' + encodeURIComponent(kind + ':"' + name.replace(/"/g, ' ') + '"')).then(function (j) {
+        var a = (j[kind + 's'] || []).filter(function (x) { return x.score >= 96 && [x.name].concat((x.aliases || []).map(function (y) { return y.name; })).some(function (n) { return alNorm(n) === nk; }); })[0];
         if (!a) return {};
-        return alWait(1100).then(function () { return alGet('https://musicbrainz.org/ws/2/artist/' + a.id + '?fmt=json&inc=url-rels'); }).then(function (d) {
+        return alWait(1100).then(function () { return alGet('https://musicbrainz.org/ws/2/' + kind + '/' + a.id + '?fmt=json&inc=url-rels'); }).then(function (d) {
           var p = alParse(d.relations); if (!p.qid || (p.out.x && p.out.ig && p.out.tt && p.out.yt)) return p.out;
           return alGet('https://www.wikidata.org/w/api.php?action=wbgetentities&props=claims&format=json&origin=*&ids=' + p.qid).then(function (w) {
             var cl = ((w.entities || {})[p.qid] || {}).claims || {};
@@ -142,15 +142,22 @@
   }
   function paintArtLinks(p) {
     var box = $('artlinks'); if (!box) return;
-    var key = (p && p.id || '') + '|' + (ALINKS ? 1 : 0); if (key === alKey) return; alKey = key;
+    var key = (p && p.id || '') + '|' + (ALINKS ? 1 : 0) + (LABELS ? 1 : 0); if (key === alKey) return; alKey = key;
     if (!p || !p.id) { box.hidden = true; return; }
     if (!ALINKS) { fetch(window.UP1_LINKS_URL || ('data/artist-links.json?t=' + Math.floor(Date.now() / 1800000))).then(function (r) { return r.json(); }).then(function (j) { ALINKS = j || {}; }).catch(function () { ALINKS = {}; }).then(function () { alKey = ''; paintArtLinks(curP || p); }); return; }
+    if (!LABELS) { LABELS = {}; fetch('data/labels.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { LABELS = j || {}; alKey = ''; paintArtLinks(curP || p); }).catch(function () {}); }
     var html = '';
     credits(p.title).forEach(function (n) {
       if (ALINKS[alNorm(n)] === undefined) liveLinks(n);
       var L = ALINKS[alNorm(n)]; if (!L || !(L.x || L.ig || L.tt || L.yt)) return;
       html += '<span class="alk"><b>' + esc(n) + '</b>' + (L.ig ? sico('instagram', L.ig, n + ' on Instagram') : '') + (L.tt ? sico('tiktok', L.tt, n + ' on TikTok') : '') + (L.x ? sico('x', L.x, n + ' on X (Twitter)') : '') + (L.yt ? sico('youtube', L.yt, n + ' on YouTube') : '') + '</span>';
     });
+    var lab = LABELS && LABELS[p.id];   // the record label gets its own group after the artists
+    if (lab) {
+      var lk = 'label:' + alNorm(lab); if (ALINKS[lk] === undefined) liveLinks(lab, 'label');
+      var LL = ALINKS[lk];
+      if (LL && (LL.x || LL.ig || LL.tt || LL.yt)) html += '<span class="alk lbl"><em>Label</em><b>' + esc(lab) + '</b>' + (LL.ig ? sico('instagram', LL.ig, lab + ' on Instagram') : '') + (LL.tt ? sico('tiktok', LL.tt, lab + ' on TikTok') : '') + (LL.x ? sico('x', LL.x, lab + ' on X (Twitter)') : '') + (LL.yt ? sico('youtube', LL.yt, lab + ' on YouTube') : '') + '</span>';
+    }
     box.innerHTML = html ? '<span class="alklab">Artist accounts</span>' + html : ''; box.hidden = !html;
     try { linkArtistLine(); } catch (e) {}
   }
