@@ -3,7 +3,7 @@
 (function () {
   var cache = {}; try { cache = JSON.parse(sessionStorage.getItem('up1-facts-cache') || '{}'); } catch (e) {}
   function save() { try { sessionStorage.setItem('up1-facts-cache', JSON.stringify(cache)); } catch (e) {} }
-  var DATA = { genre: null, st: {}, artists: null };
+  var DATA = { genre: null, st: {}, artists: null, auto: null };
   function nrm(s) { return ' ' + String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim() + ' '; }
   function artistFacts(title, st) {   // facts about whoever is playing: a known artist named in the ARTIST part of the title (the first part before a dash; on Culture Shock the last part too, because titles often end with the artist), never in the song's own name
     var parts = String(title || '').replace(/\([^)]*\)|\[[^\]]*\]/g, ' ').split(/\s[-\u2013\u2014]\s/), segs = [parts[0]];
@@ -12,12 +12,31 @@
     (DATA.artists || []).forEach(function (a) { if (a.n.some(function (n) { return t.indexOf(nrm(n)) >= 0; })) out = out.concat(a.f); });
     return out;
   }
+  function mainArtist(seg) { return String(seg || '').replace(/\s*[\(\[].*?[\)\]]/g, '').split(/\s+(?:feat\.?|ft\.?|featuring|with|x|vs\.?|&|and)\s+|\s*[,\/;]\s*/i)[0].trim(); }
+  function autoFacts(title, st) {   // data/artist-auto.json (tools/artist_auto.py, from MusicBrainz): where the artist is from, when a group formed, how listeners tag the style
+    var parts = String(title || '').split(/\s[-\u2013\u2014]\s/), segs = [parts[0]], out = [];
+    if (parts.length > 1 && st === 'cultureshock') segs.push(parts[parts.length - 1]);
+    segs.forEach(function (s) { var f = DATA.auto && DATA.auto[nrm(mainArtist(s)).trim()]; if (f) out = out.concat(f); });
+    return out;
+  }
+  function remixFact(title) {   // who made this version, of which song, from the title itself: "Artist - Song (Someone Remix)"
+    var m = /[\(\[]([^()\[\]]*?)\s+(remix|rework|bootleg|edit|flip|vip|refix|mix)\s*[\)\]]/i.exec(title || ''), parts = String(title || '').split(/\s[-\u2013\u2014]\s/);
+    if (!m || parts.length < 2) return '';
+    var who = m[1].replace(/['\u2019]s$/i, '').trim(), kind = m[2].toLowerCase(), artist = mainArtist(parts[0]), song = parts[1].replace(/\s*[\(\[].*$/, '').trim();
+    if (who.length < 2 || !artist || !song || /^(original|extended|radio|club|main|album|instrumental|vocal|dub|full|short|long|new|re ?edit|lp|single|version|official|unofficial|extended club|\d+)$/i.test(who)) return '';
+    return kind === 'bootleg' ? 'This is an unofficial bootleg by ' + who + ' of \u201c' + song + '\u201d by ' + artist + '.'
+         : kind === 'edit' ? who + ' re-edited \u201c' + song + '\u201d by ' + artist + ' for this version.'
+         : kind === 'vip' ? 'A VIP mix is a producer\u2019s own reworking of a track, and this one is ' + who + '\u2019s take on \u201c' + song + '\u201d.'
+         : /['\u2019]s\s/.test(m[1]) ? 'This is the ' + m[1].trim() + ' ' + kind + ' of \u201c' + song + '\u201d by ' + artist + '.'
+         : 'In this version ' + who + ' reworks \u201c' + song + '\u201d by ' + artist + '.';
+  }
   function loadData(st) {
     var g = DATA.genre ? Promise.resolve() : fetch('data/genre-facts.json?t=' + Math.floor(Date.now() / 3600000)).then(function (r) { return r.json(); }).then(function (j) { DATA.genre = j || {}; }).catch(function () { DATA.genre = {}; });
     var key = st === '1up' ? 'main' : st === 'cultureshock' ? 'culture' : st === 'vault' ? 'hiphopvinyl' : st;
     var f = DATA.st[st] ? Promise.resolve() : fetch('data/facts-' + key + '.json?t=' + Math.floor(Date.now() / 3600000)).then(function (r) { return r.json(); }).then(function (j) { DATA.st[st] = j || {}; }).catch(function () { DATA.st[st] = {}; });
     var a = DATA.artists ? Promise.resolve() : fetch('data/artist-facts.json?t=' + Math.floor(Date.now() / 3600000)).then(function (r) { return r.json(); }).then(function (j) { DATA.artists = j || []; }).catch(function () { DATA.artists = []; });
-    return Promise.all([g, f, a]);
+    var au = DATA.auto ? Promise.resolve() : fetch('data/artist-auto.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { DATA.auto = j || {}; }).catch(function () { DATA.auto = {}; });
+    return Promise.all([g, f, a, au]);
   }
   function hash(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
   var bubble, hideT = null, songId = '', songT0 = 0, shown = 0, facts = null, token = 0, plan = [], lastPop = 0;
@@ -43,9 +62,10 @@
         var pre = (DATA.st[st] || {})[sid] || [], gen = (DATA.genre || {})[st] || [], g = gen.length ? [gen[hash(sid) % gen.length]] : [];
         var all = pre.slice(0, 3).concat(g);
         if (!all.length && gen.length) all = [gen[hash(sid) % gen.length], gen[(hash(sid) + 3) % gen.length]];
-        var af = artistFacts(p.title, st).sort(function () { return Math.random() - 0.5; });      // about the artist playing: one of these comes first, the rest are mixed in
-        var rest = af.slice(1).concat(all).sort(function () { return Math.random() - 0.5; });
-        all = af.slice(0, 1).concat(rest);
+        var shuf = function (l) { return l.slice().sort(function () { return Math.random() - 0.5; }); };
+        var arr = shuf(artistFacts(p.title, st).concat(autoFacts(p.title, st))), rx = remixFact(p.title);   // about whoever is playing: one of these comes first, the rest are mixed in
+        var first = arr[0] || rx || '', rest = shuf(arr.slice(1).concat(rx && rx !== first ? [rx] : [], all));
+        all = first ? [first].concat(rest) : rest;
         if (all.length) facts = { name: '', url: '', src: 0, facts: all };
       });
     }
