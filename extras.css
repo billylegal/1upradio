@@ -164,3 +164,4 @@ html .artlinks{display:none!important}
 .artbtn:hover{background:color-mix(in srgb,currentColor 12%,transparent)}
 .acaz{display:inline-block;margin-top:10px}
 @media(max-width:900px){.artbtn{position:static;transform:none;margin-left:auto}.artbtn+.onair{margin-left:10px}}
+.artbtn{right:168px;white-space:nowrap}
