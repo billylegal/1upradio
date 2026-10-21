@@ -46,11 +46,29 @@
   function float(btn, emoji) {
     var f = document.createElement('span'); f.className = 'chatfloat'; f.textContent = emoji; btn.appendChild(f); setTimeout(function () { f.remove(); }, 1100);
   }
+  // live reactions: other people's taps float up at the corner of the screen, near the player, while you listen
+  var fx = document.createElement('div'); fx.id = 'reactfx'; fx.setAttribute('aria-hidden', 'true'); document.body.appendChild(fx);
+  var EMO = {}; KINDS.forEach(function (k) { EMO[k[0]] = k[1]; });
+  function burst(kind) {
+    if (!EMO[kind] || fx.childNodes.length > 24) return;
+    var f = document.createElement('span'); f.className = 'rfx'; f.textContent = EMO[kind];
+    f.style.setProperty('--dx', (Math.round(Math.random() * 70) - 35) + 'px'); f.style.left = (10 + Math.round(Math.random() * 50)) + 'px'; f.style.fontSize = (24 + Math.round(Math.random() * 14)) + 'px';
+    fx.appendChild(f); setTimeout(function () { f.remove(); }, 2600);
+  }
+  var head = null, headSt = '';
+  function pollLive() {
+    var st = station(); if (st !== headSt) { headSt = st; head = null; }
+    if (head === null) { api('rpc/reaction_head', { method: 'POST', body: JSON.stringify({ st: st }) }).then(function (n) { if (st === station() && head === null) head = Number(n) || 0; }).catch(function () {}); return; }
+    api('rpc/recent_reactions', { method: 'POST', body: JSON.stringify({ st: st, after_id: head, my_cid: cid }) }).then(function (rows) {
+      if (st !== station()) return;
+      rows.forEach(function (r, i) { head = Math.max(head, Number(r.id)); setTimeout(function () { burst(r.kind); }, i * 220); });
+    }).catch(function () {});
+  }
   KINDS.forEach(function (k) {
     var b = document.createElement('button'); b.type = 'button'; b.setAttribute('data-k', k[0]); b.setAttribute('aria-label', k[0]); b.disabled = true;
     b.innerHTML = '<span>' + k[1] + '</span><i></i>'; bar.appendChild(b);
     b.addEventListener('click', function () {
-      var sid = songId(); if (!sid) return; counts[k[0]] = (counts[k[0]] || 0) + 1; paintReact(); float(b, k[1]);
+      var sid = songId(); if (!sid) return; counts[k[0]] = (counts[k[0]] || 0) + 1; paintReact(); float(b, k[1]); burst(k[0]);
       api('reactions', { method: 'POST', headers: Object.assign({ Prefer: 'return=minimal' }, H), body: JSON.stringify({ station: station(), song: sid, kind: k[0], cid: cid }) }).catch(function () { counts[k[0]] = Math.max(0, (counts[k[0]] || 1) - 1); paintReact(); });
     });
   });
@@ -71,4 +89,5 @@
   pollMsgs(); pollReact();
   setInterval(function () { if (!document.hidden) { pollMsgs(); } }, 4000);
   setInterval(function () { if (!document.hidden) pollReact(); }, 5000);
+  pollLive(); setInterval(function () { if (!document.hidden) pollLive(); }, 2500);
 })();
