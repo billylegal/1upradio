@@ -71,6 +71,9 @@
   };
   function sico(k, href, title) { return '<a class="sico" href="' + esc(href) + '" target="_blank" rel="noopener" title="' + title + '" aria-label="' + title + '"><svg viewBox="0 0 40 40" aria-hidden="true">' + SICO[k] + '</svg></a>'; }
   // ---- the artists' own accounts under the player: everyone credited on the song (artist, featured artists, the remixer), official links only (data/artist-links.json, from MusicBrainz) ----
+  // Billy Legal's own accounts: every Billy Legal song shows them (never looked up, always these)
+  var OWN = { 'billy legal': { ig: 'https://www.instagram.com/billylegal', tt: 'https://www.tiktok.com/@billylegalthegreat', x: 'https://x.com/billylegal', yt: 'https://www.youtube.com/@billylegal', sp: 'https://open.spotify.com/artist/0hrBaKHfPnEGXWk1XTaCzs', bp: 'https://www.beatport.com/artist/billy-legal/2452846' } };
+  function ownMerge(d) { d = d || {}; Object.keys(OWN).forEach(function (k) { d[k] = OWN[k]; }); return d; }
   var ALINKS = null, LABELS = null, alKey = '';   // LABELS: data/labels.json {video id: record label}
   function alNorm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
   function credits(title) {
@@ -125,11 +128,11 @@
       }).then(function (out) { ALINKS[k] = out; try { localStorage.setItem('up1-al:' + k, JSON.stringify({ t: Date.now(), l: out })); } catch (e) {} alKey = ''; paintArtLinks(curP); return alWait(1100); }).catch(function () { return alWait(1100); });
     });
   }
-  function artistHref(n) { var L = (ALINKS && ALINKS[alNorm(n)]) || {}; return L.ig || L.tt || L.x || L.yt || ('https://www.youtube.com/results?search_query=' + encodeURIComponent(n)); }
-  function linkArtistLine() {   // the artist names under the song title are links: to that artist's Instagram (else TikTok, X, YouTube; else a YouTube search for the name)
+  function artistHref(n) { var L = (ALINKS && ALINKS[alNorm(n)]) || {}; return L.ig || L.tt || L.x || L.yt || ''; }   // only a real official account: never a search
+  function linkArtistLine() {   // the artist names under the song title are links to that artist's official Instagram (else TikTok, X, YouTube); no account known = plain text
     var el = $('npArtist'), p = window.UP1_NOW; if (!el || !p) return;
     var txt = el.textContent, low = txt.toLowerCase(), spots = [];
-    credits(p.title).forEach(function (n) { var i = low.indexOf(n.toLowerCase()); if (i >= 0) spots.push([i, n.length, n]); });
+    credits(p.title).forEach(function (n) { var i = low.indexOf(n.toLowerCase()); if (i >= 0 && artistHref(n)) spots.push([i, n.length, n]); });
     if (!spots.length) return;
     spots.sort(function (x, y) { return x[0] - y[0]; });
     var html = '', pos = 0;
@@ -144,13 +147,13 @@
     var box = $('artlinks'); if (!box) return;
     var key = (p && p.id || '') + '|' + (ALINKS ? 1 : 0) + (LABELS ? 1 : 0); if (key === alKey) return; alKey = key;
     if (!p || !p.id) { box.hidden = true; return; }
-    if (!ALINKS) { fetch(window.UP1_LINKS_URL || ('data/artist-links.json?t=' + Math.floor(Date.now() / 1800000))).then(function (r) { return r.json(); }).then(function (j) { ALINKS = j || {}; }).catch(function () { ALINKS = {}; }).then(function () { alKey = ''; paintArtLinks(curP || p); }); return; }
+    if (!ALINKS) { fetch(window.UP1_LINKS_URL || ('data/artist-links.json?t=' + Math.floor(Date.now() / 1800000))).then(function (r) { return r.json(); }).then(function (j) { ALINKS = ownMerge(j); }).catch(function () { ALINKS = ownMerge({}); }).then(function () { alKey = ''; paintArtLinks(curP || p); }); return; }
     if (!LABELS) { LABELS = {}; fetch('data/labels.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { LABELS = j || {}; alKey = ''; paintArtLinks(curP || p); }).catch(function () {}); }
     var html = '';
     credits(p.title).forEach(function (n) {
       if (ALINKS[alNorm(n)] === undefined) liveLinks(n);
-      var L = ALINKS[alNorm(n)]; if (!L || !(L.x || L.ig || L.tt || L.yt)) return;
-      html += '<span class="alk"><b>' + esc(n) + '</b>' + (L.ig ? sico('instagram', L.ig, n + ' on Instagram') : '') + (L.tt ? sico('tiktok', L.tt, n + ' on TikTok') : '') + (L.x ? sico('x', L.x, n + ' on X (Twitter)') : '') + (L.yt ? sico('youtube', L.yt, n + ' on YouTube') : '') + '</span>';
+      var L = ALINKS[alNorm(n)]; if (!L || !(L.x || L.ig || L.tt || L.yt || L.sp || L.bp)) return;
+      html += '<span class="alk"><b>' + esc(n) + '</b>' + (L.ig ? sico('instagram', L.ig, n + ' on Instagram') : '') + (L.tt ? sico('tiktok', L.tt, n + ' on TikTok') : '') + (L.x ? sico('x', L.x, n + ' on X (Twitter)') : '') + (L.yt ? sico('youtube', L.yt, n + ' on YouTube') : '') + (L.sp ? sico('spotify', L.sp, n + ' on Spotify') : '') + (L.bp ? sico('beatport', L.bp, n + ' on Beatport') : '') + '</span>';
     });
     var lab = LABELS && LABELS[p.id];   // the record label gets its own group after the artists
     if (lab) {
@@ -158,7 +161,7 @@
       var LL = ALINKS[lk];
       if (LL && (LL.x || LL.ig || LL.tt || LL.yt)) html += '<span class="alk lbl"><em>Label</em><b>' + esc(lab) + '</b>' + (LL.ig ? sico('instagram', LL.ig, lab + ' on Instagram') : '') + (LL.tt ? sico('tiktok', LL.tt, lab + ' on TikTok') : '') + (LL.x ? sico('x', LL.x, lab + ' on X (Twitter)') : '') + (LL.yt ? sico('youtube', LL.yt, lab + ' on YouTube') : '') + '</span>';
     }
-    box.innerHTML = html ? '<span class="alklab">Artist accounts</span>' + html : ''; box.hidden = !html;
+    box.innerHTML = html ? '<span class="alklab">Playing now \u00b7 artist &amp; label accounts</span>' + html : ''; box.hidden = !html;
     try { linkArtistLine(); } catch (e) {}
   }
   function paintSaved() {
