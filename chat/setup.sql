@@ -68,3 +68,7 @@ language sql stable security definer set search_path = public as $$
   select kind, count(*) from public.reactions where song = song_id group by kind
 $$;
 grant execute on function public.reaction_counts(text) to anon;
+
+-- make sure the public (anon) key can do exactly this and nothing more
+grant select, insert on public.messages to anon;
+grant insert on public.reactions to anon;

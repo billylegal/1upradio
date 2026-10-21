@@ -8,7 +8,7 @@
   var list = $('chatlist'), form = $('chatform'), nickI = $('chatnick'), msgI = $('chatmsg'), bar = $('chatreact'), err = $('chaterr'), title = $('chattitle');
   var cid; try { cid = localStorage.getItem('up1-cid'); if (!cid) { cid = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()); localStorage.setItem('up1-cid', cid); } } catch (e) { cid = String(Math.random()).slice(2); }
   try { nickI.value = localStorage.getItem('up1-nick') || ''; } catch (e) {}
-  var H = { apikey: C.key, Authorization: 'Bearer ' + C.key, 'Content-Type': 'application/json' };
+  var H = { apikey: C.key, 'Content-Type': 'application/json' }; if (!/^sb_/.test(C.key)) H.Authorization = 'Bearer ' + C.key;   // new-style publishable keys (sb_...) go in apikey only
   function api(path, opt) { return fetch(C.url.replace(/\/$/, '') + '/rest/v1/' + path, Object.assign({ headers: H }, opt || {})).then(function (r) { if (!r.ok) return r.text().then(function (t) { throw new Error(t); }); return r.status === 204 ? null : r.json(); }); }
   function station() { return window.UP1_STATION || '1up'; }
   function songId() { var p = window.UP1_NOW; return p && p.id ? String(p.id) : ''; }
