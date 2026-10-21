@@ -197,3 +197,10 @@ html .artlinks{display:none!important}
 .featured .fprof:not(:has(.fface:not([hidden]))){padding:0}
 .featured .ftitle{font-size:19px}
 .acsg span small{display:block;font-size:11px;opacity:.6;margin-top:1px}
+/* play/pause, share and sleep timer are one size; no dashed ring around play */
+html[data-skin] .ctl .play::after,html .ctl .play::before{content:none!important;display:none!important}
+html[data-skin] .ctl .play{margin:0}
+@media(max-width:600px){
+  html .ctl .play,html .ctl .xbtn,html .ctl #shareBtn,html[data-skin] .ctl .sharebtn{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;flex:0 0 40px!important}
+  html .ctl .play svg{width:18px!important;height:18px!important}
+}
