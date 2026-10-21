@@ -31,7 +31,7 @@
   function paintNP() { window.UP1_NOW = curP || (S.plays && S.plays[idx]) || null;
     var p = curP || S.plays[idx]; if (!p) return; var a = split(p.title);
     $('npTitle').textContent = a[1] || p.title; $('npArtist').textContent = a[0];
-    var aw = $('npArtWrap'), ai = $('npArt'); if (aw && ai) { if (p.id) { var real = !!ART[p.id], u = real ? ART[p.id] : 'assets/blank-record.svg?v=1'; if (ai.getAttribute('src') !== u) ai.src = u; ai.toggleAttribute('data-fallback', !real); aw.hidden = false; } else aw.hidden = true; }   // the real album cover; with no cover yet it is a plain black record that still spins (never a YouTube video picture, never the station logo)
+    var aw = $('npArtWrap'), ai = $('npArt'); if (aw && ai) { if (p.id) { var u = (ART[p.id]) ? ART[p.id] : 'https://i.ytimg.com/vi/' + encodeURIComponent(p.id) + '/mqdefault.jpg'; if (ai.getAttribute('src') !== u) ai.src = u; ai.removeAttribute('data-fallback'); aw.hidden = false; } else aw.hidden = true; }   // the spinning record: the real album cover, else the song's YouTube picture (on the vinyl stations that is usually the record label itself)
     document.title = (playing ? '▶ ' : '') + (a[1] || p.title) + ' · 1UP Radio';
     paintSave();
     paintLists();
@@ -602,8 +602,9 @@
   function keepSync() { try { if (started && gestured && !userPaused) { var pr = keep.play(); if (pr && pr.catch) pr.catch(function () {}); } else keep.pause(); } catch (e) {} }
   function goLive() { if (!started || !ready || !S.plays.length) return; userPaused = false; btnIntent = null; try { var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } catch (e) {} keepSync(); }
   var MS = 'mediaSession' in navigator ? navigator.mediaSession : null;
-  function ART_FOR(p) {   // lock-screen picture: the song's cover when we have one, else the logo (never a YouTube video picture)
+  function ART_FOR(p) {   // lock-screen picture: the song's cover when we have one, else its YouTube picture, else the logo
     var list = []; try { if (ART && ART[p.id]) list.push({ src: ART[p.id], sizes: '600x600' }); } catch (e) {}
+    if (p.id) list.push({ src: 'https://i.ytimg.com/vi/' + encodeURIComponent(p.id) + '/hqdefault.jpg', sizes: '480x360', type: 'image/jpeg' });
     list.push({ src: location.origin + '/assets/icon-512.png', sizes: '512x512', type: 'image/png' }); return list;
   }
   function msMeta() {

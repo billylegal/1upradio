@@ -14,8 +14,8 @@
   function findNow() { var now = Date.now() / 1000 - S.delay, k = -1; for (var i = 0; i < S.plays.length; i++) { if (S.plays[i].t <= now) k = i; else break; } return k < 0 ? 0 : k; }
   function paintSong(p) {
     if (!p) return; var a = split(p.title); $('t').textContent = a[1] || p.title; $('a').textContent = a[0] || cur.name;
-    $('cv').src = ART[p.id] || (cur.mark || cur.art || 'assets/logo.png');   // the real album cover, else the station's own picture (never a YouTube video picture)
-    try { if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: a[1] || p.title, artist: a[0] || cur.name, album: '1UP Radio', artwork: [{ src: ART[p.id] || 'assets/icon-512.png' }] }); } catch (e) {}
+    $('cv').src = ART[p.id] || ('https://i.ytimg.com/vi/' + encodeURIComponent(p.id) + '/mqdefault.jpg');
+    try { if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: a[1] || p.title, artist: a[0] || cur.name, album: '1UP Radio', artwork: [{ src: ART[p.id] || ('https://i.ytimg.com/vi/' + p.id + '/hqdefault.jpg') }] }); } catch (e) {}
   }
   function setOn(on) { playing = on; $('pp').classList.toggle('on', on); $('rec').classList.toggle('on', on); $('air').classList.toggle('on', on); $('airt').textContent = on ? 'ON AIR' : (wantPlay ? 'TUNING IN' : 'OFF AIR'); $('pp').setAttribute('aria-label', on ? 'Pause' : 'Play'); }
   function paintStation() {
