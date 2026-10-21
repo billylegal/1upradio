@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Facts about every artist on the four stations, from MusicBrainz (open music database): where they are from, since when, and how listeners tag their style.
-Writes data/artist-auto.json {normalised artist name: [fact, ...]}. One request a second (MusicBrainz asks for that), resumable, polite.   python3 tools/artist_auto.py [max artists]"""
+"""Facts about every artist on the four stations, from MusicBrainz (open music database): where they are from, since when, and how listeners tag their style,
+and their OFFICIAL accounts (X/Twitter, Instagram, YouTube) as entered in MusicBrainz's links.
+Writes data/artist-auto.json {normalised artist name: [fact, ...]} and data/artist-links.json {normalised name: {x, ig, yt}}. One request a second (MusicBrainz asks for that), resumable, polite.   python3 tools/artist_auto.py [max artists]"""
 import json, os, re, sys, time, unicodedata, urllib.request, urllib.parse
 H = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = H + '/data/artist-auto.json'; TRIED = H + '/data/artist-auto-tried.json'
+OUT = H + '/data/artist-auto.json'; TRIED = H + '/data/artist-auto-tried.json'; LINKS = H + '/data/artist-links.json'
 UA = {'User-Agent': '1upradio-facts/1.0 ( https://1upradio.com )'}
 FILES = [('main', 'main'), ('culture', 'culture'), ('movement', 'movement'), ('vault', 'hiphopvinyl')]
 
@@ -42,6 +43,20 @@ def lookup(name):
     return None
 
 
+def links(mbid):
+    u = 'https://musicbrainz.org/ws/2/artist/%s?fmt=json&inc=url-rels' % mbid
+    with urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=30) as r: j = json.load(r)
+    out = {}
+    for rel in j.get('relations', []):
+        url = ((rel.get('url') or {}).get('resource') or '').strip()
+        m = re.match(r'https?://(?:www\.|mobile\.)?(twitter\.com|x\.com)/([A-Za-z0-9_]{1,15})/?(?:\?.*)?$', url)
+        if m and 'x' not in out: out['x'] = 'https://x.com/' + m.group(2); continue
+        m = re.match(r'https?://(?:www\.)?instagram\.com/([A-Za-z0-9_.]{1,30})/?(?:\?.*)?$', url)
+        if m and 'ig' not in out: out['ig'] = 'https://www.instagram.com/' + m.group(1) + '/'; continue
+        if re.match(r'https?://(?:www\.|m\.)?youtube\.com/(channel/|user/|c/|@)[^/?#]+/?$', url) and 'yt' not in out: out['yt'] = url.rstrip('/')
+    return out
+
+
 def facts(name, a):
     area = (a.get('area') or {}).get('name') or ''
     yr = ((a.get('life-span') or {}).get('begin') or '')[:4]
@@ -62,7 +77,9 @@ def main():
     except Exception: d = {}
     try: tried = json.load(open(TRIED))
     except Exception: tried = {}
-    todo = [(n, v[0]) for n, v in artists() if n not in d and n not in tried][:cap]
+    try: L = json.load(open(LINKS))
+    except Exception: L = {}
+    todo = [(n, v[0]) for n, v in artists() if n not in L][:cap]   # an artist is done once the links file has an entry for them (it may be empty)
     print('artists to look up:', len(todo), flush=True); k = 0
     for n, name in todo:
         a = 'err'
@@ -73,12 +90,19 @@ def main():
         f = facts(name, a) if a else []
         if f: d[n] = f
         else: tried[n] = 1
+        lk = {}
+        if a:
+            time.sleep(1.1)
+            for attempt in range(3):
+                try: lk = links(a['id']); break
+                except Exception: time.sleep(6 * (attempt + 1))
+        L[n] = lk
         k += 1
         if k % 25 == 0:
-            for p, o in ((OUT, d), (TRIED, tried)): json.dump(o, open(p + '.tmp', 'w'), ensure_ascii=False, separators=(',', ':')); os.replace(p + '.tmp', p)
-            print('%d looked up, %d with facts' % (k, len(d)), flush=True)
+            for p, o in ((OUT, d), (TRIED, tried), (LINKS, L)): json.dump(o, open(p + '.tmp', 'w'), ensure_ascii=False, separators=(',', ':')); os.replace(p + '.tmp', p)
+            print('%d looked up, %d with facts, %d with links' % (k, len(d), sum(1 for v in L.values() if v)), flush=True)
         time.sleep(1.1)
-    for p, o in ((OUT, d), (TRIED, tried)): json.dump(o, open(p + '.tmp', 'w'), ensure_ascii=False, separators=(',', ':')); os.replace(p + '.tmp', p)
+    for p, o in ((OUT, d), (TRIED, tried), (LINKS, L)): json.dump(o, open(p + '.tmp', 'w'), ensure_ascii=False, separators=(',', ':')); os.replace(p + '.tmp', p)
     print('done:', len(d), 'artists with facts', flush=True)
 
 
