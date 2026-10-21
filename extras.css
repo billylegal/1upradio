@@ -165,3 +165,7 @@ html .artlinks{display:none!important}
 .acaz{display:inline-block;margin-top:10px}
 @media(max-width:900px){.artbtn{position:static;transform:none;margin-left:auto}.artbtn+.onair{margin-left:10px}}
 .artbtn{right:168px;white-space:nowrap}
+.featured .fprof{display:inline-flex;align-items:center;gap:10px;padding:5px 16px 5px 5px}
+.featured .fface{width:34px;height:34px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px var(--g,#ffd34d)}
+.featured .fface[hidden]{display:none}
+.featured .fprof:not(:has(.fface:not([hidden]))){padding:7px 16px}

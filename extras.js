@@ -76,18 +76,28 @@
       auto[st] = { id: s.id, title: s.title, note: 'This week\u2019s pick on the channel.' }; featPaint();
     }).catch(function () {});
   }
+  var faces = {};
+  function faceFor(name, img) {   // the artist's picture beside the button (Deezer; Billy Legal uses his own head)
+    if (!img) return; img.hidden = true; if (!name) return;
+    function show(u) { if (u && station() && img.isConnected) { img.src = u; img.hidden = false; } }
+    if (/^billy legal$/i.test(name)) { show('assets/head.png'); return; }
+    if (faces[name] !== undefined) { show(faces[name]); return; }
+    var cb = 'upf' + Math.floor(Math.random() * 1e9), s = document.createElement('script');
+    window[cb] = function (d) { var k = String(name).toLowerCase(), h = ((d && d.data) || []).filter(function (a) { return String(a.name).toLowerCase() === k; })[0]; faces[name] = h ? (h.picture_medium || '') : ''; show(faces[name]); delete window[cb]; s.remove(); };
+    s.onerror = function () { faces[name] = ''; delete window[cb]; s.remove(); };
+    s.src = 'https://api.deezer.com/search/artist?q=' + encodeURIComponent(name) + '&limit=5&output=jsonp&callback=' + cb; document.head.appendChild(s);
+  }
   function featPaint() {
     var f = feat[station()] || auto[station()];
     if (!f || !f.id) { fcard.hidden = true; if (!feat[station()] && !auto[station()]) featAuto(); return; }
     fcard.hidden = false; fcard.querySelector('.ftitle').textContent = f.title || ''; fcard.querySelector('.fnote').textContent = f.note || '';
-    fcard.querySelector('.fyt').href = 'https://www.youtube.com/watch?v=' + encodeURIComponent(f.id); fcard.querySelector('.fytm').href = 'https://music.youtube.com/watch?v=' + encodeURIComponent(f.id);
     var fp = fcard.querySelector('.fprof'), who = String(f.title || '').split(/\s[-\u2013]\s/)[0].split(/\s*(?:,|&|\bfeat\.?|\bft\.?|\bx\b)\s*/i)[0].trim(); fp.hidden = !who; fp.setAttribute('data-artist', who);   // the week's pick opens the artist's profile card
-    var fm = fcard.querySelector('.fmore'); fm.hidden = !f.link; if (f.link) { fm.href = f.link; fm.textContent = (f.linkText || 'More') + ' \u2197'; }
+    faceFor(who, fp.querySelector('.fface'));
   }
   function featInit() {
     var cols = $('.cols'); if (!cols) return;
     fcard = document.createElement('section'); fcard.className = 'card featured'; fcard.hidden = true;
-    fcard.innerHTML = '<h2>★ Song of the week</h2><div class="ftitle"></div><div class="fnote"></div><div class="flinks"><a class="chip found fyt" target="_blank" rel="noopener">YouTube ✓</a><a class="chip found fytm" target="_blank" rel="noopener">YT Music ✓</a><a class="chip found fmore" target="_blank" rel="noopener" hidden></a><a class="chip found fprof artlnk" href="#" role="button">Artist profile</a></div>';
+    fcard.innerHTML = '<h2>★ Song of the week</h2><div class="ftitle"></div><div class="fnote"></div><div class="flinks"><a class="chip found fprof artlnk" href="#" role="button"><img class="fface" alt="" hidden referrerpolicy="no-referrer"><span>Artist profile</span></a></div>';
     cols.parentNode.insertBefore(fcard, cols);
     fetch('data/featured.json?t=' + Math.floor(Date.now() / 600000)).then(function (r) { return r.json(); }).then(function (j) { feat = j || {}; featPaint(); }).catch(function () {});
     var last = station(); setInterval(function () { if (station() !== last) { last = station(); featPaint(); } }, 1500);
