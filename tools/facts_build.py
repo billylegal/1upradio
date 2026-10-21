@@ -101,7 +101,7 @@ def mb_facts(art, tr):
             if aid:
                 ar = get('https://musicbrainz.org/ws/2/artist/%s?fmt=json' % aid, 1.1) or {}
                 area = (ar.get('area') or {}).get('name'); yr = ((ar.get('life-span') or {}).get('begin') or '')[:4]; ty = ar.get('type')
-                if area and yr and ty in ('Group', 'Person', 'Orchestra'): out.append('%s is %s from %s and has been active since %s.' % (ac[0].get('name'), 'a group' if ty == 'Group' else 'an artist', area, yr))
+                if area and yr and ty in ('Group', 'Orchestra'): out.append('%s is a group from %s and has been active since %s.' % (ac[0].get('name'), area, yr))   # for a person MusicBrainz's begin date is a birth year: never call it "active since"
                 elif area: out.append('%s comes from %s.' % (ac[0].get('name'), area))
         return out
     return []
