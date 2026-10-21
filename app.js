@@ -31,7 +31,7 @@
   function paintNP() { window.UP1_NOW = curP || (S.plays && S.plays[idx]) || null;
     var p = curP || S.plays[idx]; if (!p) return; var a = split(p.title);
     $('npTitle').textContent = a[1] || p.title; $('npArtist').textContent = a[0];
-    var aw = $('npArtWrap'), ai = $('npArt'); if (aw && ai) { if (p.id && ART[p.id]) { var u = ART[p.id]; if (ai.getAttribute('src') !== u) ai.src = u; aw.hidden = false; } else aw.hidden = true; }   // the real album cover only; never a YouTube video picture (no cover yet = no picture)
+    var aw = $('npArtWrap'), ai = $('npArt'); if (aw && ai) { if (p.id) { var real = !!ART[p.id], u = real ? ART[p.id] : (window.UP1_MARK || 'assets/logo.png'); if (ai.getAttribute('src') !== u) ai.src = u; ai.toggleAttribute('data-fallback', !real); aw.hidden = false; } else aw.hidden = true; }   // the real album cover; with no cover yet the record carries the station's own logo (never a YouTube video picture)
     document.title = (playing ? '▶ ' : '') + (a[1] || p.title) + ' · 1UP Radio';
     paintSave();
     paintLists();

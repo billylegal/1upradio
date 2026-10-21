@@ -23,7 +23,7 @@
     return ms ? ms[1] : (st.start || '');
   }
   function globals(st, first) {
-    window.UP1_STATION = st.id; window.UP1_SCHEDULE = st.sched; window.UP1_ARTMAP = st.artmap || ''; window.UP1_OWN_SKINS = st.skins || null;
+    window.UP1_STATION = st.id; window.UP1_SCHEDULE = st.sched; window.UP1_ARTMAP = st.artmap || ''; window.UP1_MARK = st.mark || st.art || 'assets/logo.png'; window.UP1_OWN_SKINS = st.skins || null;
     window.UP1_START_SKIN = chooseSkin(st, first); root.setAttribute('data-station', st.id);
   }
   globals(cur, true);
@@ -139,7 +139,7 @@
     function close() { shut(); if (window.UP1_BACKGUARD) UP1_BACKGUARD.closed(shut); }
     box.addEventListener('click', close); document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
     document.addEventListener('click', function (e) {
-      var a = e.target.closest('#npArt'); if (!a || !a.getAttribute('src')) return;
+      var a = e.target.closest('#npArt'); if (!a || !a.getAttribute('src') || a.hasAttribute('data-fallback')) return;   // the station-logo label (no cover yet) does not open big
       var src = a.currentSrc || a.src, big = src.replace('/mqdefault.jpg', '/hqdefault.jpg');   // YouTube pictures come in a bigger size; album covers are already large
       img.onerror = function () { img.onerror = null; img.src = src; }; img.src = big; box.hidden = false; if (window.UP1_BACKGUARD) UP1_BACKGUARD.opened(shut);
     });
