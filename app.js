@@ -328,7 +328,6 @@
   }
   document.addEventListener('click', function (e) {
     var t = e.target.closest && e.target.closest('#azBtn, .azlink, #artBtn'); if (!t) return; e.preventDefault();
-    if (t.id === 'artBtn') { var who = window.UP1_NOW && credits(window.UP1_NOW.title)[0]; if (who) { openArtistCard(who); return; } }
     openAZ();
   });
   function paintArtLinks(p) {
