@@ -204,3 +204,13 @@ html[data-skin] .ctl .play{margin:0}
   html .ctl .play,html .ctl .xbtn,html .ctl #shareBtn,html[data-skin] .ctl .sharebtn{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;flex:0 0 40px!important}
   html .ctl .play svg{width:18px!important;height:18px!important}
 }
+/* phones: the play button keeps its round 40px shape (the skin rules set its height) */
+@media(max-width:600px){
+  html[data-skin]:not([data-skin=meters]):not([data-skin=wormhole]) .ctl .play{width:40px!important;height:40px!important;min-height:40px!important;flex:0 0 40px!important}
+}
+/* "All artists" beside Artist profile: phones only (desktop has it at the bottom and inside the card) */
+.featured .flinks .fall{display:none}
+@media(max-width:640px){
+  .featured .flinks{align-items:center;gap:16px}
+  .featured .flinks .chip.fall{display:inline-flex;padding:6px 14px;border:1px solid rgba(255,255,255,.3);border-radius:999px;background:transparent;font-size:12px;letter-spacing:.06em;text-transform:none;border-bottom:1px solid rgba(255,255,255,.3)}
+}

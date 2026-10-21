@@ -80,7 +80,7 @@
   function faceFor(name, img) {   // the artist's picture beside the button (Deezer; Billy Legal uses his own head)
     if (!img) return; img.hidden = true; if (!name) return;
     function show(u) { if (u && station() && img.isConnected) { img.src = u; img.hidden = false; } }
-    if (/^billy legal$/i.test(name)) { show('assets/head.png'); return; }
+    if (/^billy legal$/i.test(name)) { show('assets/1up-sticker.png'); return; }
     if (faces[name] !== undefined) { show(faces[name]); return; }
     var cb = 'upf' + Math.floor(Math.random() * 1e9), s = document.createElement('script');
     window[cb] = function (d) { var k = String(name).toLowerCase(), h = ((d && d.data) || []).filter(function (a) { return String(a.name).toLowerCase() === k; })[0]; faces[name] = h ? (h.picture_medium || '') : ''; show(faces[name]); delete window[cb]; s.remove(); };
@@ -97,7 +97,7 @@
   function featInit() {
     var cols = $('.cols'); if (!cols) return;
     fcard = document.createElement('section'); fcard.className = 'card featured'; fcard.hidden = true;
-    fcard.innerHTML = '<h2>★ Song of the week</h2><div class="ftitle"></div><div class="fnote"></div><div class="flinks"><a class="chip found fprof artlnk" href="#" role="button"><img class="fface" alt="" hidden referrerpolicy="no-referrer"><span>Artist profile</span></a></div>';
+    fcard.innerHTML = '<h2>★ Song of the week</h2><div class="ftitle"></div><div class="fnote"></div><div class="flinks"><a class="chip found fprof artlnk" href="#" role="button"><img class="fface" alt="" hidden referrerpolicy="no-referrer"><span>Artist profile</span></a><a class="chip found azlink fall" href="#" role="button">All artists</a></div>';
     cols.parentNode.insertBefore(fcard, cols);
     fetch('data/featured.json?t=' + Math.floor(Date.now() / 600000)).then(function (r) { return r.json(); }).then(function (j) { feat = j || {}; featPaint(); }).catch(function () {});
     var last = station(); setInterval(function () { if (station() !== last) { last = station(); featPaint(); } }, 1500);
