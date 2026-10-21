@@ -188,27 +188,41 @@
   }
   function profMore(name) {
     var k = alNorm(name);
-    try { var c = JSON.parse(localStorage.getItem('up1-pl:' + k) || 'null'); if (c && Date.now() - c.t < 30 * 864e5) return Promise.resolve(c.l); } catch (e) {}
+    try { var c = JSON.parse(localStorage.getItem('up1-pl2:' + k) || 'null'); if (c && Date.now() - c.t < 30 * 864e5) return Promise.resolve(c); } catch (e) {}
     return new Promise(function (res) {
       LIVEQ = LIVEQ.then(function () {
         return alGet('https://musicbrainz.org/ws/2/artist/?fmt=json&limit=3&query=' + encodeURIComponent('artist:"' + name.replace(/"/g, ' ') + '"')).then(function (j) {
           var hit = (j.artists || []).filter(function (x) { return x.score >= 96 && [x.name].concat((x.aliases || []).map(function (y) { return y.name; })).some(function (n) { return alNorm(n) === k; }); })[0];
-          if (!hit) return [];
+          if (!hit) return { l: [], lb: [] };
           return alWait(1100).then(function () { return alGet('https://musicbrainz.org/ws/2/artist/' + hit.id + '?fmt=json&inc=url-rels'); }).then(function (d) {
             var seen = {}, list = [];
             (d.relations || []).forEach(function (rel) {
               var url = ((rel.url || {}).resource || '').trim(); if (!/^https?:\/\//i.test(url)) return;
               var lab = rel.type === 'official homepage' ? 'Website' : plLabel(url); if (!lab || seen[lab]) return; seen[lab] = 1; list.push([lab, url]);
             });
-            return list;
+            return alWait(1100).then(function () { return alGet('https://musicbrainz.org/ws/2/release?fmt=json&limit=100&inc=labels&artist=' + hit.id); }).then(function (rl) {   // every label on the artist's releases, most releases first
+              var cnt = {}, nm = {};
+              (rl.releases || []).forEach(function (r) { var seen = {}; (r['label-info'] || []).forEach(function (li) { var n = (li.label || {}).name; if (!n || /^\[no label\]$/i.test(n) || /^(self[- ]released|none)$/i.test(n)) return; var q = alNorm(n); if (seen[q]) return; seen[q] = 1; cnt[q] = (cnt[q] || 0) + 1; nm[q] = nm[q] || n; }); });
+              var lb = Object.keys(cnt).sort(function (x, y) { return cnt[y] - cnt[x]; }).slice(0, 8).map(function (q) { return nm[q]; });
+              return { l: list, lb: lb };
+            });
           });
-        }).then(function (l) { try { localStorage.setItem('up1-pl:' + k, JSON.stringify({ t: Date.now(), l: l })); } catch (e) {} res(l); return alWait(1100); }).catch(function () { res([]); return alWait(1100); });
+        }).then(function (o) { o.t = Date.now(); try { localStorage.setItem('up1-pl2:' + k, JSON.stringify(o)); } catch (e) {} res(o); return alWait(1100); }).catch(function () { res({ l: [], lb: [] }); return alWait(1100); });
       });
     });
   }
   function profPills(known, more) {   // known: links we already have for sure; more: from MusicBrainz; merged in a fixed order, one pill per kind
     var by = {}; (known || []).concat(more || []).forEach(function (p) { if (p && p[1] && !by[p[0]]) by[p[0]] = p[1]; });
     return PL_ORDER.filter(function (l) { return by[l]; }).map(function (l) { return '<a class="aclk" href="' + esc(by[l]) + '" target="_blank" rel="noopener noreferrer">' + esc(l) + '</a>'; }).join('');
+  }
+  function paintLabels(list, nowLab, name) {   // every record label the artist has released on (from MusicBrainz releases), with the label's own accounts when we know them
+    var el = $('aclabs'); if (!el || acardFor !== alNorm(name)) return;
+    var L = (list || []).slice(); if (nowLab && !L.some(function (n) { return alNorm(n) === alNorm(nowLab); })) { var np = window.UP1_NOW && alNorm((credits(window.UP1_NOW.title)[0]) || '') === alNorm(name); if (np) L.unshift(nowLab); }
+    if (!L.length) { el.innerHTML = ''; return; }
+    el.innerHTML = '<div class="aclh">Labels</div>' + L.map(function (n) {
+      var q = ALINKS && ALINKS['label:' + alNorm(n)]; if (!q && ALINKS) liveLinks(n, 'label');
+      return '<div class="aclr"><b>' + esc(n) + '</b>' + (q ? (q.ig ? sico('instagram', q.ig, n + ' on Instagram') : '') + (q.tt ? sico('tiktok', q.tt, n + ' on TikTok') : '') + (q.x ? sico('x', q.x, n + ' on X (Twitter)') : '') + (q.yt ? sico('youtube', q.yt, n + ' on YouTube') : '') : '') + '</div>';
+    }).join('');
   }
   function cardShut() { var c = $('acard'); if (c) c.hidden = true; acardFor = ''; }
   function closeArtistCard() { cardShut(); if (window.UP1_BACKGUARD) UP1_BACKGUARD.closed(cardShut); }
@@ -237,10 +251,7 @@
       if (!bio && !facts.length) h += '<p class="acfact">No profile text for this artist yet.</p>';
       var known = []; if (own) known = [['Website', 'https://billylegal.com'], ['Apple Music', 'https://music.apple.com/ca/artist/billy-legal/6788113036'], ['Deezer', 'https://www.deezer.com/artist/401877641'], ['Spotify', OWN['billy legal'].sp], ['Beatport', OWN['billy legal'].bp]]; else { if (wk && wk.url) known.push(['Wikipedia', wk.url]); if (dz && dz.link) known.push(['Deezer', dz.link]); }
       h += '<div class="acacc" id="acacc">' + profAccounts(name) + '</div><div class="aclinks" id="aclinks">' + profPills(known, []) + '</div>';
-      if (lab && window.UP1_NOW && alNorm((credits(window.UP1_NOW.title)[0]) || '') === key) {
-        var LL = ALINKS && ALINKS['label:' + alNorm(lab)];
-        h += '<div class="aclab"><em>Label</em> <b>' + esc(lab) + '</b>' + (LL ? (LL.ig ? sico('instagram', LL.ig, lab + ' on Instagram') : '') + (LL.tt ? sico('tiktok', LL.tt, lab + ' on TikTok') : '') + (LL.x ? sico('x', LL.x, lab + ' on X (Twitter)') : '') + (LL.yt ? sico('youtube', LL.yt, lab + ' on YouTube') : '') : '') + '</div>';
-      }
+      h += '<div class="aclabs" id="aclabs"></div>';
       var cr = []; if (dz && dz.link && !own) cr.push('Photo and fans: <a href="' + esc(dz.link) + '" target="_blank" rel="noopener">Deezer</a>');
       if (wk && wk.url && !own) cr.push('Text: <a href="' + esc(wk.url) + '" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA)');
       if (!own) cr.push('Links: MusicBrainz');
@@ -252,7 +263,7 @@
     inn.innerHTML = '<div class="acl">1UP Radio · Artist profile</div><div class="achead"><div class="acpic ph">' + esc(name.charAt(0)) + '</div><div><h3>' + esc(name) + '</h3><div class="acmeta">Loading…</div></div></div>';
     Promise.all([own ? null : profDeezer(name), own ? null : profWiki(name), profData()]).then(function (r) {
       if (acardFor !== key) return; paint(r[0], r[1], r[2][0], r[2][1]);
-      if (!own) profMore(name).then(function (more) { var el = $('aclinks'); if (acardFor !== key || !el) return; var kn = []; if (r[1] && r[1].url) kn.push(['Wikipedia', r[1].url]); if (r[0] && r[0].link) kn.push(['Deezer', r[0].link]); el.innerHTML = profPills(kn, more); });
+      if (!own) profMore(name).then(function (o) { var more = o.l, el = $('aclinks'); paintLabels(o.lb, lab, name); if (acardFor !== key || !el) return; var kn = []; if (r[1] && r[1].url) kn.push(['Wikipedia', r[1].url]); if (r[0] && r[0].link) kn.push(['Deezer', r[0].link]); el.innerHTML = profPills(kn, more); });
       [1500, 5000, 12000].forEach(function (ms) { setTimeout(function () { var el = $('acc' + 'acc'); if (acardFor === key && el) el.innerHTML = profAccounts(name); }, ms); });   // official accounts found by a live lookup join the card when they arrive
     });
   }

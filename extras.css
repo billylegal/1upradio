@@ -154,3 +154,8 @@ html .alki{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 html .artlinks .alki .sico{width:22px;height:22px;margin:0}
 html .artlinks .azlink{white-space:nowrap}
 @media(max-width:600px){html .artlinks .alk{grid-template-columns:minmax(84px,36%) 1fr}}
+.aclabs{margin-top:10px}
+.aclh{font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.7;margin-bottom:3px}
+.aclr{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;border-top:1px solid rgba(255,255,255,.08)}
+.aclr b{font-weight:600;flex:1 1 auto;min-width:0}
+.aclr .sico{width:24px;height:24px;margin:0}
