@@ -56,20 +56,30 @@
     b.disabled = !p; var on = isSaved(p);
     b.textContent = on ? '♥ Saved' : '♡ Save Song'; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
   }
+  var SICO = {   // round buttons in each service's own colours (simplified marks, 40x40)
+    youtube: '<circle cx="20" cy="20" r="20" fill="#FF0000"/><path d="M15.5 12.5v15l13-7.5z" fill="#fff"/>',
+    ytmusic: '<circle cx="20" cy="20" r="20" fill="#FF0000"/><circle cx="20" cy="20" r="11" fill="none" stroke="#fff" stroke-width="2.4"/><path d="M17.3 15.6v8.8l7.3-4.4z" fill="#fff"/>',
+    apple: '<defs><linearGradient id="sa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FB5C74"/><stop offset="1" stop-color="#FA233B"/></linearGradient></defs><circle cx="20" cy="20" r="20" fill="url(#sa)"/><path d="M26 10.5v13.2a3.6 3.1 0 1 1-1.8-2.7V15.1l-8 1.7v9.2a3.6 3.1 0 1 1-1.8-2.7V14z" fill="#fff"/>',
+    deezer: '<circle cx="20" cy="20" r="20" fill="#121216"/><g><rect x="8" y="24" width="4.2" height="3" fill="#FF0092"/><rect x="13" y="24" width="4.2" height="3" fill="#FFAD00"/><rect x="18" y="24" width="4.2" height="3" fill="#3EBF4F"/><rect x="23" y="24" width="4.2" height="3" fill="#2EB5E0"/><rect x="28" y="24" width="4.2" height="3" fill="#A238FF"/><rect x="28" y="19.5" width="4.2" height="3" fill="#A238FF"/><rect x="23" y="19.5" width="4.2" height="3" fill="#2EB5E0"/><rect x="18" y="19.5" width="4.2" height="3" fill="#3EBF4F"/><rect x="28" y="15" width="4.2" height="3" fill="#A238FF"/><rect x="28" y="10.5" width="4.2" height="3" fill="#A238FF"/><rect x="13" y="19.5" width="4.2" height="3" fill="#FFAD00"/></g>',
+    spotify: '<circle cx="20" cy="20" r="20" fill="#1ED760"/><g fill="none" stroke="#000" stroke-linecap="round"><path d="M10.5 15.2c6.5-1.9 13.4-1.4 19.2 1.6" stroke-width="3"/><path d="M11.7 21.2c5.5-1.5 11.2-1 16.1 1.5" stroke-width="2.6"/><path d="M13 26.6c4.4-1.2 8.7-.8 12.5 1.2" stroke-width="2.2"/></g>',
+    amazon: '<circle cx="20" cy="20" r="20" fill="#25D1DA"/><path d="M15 25V13l11-2.2v12" fill="none" stroke="#0B1F2A" stroke-width="2.4" stroke-linejoin="round"/><circle cx="13.2" cy="25.2" r="2.6" fill="#0B1F2A"/><circle cx="24.2" cy="23" r="2.6" fill="#0B1F2A"/><path d="M11 30.5c5.5 3 12.5 3 18-.4" fill="none" stroke="#0B1F2A" stroke-width="2" stroke-linecap="round"/>',
+    tidal: '<circle cx="20" cy="20" r="20" fill="#000"/><g fill="#fff"><path d="M12 12.5l4 4-4 4-4-4z"/><path d="M20 12.5l4 4-4 4-4-4z"/><path d="M28 12.5l4 4-4 4-4-4z"/><path d="M20 20.5l4 4-4 4-4-4z"/></g>',
+    beatport: '<circle cx="20" cy="20" r="20" fill="#01FF95"/><path d="M13 11.5l14 8.5-14 8.5v-5.6l7.2-2.9-7.2-2.9z" fill="#000"/>'
+  };
+  function sico(k, href, title) { return '<a class="sico" href="' + esc(href) + '" target="_blank" rel="noopener" title="' + title + '" aria-label="' + title + '"><svg viewBox="0 0 40 40" aria-hidden="true">' + SICO[k] + '</svg></a>'; }
   function paintSaved() {
     var el = $('saved'); if (!el) return; paintHearts();
     $('savedn').textContent = saved.length ? '(' + saved.length + ')' : '';
     $('savedhint').style.display = saved.length ? 'none' : '';
     el.innerHTML = saved.map(function (s, i) {
       var a = split(s.title), q = encodeURIComponent(a[0] ? a[0] + ' ' + a[1] : a[1]), L = s.links || null, lk = '';
-      lk += '<a class="chip found" href="https://www.youtube.com/watch?v=' + encodeURIComponent(s.id) + '" target="_blank" rel="noopener">YouTube ✓</a>';
-      if (L && L.apple) lk += '<a class="chip found" href="' + esc(L.apple) + '" target="_blank" rel="noopener">Apple ✓</a>';
-      if (L && L.deezer) lk += '<a class="chip found" href="' + esc(L.deezer) + '" target="_blank" rel="noopener">Deezer ✓</a>';
-      var sid = encodeURIComponent(s.id);
-      lk += '<a class="chip found" href="https://open.spotify.com/search/' + q + '" target="_blank" rel="noopener" title="Search Spotify">Spotify ⌕</a>' +
-        '<a class="chip found" href="https://music.youtube.com/watch?v=' + sid + '" target="_blank" rel="noopener">YT Music ✓</a>' +
-        '<a class="chip found" href="https://music.amazon.com/search/' + q + '" target="_blank" rel="noopener" title="Search Amazon Music">Amazon ⌕</a>' +
-        '<a class="chip found" href="https://listen.tidal.com/search?q=' + q + '" target="_blank" rel="noopener" title="Search Tidal">Tidal ⌕</a>';
+      var dance = /^(1up|movement)$/.test(window.UP1_STATION || '1up'), sid = encodeURIComponent(s.id);   // the house stations: Beatport comes right after YouTube
+      var yt = sico('youtube', 'https://www.youtube.com/watch?v=' + sid, 'Open on YouTube'), bp = sico('beatport', 'https://www.beatport.com/search?q=' + q, 'Search on Beatport');
+      lk += yt + (dance ? bp : '');
+      if (L && L.apple) lk += sico('apple', L.apple, 'Open on Apple Music');
+      if (L && L.deezer) lk += sico('deezer', L.deezer, 'Open on Deezer');
+      lk += sico('spotify', 'https://open.spotify.com/search/' + q, 'Search on Spotify') + sico('ytmusic', 'https://music.youtube.com/watch?v=' + sid, 'Open on YouTube Music') +
+        sico('amazon', 'https://music.amazon.com/search/' + q, 'Search on Amazon Music') + sico('tidal', 'https://listen.tidal.com/search?q=' + q, 'Search on Tidal') + (dance ? '' : bp);
       lk += !(L && L.apple !== undefined && L.deezer !== undefined) ? '<span class="snf">checking Apple &amp; Deezer…</span>' : (L.apple || L.deezer ? '' : '<span class="snf">not found on Apple or Deezer</span>');
       var LY = s.ly && s.ly.text ? s.ly : null;
       var lyb = '';
