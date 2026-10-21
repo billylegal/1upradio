@@ -119,17 +119,29 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
 })();
 
+/* Back button vs. overlays: an overlay (the big cover, the phone lyrics window) takes one history step when it opens, so the phone's Back button closes it instead of leaving the page
+   (stations use history too: Back used to switch to the previous station and stop the music). closed(fn) pops that step again when the overlay is closed any other way. */
+(function () {
+  var owner = null;
+  window.UP1_BACKGUARD = {
+    opened: function (closeFn) { try { history.pushState({ ov: 1 }, '', location.href); owner = closeFn; } catch (e) {} },
+    closed: function (closeFn) { if (owner !== closeFn) return; owner = null; try { if (history.state && history.state.ov) history.back(); } catch (e) {} }
+  };
+  window.addEventListener('popstate', function () { if (owner) { var f = owner; owner = null; f(); } });
+})();
+
 /* Tap the album cover to see it big */
 (function () {
   function ready() {
     var box = document.createElement('div'); box.id = 'artzoom'; box.hidden = true; box.innerHTML = '<img alt="Album cover"><button type="button" aria-label="Close">&times;</button>'; document.body.appendChild(box);
     var img = box.querySelector('img');
-    function close() { box.hidden = true; img.removeAttribute('src'); }
+    function shut() { box.hidden = true; img.removeAttribute('src'); }
+    function close() { shut(); if (window.UP1_BACKGUARD) UP1_BACKGUARD.closed(shut); }
     box.addEventListener('click', close); document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
     document.addEventListener('click', function (e) {
       var a = e.target.closest('#npArt'); if (!a || !a.getAttribute('src')) return;
       var src = a.currentSrc || a.src, big = src.replace('/mqdefault.jpg', '/hqdefault.jpg');   // YouTube pictures come in a bigger size; album covers are already large
-      img.onerror = function () { img.onerror = null; img.src = src; }; img.src = big; box.hidden = false;
+      img.onerror = function () { img.onerror = null; img.src = src; }; img.src = big; box.hidden = false; if (window.UP1_BACKGUARD) UP1_BACKGUARD.opened(shut);
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
