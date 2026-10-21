@@ -175,6 +175,41 @@
     if (L) h += (L.ig ? sico('instagram', L.ig, name + ' on Instagram') : '') + (L.tt ? sico('tiktok', L.tt, name + ' on TikTok') : '') + (L.x ? sico('x', L.x, name + ' on X (Twitter)') : '') + (L.yt ? sico('youtube', L.yt, name + ' on YouTube') : '') + (L.sp ? sico('spotify', L.sp, name + ' on Spotify') : '') + (L.bp ? sico('beatport', L.bp, name + ' on Beatport') : '');
     return h;
   }
+  // ---- every website and profile we know for an artist (MusicBrainz's curated links), shown as pills in the profile card ----
+  var PL_ORDER = ['Website', 'Wikipedia', 'Spotify', 'Apple Music', 'Deezer', 'Beatport', 'Bandcamp', 'SoundCloud', 'Facebook', 'Resident Advisor', 'Mixcloud', 'Discogs', 'AllMusic', 'Last.fm', 'Genius', 'Tour dates'];
+  function plLabel(url) {
+    if (/^https?:\/\/en\.wikipedia\.org\/wiki\//i.test(url)) return 'Wikipedia';
+    if (/bandcamp\.com/i.test(url)) return 'Bandcamp'; if (/soundcloud\.com/i.test(url)) return 'SoundCloud'; if (/facebook\.com/i.test(url)) return 'Facebook';
+    if (/open\.spotify\.com\/artist/i.test(url)) return 'Spotify'; if (/(music|itunes)\.apple\.com/i.test(url)) return 'Apple Music'; if (/deezer\.com/i.test(url)) return 'Deezer';
+    if (/beatport\.com\/artist/i.test(url)) return 'Beatport'; if (/(\/\/ra\.co|residentadvisor\.net)/i.test(url)) return 'Resident Advisor'; if (/mixcloud\.com/i.test(url)) return 'Mixcloud';
+    if (/discogs\.com\/artist/i.test(url)) return 'Discogs'; if (/allmusic\.com\/artist/i.test(url)) return 'AllMusic'; if (/last\.fm\/music/i.test(url)) return 'Last.fm'; if (/genius\.com\/artists/i.test(url)) return 'Genius';
+    if (/(songkick|bandsintown)\.com/i.test(url)) return 'Tour dates';
+    return '';
+  }
+  function profMore(name) {
+    var k = alNorm(name);
+    try { var c = JSON.parse(localStorage.getItem('up1-pl:' + k) || 'null'); if (c && Date.now() - c.t < 30 * 864e5) return Promise.resolve(c.l); } catch (e) {}
+    return new Promise(function (res) {
+      LIVEQ = LIVEQ.then(function () {
+        return alGet('https://musicbrainz.org/ws/2/artist/?fmt=json&limit=3&query=' + encodeURIComponent('artist:"' + name.replace(/"/g, ' ') + '"')).then(function (j) {
+          var hit = (j.artists || []).filter(function (x) { return x.score >= 96 && [x.name].concat((x.aliases || []).map(function (y) { return y.name; })).some(function (n) { return alNorm(n) === k; }); })[0];
+          if (!hit) return [];
+          return alWait(1100).then(function () { return alGet('https://musicbrainz.org/ws/2/artist/' + hit.id + '?fmt=json&inc=url-rels'); }).then(function (d) {
+            var seen = {}, list = [];
+            (d.relations || []).forEach(function (rel) {
+              var url = ((rel.url || {}).resource || '').trim(); if (!/^https?:\/\//i.test(url)) return;
+              var lab = rel.type === 'official homepage' ? 'Website' : plLabel(url); if (!lab || seen[lab]) return; seen[lab] = 1; list.push([lab, url]);
+            });
+            return list;
+          });
+        }).then(function (l) { try { localStorage.setItem('up1-pl:' + k, JSON.stringify({ t: Date.now(), l: l })); } catch (e) {} res(l); return alWait(1100); }).catch(function () { res([]); return alWait(1100); });
+      });
+    });
+  }
+  function profPills(known, more) {   // known: links we already have for sure; more: from MusicBrainz; merged in a fixed order, one pill per kind
+    var by = {}; (known || []).concat(more || []).forEach(function (p) { if (p && p[1] && !by[p[0]]) by[p[0]] = p[1]; });
+    return PL_ORDER.filter(function (l) { return by[l]; }).map(function (l) { return '<a class="aclk" href="' + esc(by[l]) + '" target="_blank" rel="noopener noreferrer">' + esc(l) + '</a>'; }).join('');
+  }
   function cardShut() { var c = $('acard'); if (c) c.hidden = true; acardFor = ''; }
   function closeArtistCard() { cardShut(); if (window.UP1_BACKGUARD) UP1_BACKGUARD.closed(cardShut); }
   function openArtistCard(name) {
@@ -200,13 +235,15 @@
       if (bio) h += '<p class="acbio">' + esc(bio) + '</p>';
       facts.slice(0, 3).forEach(function (f) { h += '<p class="acfact">' + esc(f) + '</p>'; });
       if (!bio && !facts.length) h += '<p class="acfact">No profile text for this artist yet.</p>';
-      h += '<div class="acacc" id="acacc">' + profAccounts(name) + '</div>';
+      var known = []; if (own) known = [['Website', 'https://billylegal.com'], ['Apple Music', 'https://music.apple.com/ca/artist/billy-legal/6788113036'], ['Deezer', 'https://www.deezer.com/artist/401877641'], ['Spotify', OWN['billy legal'].sp], ['Beatport', OWN['billy legal'].bp]]; else { if (wk && wk.url) known.push(['Wikipedia', wk.url]); if (dz && dz.link) known.push(['Deezer', dz.link]); }
+      h += '<div class="acacc" id="acacc">' + profAccounts(name) + '</div><div class="aclinks" id="aclinks">' + profPills(known, []) + '</div>';
       if (lab && window.UP1_NOW && alNorm((credits(window.UP1_NOW.title)[0]) || '') === key) {
         var LL = ALINKS && ALINKS['label:' + alNorm(lab)];
         h += '<div class="aclab"><em>Label</em> <b>' + esc(lab) + '</b>' + (LL ? (LL.ig ? sico('instagram', LL.ig, lab + ' on Instagram') : '') + (LL.tt ? sico('tiktok', LL.tt, lab + ' on TikTok') : '') + (LL.x ? sico('x', LL.x, lab + ' on X (Twitter)') : '') + (LL.yt ? sico('youtube', LL.yt, lab + ' on YouTube') : '') : '') + '</div>';
       }
       var cr = []; if (dz && dz.link && !own) cr.push('Photo and fans: <a href="' + esc(dz.link) + '" target="_blank" rel="noopener">Deezer</a>');
       if (wk && wk.url && !own) cr.push('Text: <a href="' + esc(wk.url) + '" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA)');
+      if (!own) cr.push('Links: MusicBrainz');
       if (own) cr.push('<a href="https://billylegal.com" target="_blank" rel="noopener">BillyLegal.com</a>');
       if (cr.length) h += '<div class="accr">' + cr.join(' · ') + '</div>';
       inn.innerHTML = h;
@@ -215,6 +252,7 @@
     inn.innerHTML = '<div class="acl">1UP Radio · Artist profile</div><div class="achead"><div class="acpic ph">' + esc(name.charAt(0)) + '</div><div><h3>' + esc(name) + '</h3><div class="acmeta">Loading…</div></div></div>';
     Promise.all([own ? null : profDeezer(name), own ? null : profWiki(name), profData()]).then(function (r) {
       if (acardFor !== key) return; paint(r[0], r[1], r[2][0], r[2][1]);
+      if (!own) profMore(name).then(function (more) { var el = $('aclinks'); if (acardFor !== key || !el) return; var kn = []; if (r[1] && r[1].url) kn.push(['Wikipedia', r[1].url]); if (r[0] && r[0].link) kn.push(['Deezer', r[0].link]); el.innerHTML = profPills(kn, more); });
       [1500, 5000, 12000].forEach(function (ms) { setTimeout(function () { var el = $('acc' + 'acc'); if (acardFor === key && el) el.innerHTML = profAccounts(name); }, ms); });   // official accounts found by a live lookup join the card when they arrive
     });
   }
@@ -282,22 +320,23 @@
     if (!ALINKS) { fetch(window.UP1_LINKS_URL || ('data/artist-links.json?t=' + Math.floor(Date.now() / 1800000))).then(function (r) { return r.json(); }).then(function (j) { ALINKS = ownMerge(j); }).catch(function () { ALINKS = ownMerge({}); }).then(function () { alKey = ''; paintArtLinks(curP || p); }); return; }
     if (!LABELS) { LABELS = {}; fetch('data/labels.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { LABELS = j || {}; alKey = ''; paintArtLinks(curP || p); }).catch(function () {}); }
     var html = '';
+    function alIcons(L, n) { return (L.ig ? sico('instagram', L.ig, n + ' on Instagram') : '') + (L.tt ? sico('tiktok', L.tt, n + ' on TikTok') : '') + (L.x ? sico('x', L.x, n + ' on X (Twitter)') : '') + (L.yt ? sico('youtube', L.yt, n + ' on YouTube') : '') + (L.sp ? sico('spotify', L.sp, n + ' on Spotify') : '') + (L.bp ? sico('beatport', L.bp, n + ' on Beatport') : ''); }
+    function grp(tag, name, icons) { return '<div class="alk"><div class="alkn"><em>' + tag + '</em><b>' + esc(name) + '</b></div><div class="alki">' + icons + '</div></div>'; }
     credits(p.title).forEach(function (n) {
       if (ALINKS[alNorm(n)] === undefined) liveLinks(n);
       var L = ALINKS[alNorm(n)]; if (!L || !(L.x || L.ig || L.tt || L.yt || L.sp || L.bp)) return;
-      html += '<span class="alk"><b>' + esc(n) + '</b>' + (L.ig ? sico('instagram', L.ig, n + ' on Instagram') : '') + (L.tt ? sico('tiktok', L.tt, n + ' on TikTok') : '') + (L.x ? sico('x', L.x, n + ' on X (Twitter)') : '') + (L.yt ? sico('youtube', L.yt, n + ' on YouTube') : '') + (L.sp ? sico('spotify', L.sp, n + ' on Spotify') : '') + (L.bp ? sico('beatport', L.bp, n + ' on Beatport') : '') + '</span>';
+      html += grp('Artist', n, alIcons(L, n));
     });
-    var lab = LABELS && LABELS[p.id];   // the record label gets its own group after the artists
+    var lab = LABELS && LABELS[p.id];   // the record label gets its own line after the artists
     if (lab) {
       var lk = 'label:' + alNorm(lab); if (ALINKS[lk] === undefined) liveLinks(lab, 'label');
-      var LL = ALINKS[lk];
-      if (LL && (LL.x || LL.ig || LL.tt || LL.yt)) html += '<span class="alk lbl"><em>Label</em><b>' + esc(lab) + '</b>' + (LL.ig ? sico('instagram', LL.ig, lab + ' on Instagram') : '') + (LL.tt ? sico('tiktok', LL.tt, lab + ' on TikTok') : '') + (LL.x ? sico('x', LL.x, lab + ' on X (Twitter)') : '') + (LL.yt ? sico('youtube', LL.yt, lab + ' on YouTube') : '') + '</span>';
+      var LL = ALINKS[lk]; if (LL && (LL.x || LL.ig || LL.tt || LL.yt)) html += grp('Label', lab, alIcons(LL, lab));
     }
     if (/^(1up|movement)$/.test(window.UP1_STATION || '1up')) {   // house tunes are mostly on Beatport: a button for the playing track itself (a Beatport search for it)
       var sp = split(p.title), bq = encodeURIComponent(sp[0] ? sp[0] + ' ' + sp[1] : sp[1]);
-      html += '<span class="alk trk"><em>This track</em>' + sico('beatport', 'https://www.beatport.com/search?q=' + bq, 'Find this track on Beatport') + '<b>Find on Beatport</b></span>';
+      html += grp('Track', 'Find on Beatport', sico('beatport', 'https://www.beatport.com/search?q=' + bq, 'Find this track on Beatport'));
     }
-    box.innerHTML = html ? '<span class="alklab">Playing now \u00b7 artist &amp; label accounts</span>' + html + '<a class="azlink" href="#">All artists A\u2013Z</a>' : ''; box.hidden = !html;
+    box.innerHTML = html ? '<div class="alkhead"><span class="alklab">Playing now · artist &amp; label accounts</span><a class="azlink" href="#">All artists A–Z ›</a></div>' + html : ''; box.hidden = !html;
     try { linkArtistLine(); } catch (e) {}
   }
   function paintSaved() {
