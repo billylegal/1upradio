@@ -160,6 +160,10 @@ def station(name, vfile, afile, sfile, budget):
     V, OUT_ = os.path.join(HERE, vfile), os.path.join(HERE, afile); TRIED = OUT_.replace('.json', '-tried.json')
     if not os.path.exists(V): return 0
     vids = json.load(open(V)); done = json.load(open(OUT_)) if os.path.exists(OUT_) else {}; tried = json.load(open(TRIED)) if os.path.exists(TRIED) else {}; n = 0; now = time.time()
+    try:   # covers found by Magic Ear (listening + AcoustID) fill the gaps
+        for k, u in json.load(open(OUT_.replace('-art.json', '-art-ear.json'))).items():
+            if u and not done.get(k): done[k] = u
+    except Exception: pass
     try:   # songs about to air first
         sched = json.load(open(os.path.join(HERE, sfile)))['plays']; rank = {}
         for p in sorted(sched, key=lambda p: p['t']):

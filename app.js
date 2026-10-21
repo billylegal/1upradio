@@ -14,6 +14,7 @@
     if (window.UP1_ARTMAP) fetch(window.UP1_ARTMAP + '?t=' + Math.floor(Date.now() / 600000)).then(function (r) { return r.json(); }).then(function (j) { ART = j || {}; try { paintNP(); } catch (e) {} }).catch(function () {});
   }
   loadArt();
+  window.UP1_COVER = function (id) { return ART[id] || ''; };
   function load() {
     return fetch((window.UP1_SCHEDULE || 'schedule.json') + '?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (d) {
       var cur = idx >= 0 && S.plays[idx] ? S.plays[idx].t : null;
@@ -27,7 +28,7 @@
     for (var i = 0; i < S.plays.length; i++) { if (S.plays[i].t <= src) k = i; else break; }
     return k < 0 ? 0 : k;
   }
-  function paintNP() {
+  function paintNP() { window.UP1_NOW = curP || (S.plays && S.plays[idx]) || null;
     var p = curP || S.plays[idx]; if (!p) return; var a = split(p.title);
     $('npTitle').textContent = a[1] || p.title; $('npArtist').textContent = a[0];
     var aw = $('npArtWrap'), ai = $('npArt'); if (aw && ai) { if (p.id) { var u = (ART[p.id]) ? ART[p.id] : 'https://i.ytimg.com/vi/' + encodeURIComponent(p.id) + '/mqdefault.jpg'; if (ai.getAttribute('src') !== u) ai.src = u; aw.hidden = false; } else aw.hidden = true; }   // album cover (the song's YouTube picture), like the desktop player
