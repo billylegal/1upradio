@@ -216,8 +216,8 @@
     return PL_ORDER.filter(function (l) { return by[l]; }).map(function (l) { return '<a class="aclk" href="' + esc(by[l]) + '" target="_blank" rel="noopener noreferrer">' + esc(l) + '</a>'; }).join('');
   }
   function paintLabels(list, nowLab, name) {   // every record label the artist has released on (from MusicBrainz releases), with the label's own accounts when we know them
-    var el = $('aclabs'); if (!el || acardFor !== alNorm(name)) return;
-    var L = (list || []).slice(); if (nowLab && !L.some(function (n) { return alNorm(n) === alNorm(nowLab); })) { var np = window.UP1_NOW && alNorm((credits(window.UP1_NOW.title)[0]) || '') === alNorm(name); if (np) L.unshift(nowLab); }
+    var el = $('aclabs'); if (!el || acardFor !== alNorm(name)) return; LB[alNorm(name)] = [list, nowLab];
+    var L = (list || []).slice(); (NL[alNorm(name)] || []).forEach(function (n) { if (!L.some(function (x) { return alNorm(x) === alNorm(n); })) L.push(n); }); if (nowLab && !L.some(function (n) { return alNorm(n) === alNorm(nowLab); })) { var np = window.UP1_NOW && alNorm((credits(window.UP1_NOW.title)[0]) || '') === alNorm(name); if (np) L.unshift(nowLab); }
     if (!L.length) { el.innerHTML = ''; return; }
     el.innerHTML = '<div class="aclh">Labels</div>' + L.map(function (n) {
       var q = ALINKS && ALINKS['label:' + alNorm(n)]; if (!q && ALINKS) liveLinks(n, 'label');
@@ -272,6 +272,7 @@
   }
   document.addEventListener('click', function (e) { var t = e.target.closest && e.target.closest('a.artlnk'); if (!t) return; e.preventDefault(); openArtistCard(t.getAttribute('data-artist') || t.textContent); });
   // ---- Artists A-Z: every artist on the four stations and their songs (data/artists/<letter>.json, loaded when a letter is opened) ----
+  var SNOTES = null, NL = {}, LB = {};
   var AZ = { idx: null, cache: {}, L: 'A', stn: -1, q: '', el: null };
   function azLetter(n) { var c = String(n || '').trim().charAt(0).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); return /^[A-Z]$/.test(c) ? c : '#'; }
   function azLoad(L) {
@@ -279,12 +280,20 @@
     return fetch('data/artists/' + (L === '#' ? 'num' : L.toLowerCase()) + '.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { AZ.cache[L] = j; return j; }).catch(function () { return []; });
   }
   function azSongsInCard(name, inn) {   // "the music they make": their songs on our stations, inside the profile card
-    azLoad(azLetter(name)).then(function (rows) {
+    var nt = SNOTES || (SNOTES = fetch('data/song-notes.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).catch(function () { return {}; }));
+    Promise.all([azLoad(azLetter(name)), nt]).then(function (pr) {
+      var rows = pr[0], N = pr[1] || {};
       var k = alNorm(name), row = rows.filter(function (r) { return alNorm(r[0]) === k; })[0];
       if (!row || acardFor !== k) return;
       var names = (AZ.idx && AZ.idx.stations) || ['1UP Radio', 'The Movement', 'Culture Shock', 'The Vault'], songs = row[1];
-      var h = '<div class="acsongs"><div class="acsh">Songs on 1UP Radio (' + songs.length + ')</div>' + songs.slice(0, 8).map(function (s) { return '<div class="acsg"><span>' + esc(s[1]) + '</span><em>' + esc(names[s[0]] || '') + '</em></div>'; }).join('') + (songs.length > 8 ? '<div class="acsm">and ' + (songs.length - 8) + ' more</div>' : '') + '</div>';
+      var h = '<div class="acsongs"><div class="acsh">Songs on 1UP Radio (' + songs.length + ')</div>' + songs.slice(0, 8).map(function (s) { var n = N[s[2]] || {}, t = n.n && !/^\d{4}$/.test(n.n) && n.n.length >= 12 ? n.n : (n.y ? 'From ' + n.y : ''); return '<div class="acsg"><span>' + esc(s[1]) + (t ? '<small>' + esc(t) + '</small>' : '') + '</span><em>' + esc(names[s[0]] || '') + '</em></div>'; }).join('') + (songs.length > 8 ? '<div class="acsm">and ' + (songs.length - 8) + ' more</div>' : '') + '</div>';
       var box = inn.querySelector('.acsongs'); if (box) box.remove(); inn.insertAdjacentHTML('beforeend', h);
+      NL[k] = []; songs.forEach(function (s) { var l = (N[s[2]] || {}).l; if (l && NL[k].indexOf(l) < 0) NL[k].push(l); });   // labels named in the uploader's notes
+      if (LB[k]) paintLabels(LB[k][0], LB[k][1], name);
+      var ph = inn.querySelector('.acfact'); if (ph && /^No profile text/.test(ph.textContent)) {   // nothing on the web about this artist: say what the uploader's notes tell us
+        var ys = songs.map(function (s) { return (N[s[2]] || {}).y; }).filter(Boolean).sort();
+        if (ys.length || NL[k].length) ph.textContent = 'Songs on 1UP Radio' + (ys.length ? ' from ' + (ys[0] === ys[ys.length - 1] ? ys[0] : ys[0] + ' to ' + ys[ys.length - 1]) : '') + (NL[k].length ? ', released on ' + NL[k].slice(0, 3).join(', ') : '') + '.';
+      }
     });
   }
   function azShut() { if (AZ.el) AZ.el.hidden = true; }
