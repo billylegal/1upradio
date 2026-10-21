@@ -30,7 +30,7 @@
   }
   function paintNP() { window.UP1_NOW = curP || (S.plays && S.plays[idx]) || null; try { paintArtLinks(window.UP1_NOW); } catch (e) {}
     var p = curP || S.plays[idx]; if (!p) return; var a = split(p.title);
-    $('npTitle').textContent = a[1] || p.title; $('npArtist').textContent = a[0];
+    $('npTitle').textContent = a[1] || p.title; $('npArtist').textContent = a[0]; try { linkArtistLine(); } catch (e) {}
     var aw = $('npArtWrap'), ai = $('npArt'); if (aw && ai) { if (p.id) { var u = (ART[p.id]) ? ART[p.id] : 'https://i.ytimg.com/vi/' + encodeURIComponent(p.id) + '/mqdefault.jpg'; if (ai.getAttribute('src') !== u) ai.src = u; ai.removeAttribute('data-fallback'); aw.hidden = false; } else aw.hidden = true; }   // the spinning record: the real album cover, else the song's YouTube picture (on the vinyl stations that is usually the record label itself)
     document.title = (playing ? '▶ ' : '') + (a[1] || p.title) + ' · 1UP Radio';
     paintSave();
@@ -125,6 +125,21 @@
       }).then(function (out) { ALINKS[k] = out; try { localStorage.setItem('up1-al:' + k, JSON.stringify({ t: Date.now(), l: out })); } catch (e) {} alKey = ''; paintArtLinks(curP); return alWait(1100); }).catch(function () { return alWait(1100); });
     });
   }
+  function artistHref(n) { var L = (ALINKS && ALINKS[alNorm(n)]) || {}; return L.ig || L.tt || L.x || L.yt || ('https://www.youtube.com/results?search_query=' + encodeURIComponent(n)); }
+  function linkArtistLine() {   // the artist names under the song title are links: to that artist's Instagram (else TikTok, X, YouTube; else a YouTube search for the name)
+    var el = $('npArtist'), p = window.UP1_NOW; if (!el || !p) return;
+    var txt = el.textContent, low = txt.toLowerCase(), spots = [];
+    credits(p.title).forEach(function (n) { var i = low.indexOf(n.toLowerCase()); if (i >= 0) spots.push([i, n.length, n]); });
+    if (!spots.length) return;
+    spots.sort(function (x, y) { return x[0] - y[0]; });
+    var html = '', pos = 0;
+    spots.forEach(function (s) {
+      if (s[0] < pos) return;
+      html += esc(txt.slice(pos, s[0])) + '<a class="artlnk" href="' + esc(artistHref(s[2])) + '" target="_blank" rel="noopener noreferrer" title="Open ' + esc(s[2]) + '">' + esc(txt.slice(s[0], s[0] + s[1])) + '</a>';
+      pos = s[0] + s[1];
+    });
+    el.innerHTML = html + esc(txt.slice(pos));
+  }
   function paintArtLinks(p) {
     var box = $('artlinks'); if (!box) return;
     var key = (p && p.id || '') + '|' + (ALINKS ? 1 : 0); if (key === alKey) return; alKey = key;
@@ -137,6 +152,7 @@
       html += '<span class="alk"><b>' + esc(n) + '</b>' + (L.ig ? sico('instagram', L.ig, n + ' on Instagram') : '') + (L.tt ? sico('tiktok', L.tt, n + ' on TikTok') : '') + (L.x ? sico('x', L.x, n + ' on X (Twitter)') : '') + (L.yt ? sico('youtube', L.yt, n + ' on YouTube') : '') + '</span>';
     });
     box.innerHTML = html ? '<span class="alklab">Artist accounts</span>' + html : ''; box.hidden = !html;
+    try { linkArtistLine(); } catch (e) {}
   }
   function paintSaved() {
     var el = $('saved'); if (!el) return; paintHearts();
