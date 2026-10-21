@@ -101,6 +101,15 @@
     cols.parentNode.insertBefore(fcard, cols);
     fetch('data/featured.json?t=' + Math.floor(Date.now() / 600000)).then(function (r) { return r.json(); }).then(function (j) { feat = j || {}; featPaint(); }).catch(function () {});
     var last = station(); setInterval(function () { if (station() !== last) { last = station(); featPaint(); } }, 1500);
+    function pairUp() {   // Sound clash (left) and Song of the week (right) share one row
+      var clash = document.querySelector('.card.clash'), pr = document.getElementById('cpair');
+      if (!clash || !fcard || !cols.parentNode) return;
+      if (!pr) { pr = document.createElement('div'); pr.id = 'cpair'; pr.className = 'cpair'; cols.parentNode.insertBefore(pr, cols); }
+      if (clash.parentNode !== pr) pr.appendChild(clash);
+      if (fcard.parentNode !== pr) pr.appendChild(fcard);
+      if (pr.firstChild !== clash) pr.insertBefore(clash, pr.firstChild);
+    }
+    var pt = setInterval(function () { pairUp(); if (document.getElementById('cpair')) clearInterval(pt); }, 500);
   }
 
   function init() {

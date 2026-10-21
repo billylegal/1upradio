@@ -186,3 +186,13 @@ html .artlinks{display:none!important}
 /* the "You are live with the station" line sits dead centre */
 #hint:has(.live){text-align:center;font-size:14px;letter-spacing:.04em;margin:16px 0 4px}
 #hint .live{display:inline-block}
+/* Sound clash (left) and Song of the week (right) on one row */
+.cpair{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:18px;margin-bottom:18px}
+.cpair>.card{margin-bottom:0}
+@media(max-width:640px){.cpair{grid-template-columns:1fr;gap:12px}}
+/* the artist profile link: just the face and the words, no pill */
+.featured .flinks .chip.fprof{display:inline-flex;align-items:center;gap:10px;padding:0;border:0;border-radius:0;background:transparent;font-size:14px;font-weight:600}
+.featured .flinks .chip.fprof:hover{background:transparent;border:0;text-decoration:underline}
+.featured .fprof .fface{width:40px;height:40px}
+.featured .fprof:not(:has(.fface:not([hidden]))){padding:0}
+.featured .ftitle{font-size:19px}
