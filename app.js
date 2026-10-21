@@ -81,6 +81,50 @@
     if (rm) { var w = rm[1].split(/['\u2019]s\s/)[0].replace(/['\u2019]s$/i, '').trim(); if (w && !/^(original|extended|radio|club|main|album|instrumental|vocal|dub|full|short|long|new)$/i.test(w)) names.push(w); }
     return names.filter(function (n) { var k = alNorm(n); if (!k || seen[k]) return false; seen[k] = 1; return true; }).slice(0, 4);
   }
+  // an artist nobody has looked up yet: the page asks MusicBrainz (and Wikidata) once, right now, for their official accounts and remembers the answer on this device for 30 days
+  var LIVEQ = Promise.resolve(), LIVE_TRIED = {};
+  function alWait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function alGet(u, again) {
+    return fetch(u, { headers: { Accept: 'application/json' } }).then(function (r) {
+      if (r.status === 503 && !again) return alWait(2500).then(function () { return alGet(u, true); });
+      if (!r.ok) throw new Error('http ' + r.status); return r.json();
+    });
+  }
+  function alParse(rels) {
+    var out = {}, qid = null;
+    (rels || []).forEach(function (rel) {
+      var url = ((rel.url || {}).resource || '').trim(), m;
+      if ((m = /^https?:\/\/(?:www\.|mobile\.)?(?:twitter\.com|x\.com)\/([A-Za-z0-9_]{1,15})\/?(?:\?.*)?$/.exec(url))) { if (!out.x) out.x = 'https://x.com/' + m[1]; }
+      else if ((m = /^https?:\/\/(?:www\.)?instagram\.com\/([A-Za-z0-9_.]{1,30})\/?(?:\?.*)?$/.exec(url))) { if (!out.ig) out.ig = 'https://www.instagram.com/' + m[1] + '/'; }
+      else if ((m = /^https?:\/\/(?:www\.|m\.)?tiktok\.com\/@([A-Za-z0-9_.]{1,30})\/?(?:\?.*)?$/.exec(url))) { if (!out.tt) out.tt = 'https://www.tiktok.com/@' + m[1]; }
+      else if (/^https?:\/\/(?:www\.|m\.)?youtube\.com\/(channel\/|user\/|c\/|@)[^\/?#]+\/?$/.test(url)) { if (!out.yt) out.yt = url.replace(/\/$/, ''); }
+      else if ((m = /^https?:\/\/(?:www\.)?wikidata\.org\/wiki\/(Q\d+)/.exec(url))) qid = m[1];
+    });
+    return { out: out, qid: qid };
+  }
+  function liveLinks(name) {
+    var k = alNorm(name); if (!k || LIVE_TRIED[k]) return; LIVE_TRIED[k] = 1;
+    try { var c = JSON.parse(localStorage.getItem('up1-al:' + k) || 'null'); if (c && Date.now() - c.t < 30 * 864e5) { ALINKS[k] = c.l; return; } } catch (e) {}
+    LIVEQ = LIVEQ.then(function () {
+      return alGet('https://musicbrainz.org/ws/2/artist/?fmt=json&limit=3&query=' + encodeURIComponent('artist:"' + name.replace(/"/g, ' ') + '"')).then(function (j) {
+        var a = (j.artists || []).filter(function (x) { return x.score >= 96 && [x.name].concat((x.aliases || []).map(function (y) { return y.name; })).some(function (n) { return alNorm(n) === k; }); })[0];
+        if (!a) return {};
+        return alWait(1100).then(function () { return alGet('https://musicbrainz.org/ws/2/artist/' + a.id + '?fmt=json&inc=url-rels'); }).then(function (d) {
+          var p = alParse(d.relations); if (!p.qid || (p.out.x && p.out.ig && p.out.tt && p.out.yt)) return p.out;
+          return alGet('https://www.wikidata.org/w/api.php?action=wbgetentities&props=claims&format=json&origin=*&ids=' + p.qid).then(function (w) {
+            var cl = ((w.entities || {})[p.qid] || {}).claims || {};
+            function one(pid) { var l = cl[pid] || []; for (var q = 0; q < l.length; q++) { if (l[q].rank === 'deprecated') continue; var v = ((l[q].mainsnak || {}).datavalue || {}).value; if (typeof v === 'string' && v) return v; } }
+            var tw = one('P2002'), ig = one('P2003'), tt = one('P7085'), yt = one('P2397');
+            if (tw && !p.out.x && /^[A-Za-z0-9_]{1,15}$/.test(tw)) p.out.x = 'https://x.com/' + tw;
+            if (ig && !p.out.ig && /^[A-Za-z0-9_.]{1,30}$/.test(ig)) p.out.ig = 'https://www.instagram.com/' + ig + '/';
+            if (tt && !p.out.tt && /^[A-Za-z0-9_.]{1,30}$/.test(tt)) p.out.tt = 'https://www.tiktok.com/@' + tt;
+            if (yt && !p.out.yt && /^UC[A-Za-z0-9_-]{22}$/.test(yt)) p.out.yt = 'https://www.youtube.com/channel/' + yt;
+            return p.out;
+          }).catch(function () { return p.out; });
+        });
+      }).then(function (out) { ALINKS[k] = out; try { localStorage.setItem('up1-al:' + k, JSON.stringify({ t: Date.now(), l: out })); } catch (e) {} alKey = ''; paintArtLinks(curP); return alWait(1100); }).catch(function () { return alWait(1100); });
+    });
+  }
   function paintArtLinks(p) {
     var box = $('artlinks'); if (!box) return;
     var key = (p && p.id || '') + '|' + (ALINKS ? 1 : 0); if (key === alKey) return; alKey = key;
@@ -88,6 +132,7 @@
     if (!ALINKS) { fetch(window.UP1_LINKS_URL || ('data/artist-links.json?t=' + Math.floor(Date.now() / 1800000))).then(function (r) { return r.json(); }).then(function (j) { ALINKS = j || {}; }).catch(function () { ALINKS = {}; }).then(function () { alKey = ''; paintArtLinks(curP || p); }); return; }
     var html = '';
     credits(p.title).forEach(function (n) {
+      if (ALINKS[alNorm(n)] === undefined) liveLinks(n);
       var L = ALINKS[alNorm(n)]; if (!L || !(L.x || L.ig || L.tt || L.yt)) return;
       html += '<span class="alk"><b>' + esc(n) + '</b>' + (L.ig ? sico('instagram', L.ig, n + ' on Instagram') : '') + (L.tt ? sico('tiktok', L.tt, n + ' on TikTok') : '') + (L.x ? sico('x', L.x, n + ' on X (Twitter)') : '') + (L.yt ? sico('youtube', L.yt, n + ' on YouTube') : '') + '</span>';
     });
