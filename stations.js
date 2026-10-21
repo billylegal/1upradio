@@ -122,12 +122,12 @@
 /* Back button vs. overlays: an overlay (the big cover, the phone lyrics window) takes one history step when it opens, so the phone's Back button closes it instead of leaving the page
    (stations use history too: Back used to switch to the previous station and stop the music). closed(fn) pops that step again when the overlay is closed any other way. */
 (function () {
-  var owner = null;
+  var owners = [], skip = 0;
   window.UP1_BACKGUARD = {
-    opened: function (closeFn) { try { history.pushState({ ov: 1 }, '', location.href); owner = closeFn; } catch (e) {} },
-    closed: function (closeFn) { if (owner !== closeFn) return; owner = null; try { if (history.state && history.state.ov) history.back(); } catch (e) {} }
+    opened: function (closeFn) { try { history.pushState({ ov: 1 }, '', location.href); owners.push(closeFn); } catch (e) {} },
+    closed: function (closeFn) { var i = owners.lastIndexOf(closeFn); if (i < 0) return; owners.splice(i, 1); try { if (history.state && history.state.ov) { skip++; history.back(); } } catch (e) {} }
   };
-  window.addEventListener('popstate', function () { if (owner) { var f = owner; owner = null; f(); } });
+  window.addEventListener('popstate', function () { if (skip > 0) { skip--; return; } var f = owners.pop(); if (f) f(); });
 })();
 
 /* Tap the album cover to see it big */

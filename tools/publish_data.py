@@ -5,7 +5,7 @@ tracks.json belong to the cloud workflow and are never touched. Runs from a syst
 import json, os, subprocess, sys, tempfile, shutil, time
 H = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FILES = ['artist-auto.json', 'artist-links.json', 'facts-main.json', 'facts-movement.json', 'facts-culture.json', 'facts-hiphopvinyl.json',
-         'main-art.json', 'movement-art.json', 'culture-art.json', 'hiphopvinyl-art.json', 'main-art-ear.json', 'loudness.json', 'labels.json']
+         'main-art.json', 'movement-art.json', 'culture-art.json', 'hiphopvinyl-art.json', 'main-art-ear.json', 'loudness.json', 'labels.json'] + ['artists/%s.json' % c for c in ['index', 'num'] + list('abcdefghijklmnopqrstuvwxyz')]
 REPO = 'https://github.com/billylegal/1upradio.git'
 GIT = ['git', '-c', 'user.name=Billy Legal', '-c', 'user.email=billylegal@users.noreply.github.com']
 
@@ -25,6 +25,7 @@ def main():
         for f in FILES:
             src = '%s/data/%s' % (H, f)
             if not os.path.exists(src): continue
+            os.makedirs(os.path.dirname('%s/data/%s' % (r, f)), exist_ok=True)
             try: new = json.load(open(src))
             except Exception: print('skip (not valid JSON yet):', f); continue
             dst = '%s/data/%s' % (r, f)

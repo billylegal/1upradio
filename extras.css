@@ -90,3 +90,52 @@ html[data-skin=meters] .artlinks,html[data-skin=wormhole] .artlinks{display:none
 .alk.lbl em{font-style:normal;font-size:9px;letter-spacing:.14em;text-transform:uppercase;opacity:.7;margin-right:2px}
 .alk.trk em{font-style:normal;font-size:9px;letter-spacing:.14em;text-transform:uppercase;opacity:.7;margin-right:2px}
 .alk.trk b{font-weight:500;opacity:.9}
+/* the artist profile card */
+.acard{position:fixed;inset:0;z-index:2147483300;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:16px}
+.acard[hidden]{display:none}
+.acbox{position:relative;width:min(420px,100%);max-height:84vh;overflow:auto;background:rgba(12,14,13,.97);color:#eee;border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:18px 18px 14px;box-shadow:0 20px 60px rgba(0,0,0,.65),0 0 0 1px rgba(var(--gr,255,211,77),.18);font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
+.acx{position:absolute;top:8px;right:10px;width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:inherit;font-size:24px;line-height:1;cursor:pointer}
+.acx:hover{background:rgba(255,255,255,.12)}
+.acl{font:600 10px 'Barlow Condensed',system-ui,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--g,#ffd34d);margin-bottom:12px}
+.achead{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.acpic{width:92px;height:92px;flex:0 0 92px;border-radius:50%;object-fit:cover;background:#222;box-shadow:0 0 0 2px var(--g,#ffd34d),0 6px 18px rgba(0,0,0,.5)}
+.acpic.ph{display:flex;align-items:center;justify-content:center;font:700 34px system-ui;color:#fff;background:linear-gradient(135deg,#333,#111)}
+.achead h3{margin:0;font-size:22px;line-height:1.15}
+.acmeta{font-size:12px;opacity:.7;margin-top:4px}
+.acbio{margin:8px 0;font-size:14px;line-height:1.45}
+.acfact{margin:6px 0;font-size:13px;line-height:1.4;opacity:.9;padding-left:12px;border-left:2px solid rgba(var(--gr,255,211,77),.5)}
+.acacc{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.acacc .sico,.aclab .sico{width:30px;height:30px;margin:0}
+.aclab{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:10px 0 4px;font-size:13px}
+.aclab em{font-style:normal;font-size:9px;letter-spacing:.14em;text-transform:uppercase;opacity:.7}
+.accr{margin-top:12px;font-size:10px;opacity:.6}
+.accr a{color:inherit}
+@media(max-width:600px){.acard{align-items:flex-end;padding:0}.acbox{width:100%;border-radius:18px 18px 0 0;max-height:78vh}}
+/* Artists A-Z */
+.azbtn{margin-top:8px}
+.azlink{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:inherit;opacity:.75;text-decoration:none;border-bottom:1px dotted currentColor}
+.azlink:hover{opacity:1}
+.azov{position:fixed;inset:0;z-index:2147483200;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72);padding:16px}
+.azov[hidden]{display:none}
+.azbox{position:relative;width:min(720px,100%);height:min(86vh,760px);display:flex;flex-direction:column;background:rgba(12,14,13,.98);color:#eee;border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:16px 16px 10px;box-shadow:0 20px 60px rgba(0,0,0,.65);font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
+.azq{width:100%;box-sizing:border-box;margin:0 0 10px;padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:inherit;font:inherit;font-size:14px}
+.azq:focus{outline:2px solid rgba(var(--gr,255,211,77),.6);border-color:transparent}
+.azst{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.azst button{border:1px solid rgba(255,255,255,.22);background:transparent;color:inherit;border-radius:999px;padding:5px 11px;font-size:12px;cursor:pointer}
+.azst button.on{background:var(--g,#ffd34d);color:#111;border-color:transparent}
+.azl{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:6px}
+.azl button{width:28px;height:28px;border:0;border-radius:8px;background:transparent;color:inherit;font-weight:700;font-size:13px;cursor:pointer}
+.azl button:hover{background:rgba(255,255,255,.12)}
+.azl button.on{background:rgba(var(--gr,255,211,77),.3);color:#fff}
+.azlist{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;border-top:1px solid rgba(255,255,255,.1)}
+.azrow{display:block;width:100%;text-align:left;padding:10px 6px;border:0;border-bottom:1px solid rgba(255,255,255,.07);background:transparent;color:inherit;cursor:pointer;font:inherit}
+.azrow:hover{background:rgba(255,255,255,.07)}
+.azrow b{display:block;font-size:15px}
+.azrow span{display:block;font-size:11px;opacity:.65;margin-top:2px}
+.azempty{padding:18px 6px;opacity:.65;font-size:13px}
+.acsongs{margin-top:12px;border-top:1px solid rgba(255,255,255,.1);padding-top:8px}
+.acsh{font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.7;margin-bottom:4px}
+.acsg{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:3px 0}
+.acsg em{font-style:normal;opacity:.55;white-space:nowrap;font-size:11px}
+.acsm{font-size:11px;opacity:.6;padding-top:2px}
+@media(max-width:600px){.azov{align-items:flex-end;padding:0}.azbox{border-radius:18px 18px 0 0;height:90vh}}
