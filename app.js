@@ -161,6 +161,10 @@
       var LL = ALINKS[lk];
       if (LL && (LL.x || LL.ig || LL.tt || LL.yt)) html += '<span class="alk lbl"><em>Label</em><b>' + esc(lab) + '</b>' + (LL.ig ? sico('instagram', LL.ig, lab + ' on Instagram') : '') + (LL.tt ? sico('tiktok', LL.tt, lab + ' on TikTok') : '') + (LL.x ? sico('x', LL.x, lab + ' on X (Twitter)') : '') + (LL.yt ? sico('youtube', LL.yt, lab + ' on YouTube') : '') + '</span>';
     }
+    if (/^(1up|movement)$/.test(window.UP1_STATION || '1up')) {   // house tunes are mostly on Beatport: a button for the playing track itself (a Beatport search for it)
+      var sp = split(p.title), bq = encodeURIComponent(sp[0] ? sp[0] + ' ' + sp[1] : sp[1]);
+      html += '<span class="alk trk"><em>This track</em>' + sico('beatport', 'https://www.beatport.com/search?q=' + bq, 'Find this track on Beatport') + '<b>Find on Beatport</b></span>';
+    }
     box.innerHTML = html ? '<span class="alklab">Playing now \u00b7 artist &amp; label accounts</span>' + html : ''; box.hidden = !html;
     try { linkArtistLine(); } catch (e) {}
   }
