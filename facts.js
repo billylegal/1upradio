@@ -22,7 +22,7 @@
   function pop(f, who, withSrc) {
     bubble.querySelector('p').textContent = f; 
     bubble.hidden = false; bubble.classList.remove('pop'); void bubble.offsetWidth; bubble.classList.add('pop');
-    lastPop = Date.now(); clearTimeout(hideT); hideT = setTimeout(hide, 9000 + Math.random() * 6000);
+    lastPop = Date.now(); clearTimeout(hideT); hideT = setTimeout(hide, Math.min(32000, Math.max(16000, 9000 + String(f).length * 110)) * (0.9 + Math.random() * 0.2));
   }
   function station2() { return window.UP1_STATION || '1up'; }
   function tick() {

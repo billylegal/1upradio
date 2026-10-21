@@ -462,7 +462,7 @@
     (function step() {
       if (!jingOn || i >= list.length) { jingOn = false; showPromo(null); return; }
       jing.onended = function () { if (jingOn) setTimeout(step, 300); }; jing.onerror = function () { jingOn = false; showPromo(null); };
-      var cur = list[i++]; showPromo(cur.msg || null); jing.src = cur.f; jing.volume = 1; var pr = jing.play(); if (pr && pr.catch) pr.catch(function () { jingOn = false; });
+      var cur = list[i++]; showPromo(cur.msg || null); jing.src = cur.f; jing.volume = jingVol(); var pr = jing.play(); if (pr && pr.catch) pr.catch(function () { jingOn = false; });
     })();
   }
 
@@ -496,10 +496,24 @@
     playing = on; $('play').classList.toggle('on', on); $('eq').classList.toggle('on', on); $('onair').classList.toggle('on', on);
     $('onairtxt').textContent = on ? 'ON AIR' : (started ? 'PAUSED' : 'OFF AIR'); $('play').setAttribute('aria-label', on ? 'Pause 1UP Radio' : 'Play 1UP Radio'); paintNP();
   }
+  // volume: the YouTube player, the station jingles and the hourly chime all follow the one slider. The player's level is re-applied every time a song starts or resumes
+  // (and eased in), because the embedded player can come back at a different level after a pause, a seek or a new video.
+  function volNow() { return Math.max(0, Math.min(100, +$('vol').value || 0)); }
+  function jingVol() { return Math.max(0.04, volNow() / 100); }
+  var fadeT = null;
+  function applyVol(fade) {
+    if (!yt || !ready || IOS) return;   // iPhones ignore setVolume: the phone's own buttons set the level there
+    clearInterval(fadeT); var to = volNow();
+    try {
+      if (!fade || to < 8) { yt.setVolume(to); return; }
+      var from = Math.round(to * 0.25), n = 0; yt.setVolume(from);
+      fadeT = setInterval(function () { n++; try { yt.setVolume(Math.round(from + (to - from) * n / 8)); } catch (e) {} if (n >= 8) clearInterval(fadeT); }, 90);
+    } catch (e) {}
+  }
   function init() {
     yt = new YT.Player('ytp', { width: 200, height: 200, host: 'https://www.youtube-nocookie.com', playerVars: { playsinline: 1, rel: 0, controls: 0, disablekb: 1, origin: location.origin }, events: {
       onReady: function () { ready = true; yt.setVolume(+$('vol').value); if (started) playIdx(findNow(), (Date.now() / 1000 - S.delay) - S.plays[findNow()].t); if (gestured) { try { yt.unMute(); } catch (e) {} } },
-      onStateChange: function (e) { var st = YT.PlayerState; if (e.data === st.PLAYING) { if (userPaused) { try { yt.pauseVideo(); } catch (x) {} return; } errs = 0; setOn(true); } else if (e.data === st.PAUSED) setOn(false); else if (e.data === st.ENDED) next(); },
+      onStateChange: function (e) { var st = YT.PlayerState; if (e.data === st.PLAYING) { if (userPaused) { try { yt.pauseVideo(); } catch (x) {} return; } errs = 0; setOn(true); if (!chimeOn) applyVol(true); } else if (e.data === st.PAUSED) setOn(false); else if (e.data === st.ENDED) next(); },
       onError: function () { if (curP) badIds[curP.id] = 1; if (++errs < 8) playIdx(idx, Date.now() / 1000 - S.delay - S.plays[idx].t, curAlt + 1); else { setOn(false); $('hint').textContent = 'Having trouble reaching the music. Please try again in a minute.'; } } } });
   }
   var unmutedAt = 0, gestured = false, lastKick = 0, apiTag = null;
@@ -521,7 +535,7 @@
     if (eff) { btnIntent = false; userPaused = true; try { yt.pauseVideo(); } catch (x) {} setOn(false); }
     else { btnIntent = true; userPaused = false; try { yt.playVideo(); } catch (x) {} }
   });
-  $('vol').addEventListener('input', function (e) { $('volv').textContent = e.target.value; if (yt && ready) yt.setVolume(+e.target.value); try { localStorage.setItem('up1-vol', e.target.value); } catch (x) {} });
+  $('vol').addEventListener('input', function (e) { $('volv').textContent = e.target.value; if (yt && ready) yt.setVolume(+e.target.value); if (jingOn) jing.volume = jingVol(); try { localStorage.setItem('up1-vol', e.target.value); } catch (x) {} });
   try { var v = localStorage.getItem('up1-vol'); if (v) { $('vol').value = v; $('volv').textContent = v; } } catch (x) {}
   // keep exactly in step with the live schedule: after a pause, a stall or a schedule change, jump back to the live position
   var lastSync = 0;
@@ -547,11 +561,11 @@
   }
   function chimeEnd() {
     if (!chimeOn) return; chimeOn = false;
-    try { if (IOS) { if (!userPaused) { var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } } else yt.setVolume(+$('vol').value); } catch (e) {}
+    try { if (IOS) { if (!userPaused) { var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } } else applyVol(true); } catch (e) {}
   }
   function chimeNow(h) {
     if (chimeOn || !started || !playing || userPaused || !yt || !ready) return;
-    chimeOn = true; chimePrep(h); chime.muted = false; chime.currentTime = 0; chime.volume = 0.55;
+    chimeOn = true; chimePrep(h); chime.muted = false; chime.currentTime = 0; chime.volume = 0.55 * Math.max(0.15, volNow() / 100);
     try { if (IOS) yt.pauseVideo(); else yt.setVolume(Math.max(6, Math.round(+$('vol').value * 0.12))); } catch (e) {}
     var pr = chime.play(); if (pr && pr.catch) pr.catch(chimeEnd);
     setTimeout(chimeEnd, 16000);
