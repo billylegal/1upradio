@@ -42,12 +42,14 @@
 
 /* save hearts: at the left of each row on every screen, clear of the reaction column and the chat box */
 html .list li .hb{order:-1;margin-left:0;margin-right:-2px;width:32px;height:30px}
-/* computers: the lyrics are a side window in the bottom-left corner (not a pop-up over the page), so people can read along without losing the screen */
+/* computers: the lyrics are a small side window in the top-right corner (not a pop-up over the page), short enough to stay clear of the share / sleep buttons, so people can read along while the music plays */
 @media(min-width:700px){
-  html #lyrics{left:16px;top:auto;bottom:16px;transform:none;width:min(360px,calc(50vw - 40px));height:min(46vh,380px);z-index:70;border-width:1px;box-shadow:0 14px 44px rgba(0,0,0,.6)}
-  html #lyrics.sync #lyB{padding:120px 16px}
-  html #lyrics .lh{padding:11px 14px}
-  html.lyopen #factbubble{bottom:calc(min(46vh,380px) + 32px)}   /* the did-you-know pop-up rides above the lyrics window while it is open */
+  html #lyrics{left:auto;right:16px;top:84px;bottom:auto;transform:none;width:min(340px,34vw);height:250px;z-index:70;border-width:1px;box-shadow:0 14px 44px rgba(0,0,0,.6)}
+  html #lyrics.sync #lyB{padding:52px 14px}
+  html #lyrics #lyB{font-size:14px;padding-top:10px;padding-bottom:10px}
+  html #lyrics .lh{padding:9px 12px}
+  html #lyrics #lyT{font-size:14px}
+  html #lyrics .lf{padding:5px 12px}
 }
 /* phones only (the computer layout is unchanged): the shuttle is off for now, the did-you-know banner sits in its lane under the top bar, and the save hearts sit at the left of each row, clear of the reaction column */
 @media(max-width:699px){

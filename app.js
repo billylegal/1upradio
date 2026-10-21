@@ -203,11 +203,20 @@
       });
     }).catch(function () { return null; });
   }
+  var lyTrouble = false;
   function fetchLyrics(titles, dur) {   // titles: the station's title + YouTube's own; best LRCLIB match (closest in length, timed preferred) else the AI library
     if (titles.some(function (t) { return /^\s*billy legal\b/i.test(t || ''); })) return Promise.resolve(null);   // Billy's own songs: no lyrics source is verified, never guess
     var enc = encodeURIComponent, seen = {}, vs = [];
     titles.forEach(function (t) { variants(t).forEach(function (v) { var k = fold(v.artist + '|' + v.track); if (v.track && v.track.length > 1 && !seen[k]) { seen[k] = 1; vs.push(v); } }); });
-    function J(u) { return fetch(u).then(function (r) { if (r.status === 429) lyRL = Date.now(); return r.ok ? r.json() : null; }).catch(function () { return null; }); }
+    function J(u, again) {
+      return fetch(u).then(function (r) {
+        if (r.status === 429) lyRL = Date.now();
+        if (r.ok) return r.json();
+        if (r.status === 404 || r.status === 400) return null;                                     // a real "not found"
+        lyTrouble = true;                                                                           // 429 / 5xx: the free lyrics server is busy, which is not the same as "no lyrics"
+        return again ? null : new Promise(function (go) { setTimeout(function () { go(J(u, true)); }, 1200); });
+      }).catch(function () { lyTrouble = true; return null; });
+    }
     function good(d) { return d && (d.plainLyrics || '').trim().length > 40 && !d.instrumental; }
     function pack(d) { return { t: d.trackName, a: d.artistName, text: d.plainLyrics.trim(), sync: parseLRC(d.syncedLyrics) }; }
     function score(d) { return Math.abs((d.duration || 0) - dur) - (d.syncedLyrics ? 30 : 0); }
@@ -236,7 +245,14 @@
     if (lyr.cache[key] !== undefined) { lyr.data = lyr.cache[key]; b.disabled = !lyr.data; b.classList.toggle('on', !!lyr.data); return; }
     lyr.looking = true;
     var ytT = ''; try { ytT = yt.getVideoData().title || ''; } catch (e) {}
-    fetchLyrics([p.title, ytT], p.dur || 0).then(function (d) { lyr.cache[key] = d; if (tok !== lyr.tok) return; lyr.data = d; lyr.looking = false; b.disabled = !d; b.classList.toggle('on', !!d); });
+    lyTrouble = false;
+    fetchLyrics([p.title, ytT], p.dur || 0).then(function (d) {
+      if (!d && lyTrouble) {   // the server had trouble: do not cache "none", look again in a little while (up to 4 times)
+        lyr.tries = lyr.tries || {}; lyr.tries[key] = (lyr.tries[key] || 0) + 1;
+        if (tok === lyr.tok && lyr.tries[key] < 4) setTimeout(function () { if (lyr.key === key) lyr.key = ''; }, 12000 * lyr.tries[key]);
+      } else lyr.cache[key] = d;
+      if (tok !== lyr.tok) return; lyr.data = d; lyr.looking = false; b.disabled = !d; b.classList.toggle('on', !!d);
+    });
   }
   function lyrPaint() {
     var d = lyr.data; if (!d) return; $('lyT').textContent = d.t; $('lyA').textContent = d.a + (d.ai ? (d.a ? ' · ' : '') + '🤖 AI-transcribed, may contain mistakes' : ''); lyr.idx = -1; lyBox.dataset.k = lyr.key;

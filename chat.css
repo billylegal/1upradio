@@ -1,6 +1,6 @@
 /* Live room, Instagram-Live style (chat.js): comments float bottom-left, reactions in a column on the right (thumb side), flames rise the full height of the screen. Colours follow the skin via --g / --gr. */
-.live{position:fixed;left:0;right:0;bottom:0;z-index:80;pointer-events:none;display:flex;flex-direction:column;justify-content:flex-end;padding:0 12px calc(12px + env(safe-area-inset-bottom,0px));font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#fff}
-.live[hidden]{display:none}
+#live{position:fixed;left:0;right:0;bottom:0;z-index:80;pointer-events:none;display:flex;flex-direction:column;justify-content:flex-end;padding:0 12px calc(12px + env(safe-area-inset-bottom,0px));font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#fff}
+#live[hidden]{display:none}
 html.has-live body{padding-bottom:230px}
 /* the comments */
 .lvstream{pointer-events:none;margin:0 62px 8px 0;max-height:26vh;overflow:hidden;padding:18px 10px 6px;border-radius:16px;background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,.62) 55%);display:flex;flex-direction:column;justify-content:flex-end;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 38%);mask-image:linear-gradient(to bottom,transparent 0,#000 38%)}
@@ -39,9 +39,9 @@ html.has-live body{padding-bottom:230px}
 .lvrail .lvchat{background:rgba(var(--gr,255,211,77),.25);border-color:rgba(var(--gr,255,211,77),.7)}
 #chatbadge{background:#ff3b3b!important;border-color:#ff3b3b!important}
 #chatbadge[hidden]{display:none}
-.live.min .lvstream,.live.min #chatform,.live.min #chaterr{display:none}
-.live.min{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
-.live.min .lvrail{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+#live.min .lvstream,#live.min #chatform,#live.min #chaterr{display:none}
+#live.min{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+#live.min .lvrail{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
 /* flames: fly from the bottom of the screen to the top */
 #reactfx{position:fixed;right:0;bottom:0;top:0;width:150px;pointer-events:none;overflow:hidden;z-index:95}
 .rfx{position:absolute;bottom:-30px;animation:rfxup 3s cubic-bezier(.25,.6,.35,1) forwards;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45));will-change:transform,opacity}
@@ -49,16 +49,16 @@ html.has-live body{padding-bottom:230px}
 @media(prefers-reduced-motion:reduce){.rfx{animation-name:rfxfade}@keyframes rfxfade{from{opacity:1}to{opacity:0}}}
 /* computers: a solid, low box in the bottom-right corner (reactions in a row on top, comments, comment bar) */
 @media(min-width:700px){
-  .live{left:auto;right:16px;bottom:16px;width:360px;padding:10px 12px 12px;border-radius:16px;background:#0d0f0e;border:1px solid rgba(255,255,255,.18);box-shadow:0 14px 44px rgba(0,0,0,.65);pointer-events:auto}
+  #live{left:auto;right:16px;bottom:16px;width:360px;padding:10px 12px 12px;border-radius:16px;background:#0d0f0e;border:1px solid rgba(255,255,255,.18);box-shadow:0 14px 44px rgba(0,0,0,.65);pointer-events:auto}
   .lvrail{position:static;order:-1;flex-direction:row;justify-content:space-between;gap:6px;margin-bottom:8px}
   .lvrail button{width:42px;height:42px;font-size:21px;background:rgba(255,255,255,.07);backdrop-filter:none;-webkit-backdrop-filter:none}
   .lvstream{margin:0 0 8px;height:140px;max-height:none;padding:0 2px;border-radius:0;background:none;-webkit-mask-image:none;mask-image:none}
   .chatmsg{text-shadow:none}
   #chatform{background:rgba(255,255,255,.07)}
-  .live.min{padding:8px 12px}
-  .live.min .lvrail{margin-bottom:0}
+  #live.min{padding:8px 12px}
+  #live.min .lvrail{margin-bottom:0}
   #reactfx{width:200px;right:6px}
   html.has-live body{padding-bottom:0}
 }
 /* skins that pin the control row to the bottom of the screen: the room rides above it */
-html[data-skin=meters] .live,html[data-skin=wormhole] .live{bottom:96px}
+html[data-skin=meters] #live,html[data-skin=wormhole] #live{bottom:96px}
