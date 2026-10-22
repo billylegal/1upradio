@@ -28,8 +28,17 @@
     for (var i = 0; i < S.plays.length; i++) { if (S.plays[i].t <= src) k = i; else break; }
     return k < 0 ? 0 : k;
   }
+  // ---- BPM of the song on air, next to NOW PLAYING (data/bpm.json: our own beat analysis, the store charts, Deezer) ----
+  var BPMS = null;
+  function paintBpm(p) {
+    var lab = document.querySelector('.player .lab') || document.querySelector('.lab'); if (!lab) return;
+    var el = document.getElementById('npBpm'); if (!el) { el = document.createElement('span'); el.id = 'npBpm'; lab.appendChild(el); }
+    if (!BPMS) { BPMS = {}; fetch('data/bpm.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { BPMS = j || {}; paintBpm(curP || S.plays[idx] || p); }).catch(function () {}); }
+    var b = p && BPMS[p.id];
+    el.textContent = b ? ' \u00b7 ' + (b % 1 ? b.toFixed(1) : b) + ' BPM' : '';
+  }
   function paintNP() { window.UP1_NOW = curP || (S.plays && S.plays[idx]) || null; try { paintArtLinks(window.UP1_NOW); } catch (e) {}
-    var p = curP || S.plays[idx]; if (!p) return; var a = split(p.title);
+    var p = curP || S.plays[idx]; if (!p) return; var a = split(p.title); try { paintBpm(p); } catch (e) {}
     $('npTitle').textContent = a[1] || p.title; $('npArtist').textContent = a[0]; try { linkArtistLine(); } catch (e) {}
     var aw = $('npArtWrap'), ai = $('npArt'); if (aw && ai) { if (p.id) { var u = (ART[p.id]) ? ART[p.id] : 'https://i.ytimg.com/vi/' + encodeURIComponent(p.id) + '/mqdefault.jpg'; if (ai.getAttribute('src') !== u) ai.src = u; ai.removeAttribute('data-fallback'); aw.hidden = false; } else aw.hidden = true; }   // the spinning record: the real album cover, else the song's YouTube picture (on the vinyl stations that is usually the record label itself)
     document.title = (playing ? '▶ ' : '') + (a[1] || p.title) + ' · 1UP Radio';

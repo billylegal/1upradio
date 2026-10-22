@@ -230,3 +230,4 @@ html[data-skin] .ctl .play{margin:0}
 .stgtoggle i{font-style:normal;font-size:14px}
 .stgbox{margin:0 0 8px}
 .stgbox[hidden]{display:none}
+#npBpm{color:var(--g,#ffd34d);font-weight:700;letter-spacing:.14em}
