@@ -9,7 +9,7 @@
     { id: 'portal', name: 'The Portal', sub: 'Every genre, one door: house, tech house, techno, bass, drum & bass and more, straight from the charts', sched: 'schedule-portal.json', art: 'assets/portal-art.png?v=2', mark: 'assets/portal-mark.svg?v=2', tag: 'Every beat · every genre', start: 'portal', short: 'THE PORTAL', soon: 1, locked: 1 },
     { id: 'trap', name: 'Trap', sub: 'Heavy 808s and hard-hitting trap', soon: 1, art: 'assets/logo.png' }
   ];
-  var KEY = 'up1-station', cur = ST[0], m, root = document.documentElement, GATE = 'f07920cc9f7fc3d04df3cb58f3f5b89fed273118e2403874dd381911345e1edd', UNLOCKED = false;
+  var KEY = 'up1-station', cur = ST[0], m, root = document.documentElement, GATE = 'f38db7da1ec91cbee23617615df0ee90444716d2f4587635b4d9f9369fc5ebe6', UNLOCKED = false;
   try { UNLOCKED = localStorage.getItem('up1-unlock') === GATE; } catch (e) {}   // a private preview: stations marked locked stay 'coming soon' until the code is entered on this device
   function byId(id) { for (var i = 0; i < ST.length; i++) if (ST[i].id === id && (!ST[i].soon || (ST[i].locked && UNLOCKED))) return ST[i]; return null; }
   try { m = /[?&]station=([a-z0-9]+)/.exec(location.search); var want = m ? m[1] : localStorage.getItem(KEY); cur = byId(want) || ST[0]; } catch (e) {}
