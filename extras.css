@@ -258,3 +258,4 @@ html[data-skin] .ctl .play{margin:0}
 .cpair>.card[hidden]{display:none}
 /* no space shuttles on any channel (Billy) */
 .sh,.shx,.shy,.bigs,.bigst.bigs{display:none!important}
+#npBpm{margin-left:14px}

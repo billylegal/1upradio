@@ -35,7 +35,7 @@
     var el = document.getElementById('npBpm'); if (!el) { el = document.createElement('span'); el.id = 'npBpm'; lab.appendChild(el); }
     if (!BPMS) { BPMS = {}; fetch('data/bpm.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { BPMS = j || {}; paintBpm(curP || S.plays[idx] || p); try { paintLists(); } catch (e) {} }).catch(function () {}); }
     var b = p && BPMS[p.id];
-    el.textContent = b ? ' \u00b7 ' + fmtB(b) + ' BPM' : '';
+    el.textContent = b ? fmtB(b) + ' BPM' : '';
   }
   function fmtB(b) { return typeof b === 'string' ? b : (b % 1 ? b.toFixed(1) : b); }   // a number is a tempo from a store or a database; "~123" is our own measured estimate
   function loadBpm() { if (BPMS) return; BPMS = {}; fetch('data/bpm.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { BPMS = j || {}; try { paintLists(); } catch (e) {} try { paintBpm(curP || S.plays[idx]); } catch (e) {} }).catch(function () { BPMS = null; }); }   // loaded as soon as the lists show, not only once a song plays
