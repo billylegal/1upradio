@@ -19,7 +19,7 @@ STATIONS = {
     'tdot6after': {'uploads': '', 'videos': 'data/tdot6-after-videos.json', 'plays': 'data/tdot6after-plays.json', 'history': 'data/tdot6after-history.json', 'out': 'schedule-tdot6after.json'},   # T.DOT 6 sub-genre
     'tdot6slow': {'uploads': '', 'videos': 'data/tdot6-slow-videos.json', 'plays': 'data/tdot6slow-plays.json', 'history': 'data/tdot6slow-history.json', 'out': 'schedule-tdot6slow.json'},   # T.DOT 6 sub-genre
     'tdot6hh': {'uploads': '', 'videos': 'data/tdot6-hh-videos.json', 'plays': 'data/tdot6hh-plays.json', 'history': 'data/tdot6hh-history.json', 'out': 'schedule-tdot6hh.json'},   # T.DOT 6 sub-genre
-    'playground': {'uploads': '', 'videos': 'data/playground-videos.json', 'plays': 'data/playground-plays.json', 'history': 'data/playground-history.json', 'out': 'schedule-playground.json'},   # every track the PLAYGRND SERIES DJs play (set chapters)
+    'playground': {'own': 'data/playground-own.json', 'own_every': 8, 'uploads': '', 'videos': 'data/playground-videos.json', 'plays': 'data/playground-plays.json', 'history': 'data/playground-history.json', 'out': 'schedule-playground.json'},   # every track the PLAYGRND SERIES DJs play (set chapters)
     'hiphopvinyl': {'uploads': '', 'videos': 'data/hiphopvinyl-videos.json', 'plays': 'data/hiphopvinyl-plays.json', 'history': 'data/hiphopvinyl-history.json', 'out': 'schedule-hiphopvinyl.json'},
 }
 # The Portal's genre channels: one station per chart genre (id -> chart slug); each plays only that genre's songs
@@ -135,6 +135,9 @@ def main():
                 else: pick = rng.choice(pool)
             else: pick = rng.choice(pool)
         hist.append(pick['id']); seen.add(pick['id']); cur_bpm = BPM.get(pick['id'], cur_bpm)
+        if ST.get('own_every') and len(plays) % ST['own_every'] == ST['own_every'] - 1:   # every Nth song is one of Billy's own
+            own_ = load(os.path.join(HERE, ST['own']), [])
+            if own_: pick = own_[(len(plays) // ST['own_every']) % len(own_)]
         entry = {'t': t, 'id': pick['id'], 'title': pick['title'], 'dur': pick['dur']}
         if GRID.get(pick['id']): entry['bpm'] = round(GRID[pick['id']]['bpm'], 3)
         if GRID and plays:

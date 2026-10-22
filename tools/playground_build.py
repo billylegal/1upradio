@@ -78,6 +78,8 @@ def main():
         vid = CACHE.get(k)
         if vid and vid in meta and vid not in seen:
             seen.add(vid); out.append({'id': vid, 'title': '%s - %s' % (t['title'], t['artist']), 'dur': meta[vid]['dur'], 'pub': meta[vid]['pub']})
+    own = json.load(open(H + '/data/playground-own.json')) if os.path.exists(H + '/data/playground-own.json') else []   # Billy Legal's own hip hop and R&B songs, always in the station
+    out = own + [v for v in out if v['id'] not in {o['id'] for o in own}]
     json.dump(out, open(H + '/data/playground-videos.json', 'w'), ensure_ascii=False, separators=(',', ':'))
     print('THE PLAYGROUND: %d playable songs of %d unique, %.1f hours' % (len(out), len(u), sum(v['dur'] for v in out) / 3600))
 
