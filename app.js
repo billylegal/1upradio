@@ -35,10 +35,11 @@
     var el = document.getElementById('npBpm'); if (!el) { el = document.createElement('span'); el.id = 'npBpm'; lab.appendChild(el); }
     if (!BPMS) { BPMS = {}; fetch('data/bpm.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { BPMS = j || {}; paintBpm(curP || S.plays[idx] || p); try { paintLists(); } catch (e) {} }).catch(function () {}); }
     var b = p && BPMS[p.id];
-    el.textContent = b ? ' \u00b7 ' + (b % 1 ? b.toFixed(1) : b) + ' BPM' : '';
+    el.textContent = b ? ' \u00b7 ' + fmtB(b) + ' BPM' : '';
   }
+  function fmtB(b) { return typeof b === 'string' ? b : (b % 1 ? b.toFixed(1) : b); }   // a number is a tempo from a store or a database; "~123" is our own measured estimate
   function loadBpm() { if (BPMS) return; BPMS = {}; fetch('data/bpm.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { BPMS = j || {}; try { paintLists(); } catch (e) {} try { paintBpm(curP || S.plays[idx]); } catch (e) {} }).catch(function () { BPMS = null; }); }   // loaded as soon as the lists show, not only once a song plays
-  function bpmTag(p) { var b = BPMS && p && BPMS[p.id]; return b ? ' <em class="rbpm">' + (b % 1 ? b.toFixed(1) : b) + ' BPM</em>' : ''; }   // the BPM beside a song in Up Next / Just Played
+  function bpmTag(p) { var b = BPMS && p && BPMS[p.id]; return b ? ' <em class="rbpm">' + fmtB(b) + ' BPM</em>' : ''; }   // the BPM beside a song in Up Next / Just Played
   function paintNP() { window.UP1_NOW = curP || (S.plays && S.plays[idx]) || null; try { paintArtLinks(window.UP1_NOW); } catch (e) {}
     var p = curP || S.plays[idx]; if (!p) return; var a = split(p.title); try { paintBpm(p); } catch (e) {}
     $('npTitle').textContent = a[1] || p.title; $('npArtist').textContent = a[0]; try { linkArtistLine(); } catch (e) {}
