@@ -27,7 +27,7 @@
     { id: 'pgindiedance', name: 'Portal · Indie Dance', sub: 'The Portal, Indie Dance chart only', artmap: 'data/portal-art.json', sched: 'schedule-pgindiedance.json', art: 'assets/portal-art.png?v=3', mark: 'assets/portal-mark.svg?v=3', tag: 'Indie Dance', start: 'portal', short: 'PORTAL · INDIE DANCE', vfile: 'portal-indie-dance', soon: 1, locked: 1, group: 'portal' },
     { id: 'pgnudisco', name: 'Portal · Nu Disco / Disco', sub: 'The Portal, Nu Disco / Disco chart only', artmap: 'data/portal-art.json', sched: 'schedule-pgnudisco.json', art: 'assets/portal-art.png?v=3', mark: 'assets/portal-mark.svg?v=3', tag: 'Nu Disco / Disco', start: 'portal', short: 'PORTAL · NU DISCO / DISCO', vfile: 'portal-nu-disco-disco', soon: 1, locked: 1, group: 'portal' },
     { id: 'pgamapiano', name: 'Portal · Amapiano', sub: 'The Portal, Amapiano chart only', artmap: 'data/portal-art.json', sched: 'schedule-pgamapiano.json', art: 'assets/portal-art.png?v=3', mark: 'assets/portal-mark.svg?v=3', tag: 'Amapiano', start: 'portal', short: 'PORTAL · AMAPIANO', vfile: 'portal-amapiano', soon: 1, locked: 1, group: 'portal' },
-    { id: 'citycult', name: 'City Culture', sub: 'Hip hop, R&B and dancehall party mix', sched: 'schedule-playground.json', art: 'assets/city-culture-art.png?v=3', mark: 'assets/city-culture-mark.png?v=3', tag: 'Hip hop \u00b7 dancehall \u00b7 afro \u00b7 R&B', skins: ['city1', 'city2', 'city3'], short: 'CITY CULTURE', vfile: 'playground' },
+    { id: 'citycult', name: 'City Culture', sub: 'Hip hop, R&B and dancehall party mix', sched: 'schedule-playground.json', art: 'assets/city-culture-art.png?v=3', mark: 'assets/city-culture-mark.png?v=3', tag: 'Hip hop \u00b7 dancehall \u00b7 afro \u00b7 R&B', skins: ['city1', 'city2', 'city3'], first: 'city1', short: 'CITY CULTURE', vfile: 'playground' },
     { id: 'trap', name: 'Trap', sub: 'Heavy 808s and hard-hitting trap', soon: 1, art: 'assets/logo.png' }
   ];
   var KEY = 'up1-station', cur = ST[0], m, root = document.documentElement, GATE = 'f38db7da1ec91cbee23617615df0ee90444716d2f4587635b4d9f9369fc5ebe6', UNLOCKED = false;
@@ -40,6 +40,7 @@
     var ms = first && /[?&]skin=([a-z]+)/.exec(location.search), cm = first && /[?&]cs=([123])/.exec(location.search);
     if (st.skins) {
       var OWN = st.skins, pick = ms ? ms[1] : (cm ? OWN[+cm[1] - 1] : '');
+      if (!pick && st.first) pick = st.first;   // a channel can always open in its own lead skin (City Culture: the yellow one)
       if (!pick) { var last = ''; try { last = localStorage.getItem('up1-cs-skin') || ''; } catch (e) {} var all = OWN.filter(function (n) { return n !== last; }); pick = all[Math.floor(Math.random() * all.length)]; }
       try { localStorage.setItem('up1-cs-skin', pick); } catch (e) {}
       return pick;
