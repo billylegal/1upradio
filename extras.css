@@ -268,3 +268,26 @@ html[data-skin] .ctl .play{margin:0}
 .xbtn em:empty,#sleepBtn em:empty{display:none!important}
 /* BPM measured from the audio (not listed by a store): same look, slightly softer, no symbol */
 #npBpm.est,.rbpm.est{opacity:.82}
+
+/* ---- heart on track rows: a bare heart that fills with a pop when pushed (no box); service icons smaller, one colour on phones ---- */
+html:root:root .list li .hb{background:transparent!important;border:0!important;border-radius:50%!important;box-shadow:none!important;width:34px;height:32px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:var(--g);opacity:.7;position:relative;transition:opacity .15s,transform .15s}
+html:root:root .list li .hb svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;display:block;transition:fill .15s}
+html:root:root .list li .hb:hover{opacity:1;transform:scale(1.12)}
+html:root:root .list li .hb.on{opacity:1;color:#ff3b6b!important}
+html:root:root .list li .hb.on svg{fill:currentColor}
+html:root:root .list li.now .hb{color:inherit}
+html:root:root .list li .hb.pop svg{animation:hbpop .45s cubic-bezier(.2,1.6,.4,1)}
+html:root:root .list li .hb.pop::after{content:"";position:absolute;inset:4px;border-radius:50%;border:2px solid #ff3b6b;animation:hbring .5s ease-out forwards;pointer-events:none}
+@keyframes hbpop{0%{transform:scale(.6)}60%{transform:scale(1.35)}100%{transform:scale(1)}}
+@keyframes hbring{from{transform:scale(.6);opacity:.9}to{transform:scale(1.9);opacity:0}}
+@media(prefers-reduced-motion:reduce){html:root:root .list li .hb.pop svg,html:root:root .list li .hb.pop::after{animation:none}}
+.saved .sico{width:24px;height:24px;margin:0 5px 5px 0;box-shadow:0 0 0 1px rgba(255,255,255,.2)}
+@media(max-width:640px){
+  .saved .sico{width:25px;height:25px;margin:0 8px 8px 0;box-shadow:none}
+  .saved .sico svg circle:first-of-type{fill:#1a1a20!important}
+  .saved .sico svg circle:not(:first-of-type),.saved .sico svg g,.saved .sico svg g *,.saved .sico svg rect{fill:var(--g,#fff)!important}
+  .saved .sico svg path[stroke]{stroke:var(--g,#fff)!important}
+  .saved .sico svg{box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+}
+.stcard.lockd i{border:1px dashed var(--g);color:var(--g);letter-spacing:.12em}
+.pgchip.pgsoon{opacity:.65;border-style:dashed;cursor:default;font-style:italic}
