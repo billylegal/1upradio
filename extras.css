@@ -243,3 +243,16 @@ html[data-skin] .ctl .play{margin:0}
 .pgchip{padding:7px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.05);color:inherit;font:600 12px 'Barlow Condensed',system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
 .pgchip:hover{background:rgba(255,255,255,.14)}
 .pgchip.on{background:var(--g,#2bff88);color:#04120a;border-color:transparent}
+/* the row of two cards (picker or Sound clash + Song of the week): smaller type, centred, even */
+.cpair>.card{padding:12px 14px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.cpair>.card h2{font-size:11px;letter-spacing:.2em;margin:0 0 8px}
+.cpair .pgchips{justify-content:center;gap:5px}
+.cpair .pgchip{padding:4px 9px;font-size:10.5px;letter-spacing:.08em}
+.cpair .featured .ftitle{font-size:15px;line-height:1.25;margin:2px 0 4px}
+.cpair .featured .fnote{font-size:12px;margin-bottom:8px}
+.cpair .featured .flinks{justify-content:center}
+.cpair .featured .flinks .chip.fprof{font-size:12.5px}
+.cpair .featured .fface{width:34px;height:34px}
+.cpair .clash .clashnote{font-size:11px;margin:0 0 6px}
+.cpair .clash .clashpad{justify-content:center}
+.cpair>.card[hidden]{display:none}
