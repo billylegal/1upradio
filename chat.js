@@ -16,11 +16,23 @@
   var EMO = {}; KINDS.forEach(function (k) { EMO[k[0]] = k[1]; });
   var lastId = 0, shown = '', counts = {}, seen = 0, lastRows = [], rxFeed = [];
 
+  // ---- icons: 33 faces (men, women, boys, girls, grandparents, a few characters). The chosen face is stored in front of the name ("<face> Name"), so nothing changes in the database ----
+  var AV = ['👨🏻', '👨🏼', '👨🏽', '👨🏾', '👨🏿', '🧔🏽', '🧔🏿', '👩🏻', '👩🏼', '👩🏽', '👩🏾', '👩🏿', '👸🏾', '👱🏼', '👦🏻', '👦🏽', '👦🏿', '👧🏻', '👧🏽', '👧🏿', '👴🏻', '👴🏿', '👵🏽', '👵🏿', '🧑🏾', '👶🏽', '😎', '🤠', '🥸', '👾', '🧙🏽', '🤴🏿', '🦸🏾'], avSel = store('up1-av') || '', avPick = $('avpick'), avB = $('chatav');
+  function cp(s) { return Array.from(s); }
+  function splitNick(n) { n = String(n || ''); for (var i = 0; i < AV.length; i++) if (n.indexOf(AV[i] + ' ') === 0) return { av: AV[i], name: n.slice(AV[i].length + 1) }; return { av: '', name: n }; }
+  function paintAv() { if (avB) avB.textContent = avSel || '\uD83D\uDE42'; }
+  if (avPick && avB) {
+    avPick.innerHTML = '<div class="avtitle">Pick your icon</div><div class="avgrid">' + AV.map(function (a) { return '<button type="button" class="avopt" data-a="' + a + '" aria-label="Icon ' + a + '">' + a + '</button>'; }).join('') + '</div>';
+    avB.addEventListener('click', function () { avPick.hidden = !avPick.hidden; });
+    avPick.addEventListener('click', function (e) { var b = e.target.closest('.avopt'); if (!b) return; avSel = b.dataset.a; store('up1-av', avSel); paintAv(); avPick.hidden = true; nickI.focus(); });
+    paintAv();
+  }
+
   // ---- name: asked once, then folded away behind a small pencil ----
-  function paintNick() { var has = !!nickI.value.trim(); form.classList.toggle('hasnick', has); editB.hidden = !has; msgI.placeholder = has ? 'Comment as ' + nickI.value.trim() + '...' : 'Say something...'; }
+  function paintNick() { var has = !!nickI.value.trim(); form.classList.toggle('hasnick', has); editB.hidden = !has; if (avPick && has) avPick.hidden = true; msgI.placeholder = has ? 'Comment as ' + nickI.value.trim() + '...' : 'Say something...'; }
   nickI.value = store('up1-nick') || ''; paintNick();
   editB.addEventListener('click', function () { form.classList.remove('hasnick'); editB.hidden = true; nickI.focus(); nickI.select(); });
-  nickI.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); if (nickI.value.trim()) { store('up1-nick', nickI.value.trim().slice(0, 20)); paintNick(); msgI.focus(); } } });
+  nickI.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); if (nickI.value.trim()) { store('up1-nick', cp(nickI.value.trim()).slice(0, 17).join('')); paintNick(); msgI.focus(); } } });
   msgI.addEventListener('keydown', function (e) { e.stopPropagation(); });   // typing in the box never triggers the site's keyboard shortcuts
 
   // ---- chat open / minimised (the bubble in the column) ----
@@ -53,9 +65,9 @@
     list.textContent = '';
     if (!items.length) { var e = document.createElement('div'); e.className = 'chatempty'; e.textContent = 'No comments yet. Say hi!'; list.appendChild(e); }
     items.slice(-SHOW).forEach(function (m) {
-      var hue = hueOf(m.nick), d = document.createElement('div'); d.className = 'chatmsg' + (m.rx ? ' chatrx' : '');
-      var av = document.createElement('span'); av.className = 'av'; av.textContent = m.nick.charAt(0); av.style.background = 'hsl(' + hue + ',55%,42%)';
-      var w = document.createElement('div'), n = document.createElement('b'); n.textContent = m.nick; n.style.color = 'hsl(' + hue + ',80%,78%)';
+      var sn = splitNick(m.nick), hue = hueOf(sn.name), d = document.createElement('div'); d.className = 'chatmsg' + (m.rx ? ' chatrx' : '');
+      var av = document.createElement('span'); av.className = 'av' + (sn.av ? ' ic' : ''); av.textContent = sn.av || sn.name.charAt(0); if (!sn.av) av.style.background = 'hsl(' + hue + ',55%,42%)';
+      var w = document.createElement('div'), n = document.createElement('b'); n.textContent = sn.name; n.style.color = 'hsl(' + hue + ',80%,78%)';
       var t = document.createElement('span'); t.className = 't'; t.textContent = m.body; w.appendChild(n); w.appendChild(t); d.appendChild(av); d.appendChild(w); list.appendChild(d);
     });
     list.scrollTop = list.scrollHeight;
@@ -116,11 +128,11 @@
   // ---- sending a comment ----
   form.addEventListener('submit', function (e) {
     e.preventDefault(); err.textContent = '';
-    var nick = nickI.value.trim().replace(/\s+/g, ' ').slice(0, 20), body = msgI.value.trim().slice(0, 200);
-    if (!nick) { err.textContent = 'Pick a name first.'; form.classList.remove('hasnick'); nickI.focus(); return; }
+    var pre = avSel ? avSel + ' ' : '', nm = cp(nickI.value.trim().replace(/\s+/g, ' ')).slice(0, 20 - cp(pre).length).join(''), nick = pre + nm, body = msgI.value.trim().slice(0, 200);
+    if (!nm) { err.textContent = 'Pick a name first.'; form.classList.remove('hasnick'); nickI.focus(); return; }
     if (!body) return;
     if (BAD.test(nick + ' ' + body)) { err.textContent = 'Keep it clean, please.'; return; }
-    store('up1-nick', nick); paintNick();
+    store('up1-nick', nm); nickI.value = nm; paintNick();
     form.querySelector('button[type=submit]').disabled = true;
     api('messages', { method: 'POST', headers: Object.assign({ Prefer: 'return=minimal' }, H), body: JSON.stringify({ station: station(), nick: nick, body: body, cid: cid }) })
       .then(function () { msgI.value = ''; pollMsgs(); })

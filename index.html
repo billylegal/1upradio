@@ -17,8 +17,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Fraunces:ital,wght@0,700;1,700&family=IBM+Plex+Mono:wght@500;700&family=Archivo+Black&display=swap">
 <link rel="stylesheet" href="style.css?v=1792534009">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Permanent+Marker&family=Black+Ops+One&family=Special+Elite&display=swap">
-<link rel="stylesheet" href="chat.css?v=11">
-<link rel="stylesheet" href="extras.css?v=41">
+<link rel="stylesheet" href="chat.css?v=12">
+<link rel="stylesheet" href="extras.css?v=42">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#050805"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="1UP Radio"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
@@ -81,11 +81,12 @@
 <div class="live" id="live" hidden aria-label="Live room">
   <div class="lvstream" aria-live="polite"><div id="chatlist"></div></div>
   <div class="lvrail" id="chatreact" role="group" aria-label="React to the song that is playing"></div>
-  <form id="chatform" autocomplete="off"><input id="chatnick" maxlength="20" placeholder="Your name" aria-label="Nickname"><input id="chatmsg" maxlength="200" placeholder="Say something..." aria-label="Comment"><button type="button" class="lvedit" id="chatedit" hidden aria-label="Change your name" title="Change your name">&#9998;</button><button type="submit">Send</button></form>
+  <div id="avpick" hidden></div>
+  <form id="chatform" autocomplete="off"><button type="button" class="lvav" id="chatav" aria-label="Pick your icon" title="Pick your icon"></button><input id="chatnick" maxlength="17" placeholder="Your name" aria-label="Nickname"><input id="chatmsg" maxlength="200" placeholder="Say something..." aria-label="Comment"><button type="button" class="lvedit" id="chatedit" hidden aria-label="Change your name" title="Change your name">&#9998;</button><button type="submit">Send</button></form>
   <div id="chaterr" role="status"></div>
 </div><div id="reactfx" aria-hidden="true"></div>
 <script src="chat-config.js?v=1"></script>
-<script src="chat.js?v=10" defer></script>
+<script src="chat.js?v=11" defer></script>
 <script src="extras.js?v=12" defer></script>
 <script src="facts.js?v=7" defer></script>
 <script src="app.js?v=1792700104" defer></script>

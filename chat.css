@@ -75,3 +75,13 @@ html[data-skin=meters] #live,html[data-skin=wormhole] #live{bottom:96px}
   #live:not(.min) .lvchat::after{content:"\00d7";font-size:30px;line-height:1;margin-top:-3px}
   .lvchat{width:52px;height:52px}
 }
+/* icons: the picker (33 faces) and the face in the comments */
+#avpick{pointer-events:auto;margin:0 0 8px;padding:10px 10px 8px;border-radius:14px;background:rgba(10,12,11,.94);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(10px)}
+#avpick[hidden]{display:none}
+.avtitle{font:700 10px system-ui,sans-serif;letter-spacing:.18em;text-transform:uppercase;opacity:.7;margin-bottom:6px;color:#fff}
+.avgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(34px,1fr));gap:4px}
+.avopt{border:0;border-radius:10px;background:rgba(255,255,255,.07);font-size:21px;line-height:1;padding:5px 0;cursor:pointer}
+.avopt:hover,.avopt:focus-visible{background:rgba(255,255,255,.22);outline:0}
+.lvav{flex:0 0 auto;width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);font-size:18px;line-height:1;cursor:pointer;padding:0}
+#chatform.hasnick .lvav{display:none}
+.chatmsg .av.ic{background:rgba(255,255,255,.14);font-size:18px;text-transform:none;font-family:'Noto Color Emoji',system-ui,sans-serif}

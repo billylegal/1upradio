@@ -256,3 +256,5 @@ html[data-skin] .ctl .play{margin:0}
 .cpair .clash .clashnote{font-size:11px;margin:0 0 6px}
 .cpair .clash .clashpad{justify-content:center}
 .cpair>.card[hidden]{display:none}
+/* no space shuttles on any channel (Billy) */
+.sh,.shx,.shy,.bigs,.bigst.bigs{display:none!important}
