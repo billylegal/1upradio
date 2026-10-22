@@ -823,13 +823,76 @@
     var old = yt, nu = (old === yt2) ? ytMain : yt2, oldV = 100;
     try { oldV = old.getVolume(); } catch (e) {}
     clearInterval(fadeT); clearInterval(xfT); blending = true; yt = nu;
-    try { nu.setVolume(0); nu.loadVideoById({ videoId: p.id, startSeconds: 0 }); } catch (e) {}
-    var target = bvol(), t0 = Date.now(), N = XF * 1000;
+    try { nu.setVolume(0); nu.loadVideoById({ videoId: p.id, startSeconds: p.so || 0 }); } catch (e) {}
+    var target = bvol(), t0 = Date.now(), N = (p.xi || XF) * 1000;
     xfT = setInterval(function () {
       var f = Math.min(1, (Date.now() - t0) / N);
       try { nu.setVolume(Math.round(target * Math.sin(f * Math.PI / 2))); old.setVolume(Math.round(oldV * Math.cos(f * Math.PI / 2))); } catch (e) {}
       if (f >= 1) { clearInterval(xfT); blending = false; try { old.pauseVideo(); } catch (e) {} try { nu.setVolume(bvol()); } catch (e) {} }
     }, 100);
+  }
+
+  // ---- beat-locked blend (songs with a beat grid, planned by tools/culture.py): the next song waits cued on the other player, starts when the playing song reaches its mix point (a bar line),
+  // then is nudged with seekTo while still silent until its bars sit exactly on the playing song's bars; only then do the long equal-power fades begin ----
+  var LAT = 0.6;   // seconds between 'play' and the sound actually starting on this device; learned from each blend, so the next song starts exactly on the bar
+  try { LAT = Math.max(0.05, Math.min(1.2, +localStorage.getItem('up1-lat') || 0.6)); } catch (e) {}
+  function preCue(n) {
+    setTimeout(function wait() {
+      if (blending) { setTimeout(wait, 1000); return; }   // never cue the player that is still fading out
+      var pn = S.plays[n]; if (!pn || !pn.al || !blendOn() || idx + 1 !== n || !ready2) return;
+      var B = (yt === yt2) ? ytMain : yt2; try { B.setVolume(0); B.cueVideoById({ videoId: pn.id, startSeconds: Math.max(0, (pn.so || 0) - Math.min(3, pn.so || 0)) }); } catch (e) {}
+    }, 2500);
+  }
+  function alignedBlend(n) {
+    var A = yt, B = (A === yt2) ? ytMain : yt2, pn = S.plays[n], pc = curP;
+    if (!pc || pc.mo == null || !B || !ready2) { blendFlag = true; playIdx(n, 0); return; }
+    clearInterval(xfT); clearInterval(fadeT); blending = true;
+    var pre = Math.min(3, pn.so || 0), uiDone = false, mo = pc.mo, Lw = pn.xi || 8, oldV = 100, target = bvol(), began = false, locked = false, latSet = false, stable = 0, lastSeek = 0, es = [], eT = (pc.bpm && pn.bpm) ? -0.5 * Lw * (1 - pc.bpm / pn.bpm) : 0,   // aim the bars to meet in the middle of the overlap, so a small tempo difference drifts equally either side
+         tS = 0, giveUp = Date.now() + 14000;
+    try { oldV = A.getVolume(); } catch (e) {}
+    try {
+      var pA0 = A.getCurrentTime();
+      if (pA0 > mo + 0.3) { blending = false; blendFlag = true; playIdx(n, 0); return; }   // already past the mix point: plain blend
+      giveUp = Date.now() + Math.min(70, Math.max(8, mo - pA0 + 4)) * 1000;   // the playing song may run a little behind the clock (start-up, buffering): wait for it, not for the clock
+    } catch (e) {}
+    function end(abort) { clearInterval(xfT); blending = false; try { B.setPlaybackRate(1); } catch (e) {} try { A.pauseVideo(); } catch (e) {} try { B.setVolume(bvol()); } catch (e) {} if (abort) { try { B.pauseVideo(); } catch (e) {} } }
+    xfT = setInterval(function () {
+      if (!started || userPaused) { end(true); return; }
+      var pA = 0; try { pA = A.getCurrentTime(); } catch (e) { end(true); return; }
+      if (!began) {
+        if (pA >= mo - pre - LAT) {
+          began = true; tS = Date.now(); yt = B;
+          try { B.setVolume(0); if (B.getPlayerState() === 5) B.playVideo(); else B.loadVideoById({ videoId: pn.id, startSeconds: Math.max(0, (pn.so || 0) - pre) }); } catch (e) {}
+        } else if (Date.now() > giveUp) { end(true); blendFlag = true; playIdx(n, 0); }
+        return;
+      }
+      var pB = 0; try { pB = B.getCurrentTime(); } catch (e) { return; }
+      var e = pB - ((pn.so || 0) + (pA - mo)), f = (pA - mo) / Lw, now = Date.now();
+      if (!uiDone && pA >= mo) { uiDone = true; idx = n; curAlt = 0; curP = pn; paintNP(); schedBlend(); }   // the title changes when the new song reaches the mix point
+      if (now - lastSeek > 450 && now - tS > 700 && B.getPlayerState() === 1) {
+        if (Math.abs(e - eT) > 1.5) { if (now - lastSeek > 1200 && f < 0.5) { try { B.seekTo(pB - (e - eT) + 0.05, true); } catch (x) {} lastSeek = now; es = []; stable = 0; } }
+        else { es.push(e - eT); if (es.length > 9) es.shift(); }
+      }
+      if (es.length >= 5) {
+        var srt = es.slice().sort(function (x, y) { return x - y; }), med = srt[srt.length >> 1];
+        if (!latSet) { latSet = true; if (Math.abs(med) < 0.6) { LAT = Math.max(0.05, Math.min(1.2, LAT - med * 0.7)); try { localStorage.setItem('up1-lat', LAT.toFixed(3)); } catch (x) {} } }   // learn the start delay
+        if (Math.abs(med) > 0.25 && now - lastSeek > 900 && f < 0.5) { try { B.seekTo(pB - med + 0.05, true); } catch (x) {} lastSeek = now; es = []; stable = 0; }   // far off: one big jump first
+        else if (Math.abs(med) > 0.02 && f < 0.5) {   // YouTube only changes speed in 5 % steps: run B 5 % fast or slow for exactly as long as the phase needs (it is still silent), then listen again
+          var step = Math.abs(med) > 0.07 ? 0.25 : 0.05, dur = Math.min(2500, Math.max(100, Math.abs(med) / step * 1000));
+          try { B.setPlaybackRate(med > 0 ? 1 - step : 1 + step); } catch (x) {}
+          setTimeout(function () { try { B.setPlaybackRate(1); } catch (x) {} }, dur);
+          lastSeek = now + dur; es = []; stable = 0;
+        } else if (Math.abs(med) <= 0.02) { if (++stable >= 10) locked = true; } else stable = 0;
+      }
+      if (!locked && now - tS > 4500 && f > 0.1) locked = true;   // could not lock in time: carry on with the blend anyway
+      var c = function (v) { return Math.max(0, Math.min(1, v)); };
+      try {
+        B.setVolume(locked ? Math.round(target * Math.sin(Math.PI / 2 * c((f - 0.2) / 0.55))) : 0);
+        A.setVolume(Math.round(oldV * Math.cos(Math.PI / 2 * c((f - 0.4) / 0.6))));
+      } catch (x) {}
+      if (f >= 1) end(false);
+      window.__lock = { e: Math.round(e * 1000), f: Math.round(f * 100), locked: locked };
+    }, 30);
   }
   function schedBlend() {   // at the start of every song: set the moment the next one comes in
     clearTimeout(blendT); blendT = null;
@@ -837,6 +900,16 @@
     var n = idx + 1; if (n >= S.plays.length) return;
     var wait = (S.plays[n].t + S.delay) - Date.now() / 1000;
     if (wait < 1 || wait > 7200) return;
+    if (S.plays[n].al) {   // beat-locked: start watching the playing song a few seconds early (the second player may still be loading: then the plain blend runs on time)
+      preCue(n);
+      blendT = setTimeout(function () {
+        blendT = null; if (!started || userPaused || !playing) return;
+        if (ready2) { alignedBlend(n); return; }
+        var w = (S.plays[n].t + S.delay) - Date.now() / 1000;
+        blendT = setTimeout(function () { blendT = null; if (!started || userPaused || !playing) return; blendFlag = true; playIdx(n, 0); }, Math.max(0, w) * 1000);
+      }, Math.max(0, wait - 3) * 1000);
+      return;
+    }
     blendT = setTimeout(function () { blendT = null; if (!started || userPaused || !playing) return; blendFlag = true; playIdx(n, 0); }, wait * 1000);
   }
   function clearNext() { if (nextTimer) { clearTimeout(nextTimer); nextTimer = null; } }
@@ -851,8 +924,8 @@
     while (n < 8 && badIds[p.id]) { n++; p = slotPlay(i, n); }
     idx = i; curAlt = n; curP = p; offset = Math.max(0, Math.floor(offset || 0));
     paintNP();
-    if (offset > p.dur - 5 && i + 1 < S.plays.length) { next(); return; }       // this song is basically over: wait for the next slot
-    if (bl && blendOn() && yt2 && ready2 && playing && !userPaused && offset < 3) crossTo(p); else yt.loadVideoById({ videoId: p.id, startSeconds: offset });
+    if (offset > (p.len || p.dur) - 5 && i + 1 < S.plays.length) { next(); return; }       // this song is basically over: wait for the next slot
+    if (bl && blendOn() && yt2 && ready2 && playing && !userPaused && offset < 3) crossTo(p); else yt.loadVideoById({ videoId: p.id, startSeconds: offset + (p.so || 0) });
     schedBlend();
   }
   // after a song ends, the next one starts exactly when the schedule says it begins (never early), so every listener hears the same thing
@@ -919,8 +992,8 @@
     if (!started || !playing || !yt || !ready || idx < 0 || !S.plays[idx] || nextTimer || Date.now() - lastSync < 20000) return;
     try {
       var now = Date.now() / 1000 - S.delay, k = findNow();
-      if (k !== idx) { lastSync = Date.now(); playIdx(k, now - S.plays[k].t); return; }          // wrong song for this moment: jump to what is on air
-      var expected = now - S.plays[idx].t, cur = yt.getCurrentTime(), dur = yt.getDuration();
+      if (k !== idx && !(blendOn() && k === idx + 1 && (blending || now - S.plays[k].t < 30))) { lastSync = Date.now(); playIdx(k, now - S.plays[k].t); return; }          // wrong song for this moment: jump to what is on air (unless the blend into it is under way)
+      var expected = now - S.plays[idx].t + (S.plays[idx].so || 0), cur = yt.getCurrentTime(), dur = yt.getDuration();
       if (dur && expected < dur - 5 && Math.abs(cur - expected) > 20) { lastSync = Date.now(); yt.seekTo(expected, true); }   // paused or stalled: catch up to live
     } catch (x) {}
   }, 6000);
