@@ -3,7 +3,7 @@
 (function () {
   var cache = {}; try { cache = JSON.parse(sessionStorage.getItem('up1-facts-cache') || '{}'); } catch (e) {}
   function save() { try { sessionStorage.setItem('up1-facts-cache', JSON.stringify(cache)); } catch (e) {} }
-  var DATA = { genre: null, st: {}, artists: null, auto: null };
+  var DATA = { genre: null, st: {}, artists: null, auto: null, wiki: null, bpm: null, labels: null, az: {}, azIdx: null };
   function nrm(s) { return ' ' + String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim() + ' '; }
   function artistFacts(title, st) {   // facts about whoever is playing: a known artist named in the ARTIST part of the title (the first part before a dash; on Culture Shock the last part too, because titles often end with the artist), never in the song's own name
     var parts = String(title || '').replace(/\([^)]*\)|\[[^\]]*\]/g, ' ').split(/\s[-\u2013\u2014]\s/), segs = [parts[0]];
@@ -36,7 +36,53 @@
     var f = DATA.st[st] ? Promise.resolve() : fetch('data/facts-' + key + '.json?t=' + Math.floor(Date.now() / 3600000)).then(function (r) { return r.json(); }).then(function (j) { DATA.st[st] = j || {}; }).catch(function () { DATA.st[st] = {}; });
     var a = DATA.artists ? Promise.resolve() : fetch('data/artist-facts.json?t=' + Math.floor(Date.now() / 3600000)).then(function (r) { return r.json(); }).then(function (j) { DATA.artists = j || []; }).catch(function () { DATA.artists = []; });
     var au = DATA.auto ? Promise.resolve() : fetch('data/artist-auto.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { DATA.auto = j || {}; }).catch(function () { DATA.auto = {}; });
-    return Promise.all([g, f, a, au]);
+    var hr = Math.floor(Date.now() / 3600000);
+    var w = DATA.wiki ? Promise.resolve() : fetch('data/artist-wiki.json?t=' + hr).then(function (r) { return r.json(); }).then(function (j) { DATA.wiki = j || {}; }).catch(function () { DATA.wiki = {}; });
+    var bp = DATA.bpm ? Promise.resolve() : fetch('data/bpm.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { DATA.bpm = j || {}; }).catch(function () { DATA.bpm = {}; });
+    var lb = DATA.labels ? Promise.resolve() : fetch('data/labels.json?t=' + hr).then(function (r) { return r.json(); }).then(function (j) { DATA.labels = j || {}; }).catch(function () { DATA.labels = {}; });
+    var ai = DATA.azIdx ? Promise.resolve() : fetch('data/artists/index.json?t=' + hr).then(function (r) { return r.json(); }).then(function (j) { DATA.azIdx = j || {}; }).catch(function () { DATA.azIdx = {}; });
+    return Promise.all([g, f, a, au, w, bp, lb, ai]);
+  }
+
+  // ---- better facts: a line about the artist from Wikipedia, how many of their songs we play, the label, the tempo; the generic filler (YouTube view counts, "Original Mix" explained, bare release years) only if nothing else is left ----
+  var STALE = /(upload has been watched|"Original Mix" is the label|In Jamaican music a "version"|^It was released in \d{4}\.$|An extended mix lengthens|A radio edit trims|An instrumental version is the same track)/i;
+  var seenF = []; try { seenF = JSON.parse(localStorage.getItem('up1-seenf') || '[]'); } catch (e) {}
+  function seenAdd(t) { seenF.push(hash(t)); if (seenF.length > 400) seenF = seenF.slice(-400); try { localStorage.setItem('up1-seenf', JSON.stringify(seenF)); } catch (e) {} }
+  function azFor(name) {
+    var c = String(name || '').trim().charAt(0).toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, ''), L = /^[A-Z]$/.test(c) ? c : 'num';
+    if (DATA.az[L]) return Promise.resolve(DATA.az[L]);
+    return fetch('data/artists/' + (L === 'num' ? 'num' : L.toLowerCase()) + '.json?t=' + Math.floor(Date.now() / 3600000)).then(function (r) { return r.json(); }).then(function (j) { DATA.az[L] = j; return j; }).catch(function () { return []; });
+  }
+  function tempoFact(b, st) {
+    var n = parseFloat(String(b).replace('~', '')); if (!n) return '';
+    var say = n < 80 ? 'a slow, heavy pace that makes you feel every beat' : n < 100 ? 'a laid-back head-nod pace' : n < 118 ? 'a mid-tempo groove that is easy to move to' : n <= 132 ? 'the house-music sweet spot, where most dance floors live' : n <= 150 ? 'a fast, driving pace' : 'a very fast pace that keeps the energy high';
+    return 'At about ' + Math.round(n) + ' beats per minute, this song runs at ' + say + '.';
+  }
+  function buildFacts(p, st) {
+    var parts = String(p.title || '').split(/\s[-–—]\s/), segs = [parts[0]]; if (parts.length > 1 && st === 'cultureshock') segs.push(parts[parts.length - 1]);
+    var main = mainArtist(segs[0]), key = nrm(main).trim(), top = [], mid = [], low = [];
+    var wk = DATA.wiki && (DATA.wiki[key] || (segs[1] && DATA.wiki[nrm(mainArtist(segs[1])).trim()]));
+    if (wk && wk.x) top.push(wk.x + ' — Wikipedia');
+    artistFacts(p.title, st).forEach(function (x) { top.push(x); });
+    autoFacts(p.title, st).forEach(function (x) { mid.push(x); });
+    var lab = DATA.labels && DATA.labels[p.id]; if (lab) mid.push('“' + String(parts[1] || parts[0]).replace(/\s*[\(\[].*$/, '').trim() + '” is released on ' + lab + '.');
+    var b = DATA.bpm && DATA.bpm[p.id]; if (b) mid.push(tempoFact(b, st));
+    var rx = remixFact(p.title); if (rx) mid.push(rx);
+    var pre = ((DATA.st[st] || {})[p.id] || []); var good = pre.filter(function (x) { return !STALE.test(x); });
+    good.forEach(function (x) { low.push(x); });
+    var gen = (DATA.genre || {})[st] || []; if (gen.length) low.push(gen[hash(p.id) % gen.length]);
+    var stale = pre.filter(function (x) { return STALE.test(x); });
+    var shuf = function (l) { return l.slice().sort(function () { return Math.random() - 0.5; }); };
+    var out = shuf(top).concat(shuf(mid)).concat(shuf(low)).filter(Boolean);
+    var fresh = out.filter(function (x) { return seenF.indexOf(hash(x)) < 0; }); if (fresh.length) out = fresh.concat(out.filter(function (x) { return fresh.indexOf(x) < 0; }));
+    if (!out.length) out = stale;
+    return azFor(main).then(function (rows) {   // how many of this artist's songs are on the stations
+      var row = (rows || []).filter(function (r) { return nrm(r[0]).trim() === key; })[0];
+      if (row && row[1].length >= 2) { var names = (DATA.azIdx && DATA.azIdx.stations) || ['1UP Radio', 'The Movement', 'Culture Shock', 'The Vault'], ss = {}; row[1].forEach(function (s) { ss[names[s[0]]] = 1; });
+        var where = Object.keys(ss).join(' and '); var t = main + ' has ' + row[1].length + ' songs in our mix' + (where ? ', on ' + where : '') + '.';
+        if (seenF.indexOf(hash(t)) < 0) out.splice(Math.min(1, out.length), 0, t); }
+      return out;
+    });
   }
   function hash(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
   var bubble, hideT = null, songId = '', songT0 = 0, shown = 0, facts = null, token = 0, plan = [], lastPop = 0;
@@ -50,7 +96,7 @@
   function pop(f, who, withSrc) {
     bubble.querySelector('p').textContent = f; 
     bubble.hidden = false; bubble.classList.remove('pop'); void bubble.offsetWidth; bubble.classList.add('pop');
-    lastPop = Date.now(); clearTimeout(hideT); hideT = setTimeout(hide, Math.min(32000, Math.max(16000, 9000 + String(f).length * 110)) * (0.9 + Math.random() * 0.2));
+    lastPop = Date.now(); try { seenAdd(String(f).replace(/ \u2014 Wikipedia$/, '')); seenAdd(f); } catch (e) {} clearTimeout(hideT); hideT = setTimeout(hide, Math.min(32000, Math.max(16000, 9000 + String(f).length * 110)) * (0.9 + Math.random() * 0.2));
   }
   function station2() { return window.UP1_STATION || '1up'; }
   function tick() {
@@ -59,14 +105,7 @@
     if (p.id !== songId) { songId = p.id; songT0 = Date.now(); shown = 0; facts = null; hide(); makePlan(); var my = ++token, st = station2(), sid = p.id;
       loadData(st).then(function () {
         if (my !== token) return;
-        var pre = (DATA.st[st] || {})[sid] || [], gen = (DATA.genre || {})[st] || [], g = gen.length ? [gen[hash(sid) % gen.length]] : [];
-        var all = pre.slice(0, 3).concat(g);
-        if (!all.length && gen.length) all = [gen[hash(sid) % gen.length], gen[(hash(sid) + 3) % gen.length]];
-        var shuf = function (l) { return l.slice().sort(function () { return Math.random() - 0.5; }); };
-        var arr = shuf(artistFacts(p.title, st).concat(autoFacts(p.title, st))), rx = remixFact(p.title);   // about whoever is playing: one of these comes first, the rest are mixed in
-        var first = arr[0] || rx || '', rest = shuf(arr.slice(1).concat(rx && rx !== first ? [rx] : [], all));
-        all = first ? [first].concat(rest) : rest;
-        if (all.length) facts = { name: '', url: '', src: 0, facts: all };
+        buildFacts(p, st).then(function (all) { if (my !== token) return; if (all.length) facts = { name: '', url: '', src: 0, facts: all }; });
       });
     }
     if (!playing || !facts || !plan.length) return;
