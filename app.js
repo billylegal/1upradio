@@ -253,7 +253,7 @@
       h += '<div class="acacc" id="acacc">' + profAccounts(name) + '</div><div class="aclinks" id="aclinks">' + profPills(known, []) + '</div>';
       h += '<div class="aclabs" id="aclabs"></div>';
       var npn = window.UP1_NOW && alNorm((credits(window.UP1_NOW.title)[0]) || '') === key;
-      if (npn && /^(1up|movement|portal)$/.test(window.UP1_STATION || '1up')) { var sp = split(window.UP1_NOW.title), bq = encodeURIComponent(sp[0] ? sp[0] + ' ' + sp[1] : sp[1]); h += '<div class="aclr"><b>This track</b>' + sico('beatport', 'https://www.beatport.com/search?q=' + bq, 'Find this track on Beatport') + '</div>'; }
+      if (npn && /^(1up|movement|portal|pg[a-z0-9]+)$/.test(window.UP1_STATION || '1up')) { var sp = split(window.UP1_NOW.title), bq = encodeURIComponent(sp[0] ? sp[0] + ' ' + sp[1] : sp[1]); h += '<div class="aclr"><b>This track</b>' + sico('beatport', 'https://www.beatport.com/search?q=' + bq, 'Find this track on Beatport') + '</div>'; }
       h += '<a class="azlink acaz" href="#">All artists A\u2013Z \u203a</a>';
       var cr = []; if (dz && dz.link && !own) cr.push('Photo and fans: <a href="' + esc(dz.link) + '" target="_blank" rel="noopener">Deezer</a>');
       if (wk && wk.url && !own) cr.push('Text: <a href="' + esc(wk.url) + '" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA)');
@@ -358,7 +358,7 @@
       var lk = 'label:' + alNorm(lab); if (ALINKS[lk] === undefined) liveLinks(lab, 'label');
       var LL = ALINKS[lk]; if (LL && (LL.x || LL.ig || LL.tt || LL.yt)) html += grp('Label', lab, alIcons(LL, lab));
     }
-    if (/^(1up|movement|portal)$/.test(window.UP1_STATION || '1up')) {   // house tunes are mostly on Beatport: a button for the playing track itself (a Beatport search for it)
+    if (/^(1up|movement|portal|pg[a-z0-9]+)$/.test(window.UP1_STATION || '1up')) {   // house tunes are mostly on Beatport: a button for the playing track itself (a Beatport search for it)
       var sp = split(p.title), bq = encodeURIComponent(sp[0] ? sp[0] + ' ' + sp[1] : sp[1]);
       html += grp('Track', 'Find on Beatport', sico('beatport', 'https://www.beatport.com/search?q=' + bq, 'Find this track on Beatport'));
     }
@@ -371,7 +371,7 @@
     $('savedhint').style.display = saved.length ? 'none' : '';
     el.innerHTML = saved.map(function (s, i) {
       var a = split(s.title), q = encodeURIComponent(a[0] ? a[0] + ' ' + a[1] : a[1]), L = s.links || null, lk = '';
-      var dance = /^(1up|movement|portal)$/.test(window.UP1_STATION || '1up'), sid = encodeURIComponent(s.id);   // the house stations: Beatport comes right after YouTube
+      var dance = /^(1up|movement|portal|pg[a-z0-9]+)$/.test(window.UP1_STATION || '1up'), sid = encodeURIComponent(s.id);   // the house stations: Beatport comes right after YouTube
       var yt = sico('youtube', 'https://www.youtube.com/watch?v=' + sid, 'Open on YouTube'), bp = sico('beatport', 'https://www.beatport.com/search?q=' + q, 'Search on Beatport');
       lk += yt + (dance ? bp : '');
       if (L && L.apple) lk += sico('apple', L.apple, 'Open on Apple Music');
