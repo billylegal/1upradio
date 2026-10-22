@@ -906,7 +906,7 @@
     var eff = (btnIntent !== null && Date.now() - btnAt < 2500) ? btnIntent : playing;      // what the button shows right now, even if YouTube has not reported it yet
     btnAt = Date.now();
     if (eff) { btnIntent = false; userPaused = true; try { yt.pauseVideo(); } catch (x) {} setOn(false); }
-    else { btnIntent = true; userPaused = false; try { yt.playVideo(); } catch (x) {} }
+    else { btnIntent = true; userPaused = false; try { var kl = findNow(); playIdx(kl, Date.now() / 1000 - S.delay - S.plays[kl].t); } catch (x) { try { yt.playVideo(); } catch (y) {} } }   // radio, not a tape: playing again joins what is on air NOW, never the spot where it was paused
   });
   $('vol').addEventListener('input', function (e) { $('volv').textContent = e.target.value; if (yt && ready) yt.setVolume(+e.target.value); if (jingOn) jing.volume = jingVol(); try { localStorage.setItem('up1-vol', e.target.value); } catch (x) {} });
   try { var v = localStorage.getItem('up1-vol'); if (v) { $('vol').value = v; $('volv').textContent = v; } } catch (x) {}
