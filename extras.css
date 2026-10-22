@@ -225,3 +225,8 @@ html[data-skin] .ctl .play{margin:0}
 .stcode em{flex:1 0 100%;font-style:normal;font-size:12px;color:#ff9a9a;min-height:1em}
 .stcard.stgrp{margin-left:22px;padding-top:6px;padding-bottom:6px;transform:scale(.94);transform-origin:left center}
 .stcard.stgrp img{width:40px;height:40px}
+.stgtoggle{display:flex;justify-content:space-between;align-items:center;width:calc(100% - 22px);margin:-2px 0 8px 22px;padding:9px 14px;border-radius:12px;border:1px dashed rgba(var(--gr,255,211,77),.5);background:transparent;color:inherit;font:600 12px 'Barlow Condensed',system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;cursor:pointer}
+.stgtoggle:hover{background:rgba(255,255,255,.08)}
+.stgtoggle i{font-style:normal;font-size:14px}
+.stgbox{margin:0 0 8px}
+.stgbox[hidden]{display:none}

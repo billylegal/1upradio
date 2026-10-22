@@ -115,6 +115,15 @@
       return '<button type="button" class="stcard' + (s.group ? ' stgrp' : '') + (s.id === cur.id ? ' on' : '') + (s.soon && !(s.locked && UNLOCKED) ? ' soon' : '') + (s.locked && !UNLOCKED ? ' lockd' : '') + '" data-id="' + s.id + '"' + (s.soon && !s.locked ? ' disabled' : '') + '><img src="' + s.art + '" alt="" width="64" height="64"><span><b>' + s.name + '</b><small>' + s.sub + '</small></span><i>' + (s.soon && !(s.locked && UNLOCKED) ? 'COMING SOON' : s.id === cur.id ? 'ON AIR' : 'TUNE IN') + '</i></button>';
     }).join('') + '</div>';
     document.body.appendChild(box);
+    (function () {   // the Portal's genre channels live in a menu under The Portal: tap "Genres" to open or close it
+      var gs = box.querySelectorAll('.stcard.stgrp'); if (!gs.length) return;
+      var wrap = document.createElement('div'), tg = document.createElement('button'), inCur = cur.group === 'portal';
+      wrap.className = 'stgbox'; wrap.hidden = !inCur;
+      tg.type = 'button'; tg.className = 'stgtoggle'; tg.setAttribute('aria-expanded', inCur ? 'true' : 'false');
+      tg.innerHTML = '<span>Portal genres \u00b7 ' + gs.length + '</span><i aria-hidden="true">' + (inCur ? '\u25B4' : '\u25BE') + '</i>';
+      gs[0].parentNode.insertBefore(tg, gs[0]); tg.parentNode.insertBefore(wrap, gs[0]);
+      Array.prototype.forEach.call(gs, function (g) { wrap.appendChild(g); });
+    })();
     function askCode(id) {
       var f = box.querySelector('.stcode'); if (f) f.remove();
       f = document.createElement('form'); f.className = 'stcode'; f.autocomplete = 'off';
@@ -144,6 +153,8 @@
     box.addEventListener('click', function (e) {
       if (e.target === box || e.target.closest('.stx')) return open(false);
       if (e.target.closest('.stcode')) return;
+      var tgb = e.target.closest('.stgtoggle');
+      if (tgb) { var gb = box.querySelector('.stgbox'), op = gb.hidden; gb.hidden = !op; tgb.setAttribute('aria-expanded', op ? 'true' : 'false'); tgb.querySelector('i').textContent = op ? '\u25B4' : '\u25BE'; if (op) tgb.scrollIntoView({ block: 'nearest' }); return; }
       var c = e.target.closest('.stcard'); if (!c || c.disabled) return;
       if (c.classList.contains('lockd')) { askCode(c.dataset.id); return; }   // still coming soon for everyone else: ask for the code
       open(false); if (c.dataset.id !== cur.id) switchTo(byId(c.dataset.id), true);
