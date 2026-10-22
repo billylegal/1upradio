@@ -771,7 +771,7 @@
 
   var nextTimer = null, badIds = {}, curAlt = 0, curP = null;
   // ---- dead-air filler: when a song ends and the next slot is still a few seconds away, play station-ID jingles that finish before the next song starts ----
-  var JINGLES = [{"f": "assets/jingles/j6.mp3", "d": 3.5}, {"f": "assets/jingles/j3.mp3", "d": 6.11}, {"f": "assets/jingles/j5.mp3", "d": 4.95}, {"f": "assets/jingles/j7.mp3", "d": 8.14, "msg": "Try out our new features: tap SKIN to change the whole look, and THEME to change the colors."}, {"f": "assets/jingles/j8.mp3", "d": 7.72, "msg": "New: tap SKIN for a new look, tap THEME for new colors."}, {"f": "assets/jingles/j9.mp3", "d": 7.3}], jing = new Audio(), jingOn = false, jingUnlocked = false;
+  var JINGLES = [], JINGLES_OFF = [{"f": "assets/jingles/j6.mp3", "d": 3.5}, {"f": "assets/jingles/j3.mp3", "d": 6.11}, {"f": "assets/jingles/j5.mp3", "d": 4.95}, {"f": "assets/jingles/j7.mp3", "d": 8.14, "msg": "Try out our new features: tap SKIN to change the whole look, and THEME to change the colors."}, {"f": "assets/jingles/j8.mp3", "d": 7.72, "msg": "New: tap SKIN for a new look, tap THEME for new colors."}, {"f": "assets/jingles/j9.mp3", "d": 7.3}], jing = new Audio(), jingOn = false, jingUnlocked = false;   // JINGLES is OFF (Billy): the between-song station-ID jingles are retired, the hourly time call stays; JINGLES_OFF keeps the old list to bring them back
   jing.preload = 'auto';
   var hintWas = null;
   function showPromo(msg) { var h = $('hint'); if (!h) return; if (msg) { if (hintWas === null) hintWas = h.textContent; h.textContent = msg; h.classList.add('promo'); } else if (hintWas !== null) { h.textContent = hintWas; hintWas = null; h.classList.remove('promo'); } }
