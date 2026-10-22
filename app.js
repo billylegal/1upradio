@@ -406,7 +406,7 @@
   function lookupLyricsForSaved() {   // find the words for saved songs, one at a time; kept with the song so they show in the list
     if (lyLooking || typeof fetchLyrics !== 'function') return;
     saved.forEach(function (s) { if (s.ly === '' && Date.now() - (s.lyat || 0) > 864e5) { s.ly = undefined; s.lyt = 0; } });   // not found? look again every 24 h (new lyrics get added over time)
-    var x = saved.find(function (s) { return s.ly === undefined && (s.lyt || 0) < 3 && !/^\s*billy legal\b/i.test(s.title || ''); }); if (!x) return;
+    var x = saved.find(function (s) { return s.ly === undefined && (s.lyt || 0) < 3 && !isBilly(s.title); }); if (!x) return;
     lyLooking = true; x.lyt = (x.lyt || 0) + 1;
     var pr; try { pr = fetchLyrics([x.title], 0); } catch (e) { lyLooking = false; return; }
     pr.then(function (d) {
@@ -526,8 +526,9 @@
     }).catch(function () { return null; });
   }
   var lyTrouble = false;
+  function isBilly(t) { return /^\s*billy legal\b/i.test(t || '') || /\s[-\u2013\u2014]\s*billy legal\s*$/i.test(t || ''); }   // Billy's own songs, whichever way round the title is written
   function fetchLyrics(titles, dur) {   // titles: the station's title + YouTube's own; best LRCLIB match (closest in length, timed preferred) else the AI library
-    if (titles.some(function (t) { return /^\s*billy legal\b/i.test(t || ''); })) return Promise.resolve(null);   // Billy's own songs: no lyrics source is verified, never guess
+    if (titles.some(function (t) { return isBilly(t); })) return Promise.resolve(null);   // Billy's own songs: no lyrics source is verified, never guess
     var enc = encodeURIComponent, seen = {}, vs = [];
     titles.forEach(function (t) { variants(t).forEach(function (v) { var k = fold(v.artist + '|' + v.track); if (v.track && v.track.length > 1 && !seen[k]) { seen[k] = 1; vs.push(v); } }); });
     function J(u, again) {
