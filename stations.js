@@ -88,12 +88,30 @@
     var cols = document.querySelector('main .cols'); if (!cols) return;
     if (!el) {
       el = document.createElement('section'); el.className = 'card pgsel'; el.id = 'pgsel'; cols.parentNode.insertBefore(el, cols);
-      el.addEventListener('click', function (e) { var b = e.target.closest('button[data-id]'); if (b && b.dataset.id !== cur.id) switchTo(byId(b.dataset.id), true); });
+      el.addEventListener('click', function (e) {
+        if (e.target.closest('.pgsoon')) {   // DJ Mixed: special access, asks for the code right here
+          if (el.querySelector('.stcode')) return;
+          var f = document.createElement('form'); f.className = 'stcode pgcode'; f.autocomplete = 'off';
+          f.innerHTML = '<label>Special access. Enter the code.</label><input type="password" name="c" autocomplete="off" aria-label="Access code" placeholder="Enter code"><button type="submit">Open</button><em></em>';
+          el.appendChild(f); f.querySelector('input').focus();
+          f.addEventListener('submit', function (ev) {
+            ev.preventDefault(); var v = f.querySelector('input').value.trim().toLowerCase(), msg = f.querySelector('em');
+            if (!v || !(window.crypto && crypto.subtle)) { msg.textContent = 'Not yet.'; return; }
+            crypto.subtle.digest('SHA-256', new TextEncoder().encode('up1gate:' + v)).then(function (bf) {
+              var h = Array.prototype.map.call(new Uint8Array(bf), function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
+              if (h !== GATES.tdot6) { msg.textContent = 'Not yet.'; f.querySelector('input').select(); return; }
+              try { localStorage.setItem('up1-unlock-tdot6', GATES.tdot6); } catch (er) {}
+              location.href = location.pathname + '?station=pgtechmix';
+            });
+          });
+          return;
+        }
+        var b = e.target.closest('button[data-id]'); if (b && b.dataset.id !== cur.id) switchTo(byId(b.dataset.id), true); });
     }
     el.hidden = false; var G = GROUPS[g];
     el.innerHTML = '<h2>' + G[0] + '</h2><div class="pgchips">' + [{ id: g, name: G[1] }].concat(ST.filter(function (x) { return x.group === g && (x.id !== 'pgtechmix' || UNL.tdot6); }).sort(function (a, b) { return String(a.name).replace(G[2], '').localeCompare(String(b.name).replace(G[2], ''), 'en', { sensitivity: 'base' }); })).map(function (x) {
       return '<button type="button" data-id="' + x.id + '" class="pgchip' + (x.id === cur.id ? ' on' : '') + '">' + String(x.name).replace(G[2], '') + '</button>';
-    }).join('') + (g === 'portal' && !UNL.tdot6 ? '<button type="button" class="pgchip pgsoon" disabled title="A DJ-mixed Tech House set, beat-matched. Coming soon.">DJ Mixed \u00b7 coming soon</button>' : '') + '</div>';
+    }).join('') + (g === 'portal' && !UNL.tdot6 ? '<button type="button" class="pgchip pgsoon" title="A DJ-mixed Tech House set, beat-matched. Coming soon. Tap if you have the special access code.">DJ Mixed \u00b7 coming soon</button>' : '') + '</div>';
   }
   function paintUI(st) {   // everything on the page that carries the station's name, logo and look
     var rad = document.querySelector('.logo .rad'), img = document.querySelector('.logo img'), isMain = st.id === '1up';
