@@ -921,7 +921,17 @@
       if (dur && expected < dur - 5 && Math.abs(cur - expected) > 20) { lastSync = Date.now(); yt.seekTo(expected, true); }   // paused or stalled: catch up to live
     } catch (x) {}
   }, 6000);
-  setInterval(function () { if (!playing || !yt || !ready) return; try { var d = yt.getDuration(), c = yt.getCurrentTime(); if (d) $('npFill').style.width = Math.min(100, c / d * 100) + '%'; } catch (x) {} }, 500);
+  function fmtLeft(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+  // the meter and the time counting down: on the blended channels it runs to the moment the next song comes in (the schedule), on the original 1UP Radio to the end of the video
+  setInterval(function () {
+    var el = $('npLeft'); if (!playing || !yt || !ready) { if (el && !playing) el.textContent = ''; return; }
+    try {
+      var d = yt.getDuration(), c = yt.getCurrentTime(), rem = d ? d - c : null, fill = d ? c / d : null, pc = S.plays[idx], pn = S.plays[idx + 1];
+      if (blendOn() && pc && pn) { var now = Date.now() / 1000 - S.delay, tot = pn.t - pc.t; rem = pn.t - now; if (tot > 0) fill = (now - pc.t) / tot; }
+      if (fill !== null) $('npFill').style.width = Math.max(0, Math.min(100, fill * 100)) + '%';
+      if (el) el.textContent = rem !== null && rem > 0 ? '\u2212' + fmtLeft(rem) : '';
+    } catch (x) {}
+  }, 500);
 
   // ---- hourly station ID: church bell, "The time is now ...", "One Up Radio. Keep the volume up." on the listener's local hour ----
   var chime = new Audio(), chimeOn = false, chimeUnlocked = false, chimeHour = -1, chimeKey = '', IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
