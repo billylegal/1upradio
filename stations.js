@@ -68,17 +68,18 @@
     ['vl', 'vr'].forEach(function (c) { var d = document.createElement('div'); d.className = 'vside ' + c; d.setAttribute('aria-hidden', 'true'); d.textContent = WORDS + WORDS + WORDS; document.body.appendChild(d); });
   }
   var origTitle = document.title, origImg = '', box, logoEl;
-  function paintGenres() {   // inside the Portal: pick a genre channel (or all of them) from a card above the lists
-    var inP = cur.id === 'portal' || cur.group === 'portal', el = document.getElementById('pgsel');
-    if (!inP || !UNLOCKED) { if (el) el.hidden = true; return; }
+  var GROUPS = { portal: ['Portal \u00b7 pick a genre', 'All genres', /^Portal \u00b7 /], tdot6: ['T.DOT 6 \u00b7 pick a sound', 'All T.DOT 6', /^T\.DOT 6 \u00b7 /] };
+  function paintGenres() {   // inside a channel that has sub-channels (the Portal's genres, T.DOT 6's sounds): pick one, or all, from a card above the lists
+    var g = GROUPS[cur.id] ? cur.id : (GROUPS[cur.group] ? cur.group : ''), el = document.getElementById('pgsel');
+    if (!g || !UNLOCKED) { if (el) el.hidden = true; return; }
     var cols = document.querySelector('main .cols'); if (!cols) return;
     if (!el) {
       el = document.createElement('section'); el.className = 'card pgsel'; el.id = 'pgsel'; cols.parentNode.insertBefore(el, cols);
       el.addEventListener('click', function (e) { var b = e.target.closest('button[data-id]'); if (b && b.dataset.id !== cur.id) switchTo(byId(b.dataset.id), true); });
     }
-    el.hidden = false;
-    el.innerHTML = '<h2>Portal \u00b7 pick a genre</h2><div class="pgchips">' + [{ id: 'portal', name: 'All genres' }].concat(ST.filter(function (x) { return x.group === 'portal'; })).map(function (x) {
-      return '<button type="button" data-id="' + x.id + '" class="pgchip' + (x.id === cur.id ? ' on' : '') + '">' + String(x.name).replace(/^Portal \u00b7 /, '') + '</button>';
+    el.hidden = false; var G = GROUPS[g];
+    el.innerHTML = '<h2>' + G[0] + '</h2><div class="pgchips">' + [{ id: g, name: G[1] }].concat(ST.filter(function (x) { return x.group === g; })).map(function (x) {
+      return '<button type="button" data-id="' + x.id + '" class="pgchip' + (x.id === cur.id ? ' on' : '') + '">' + String(x.name).replace(G[2], '') + '</button>';
     }).join('') + '</div>';
   }
   function paintUI(st) {   // everything on the page that carries the station's name, logo and look
@@ -129,7 +130,7 @@
     var logo = document.querySelector('a.logo'); if (!logo) return;
     logo.setAttribute('aria-haspopup', 'dialog'); logo.insertAdjacentHTML('beforeend', '<span class="stcaret" aria-hidden="true">&#9662;</span>');
     box = document.createElement('div'); box.id = 'stations'; box.hidden = true; box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', 'Choose a station');
-    box.innerHTML = '<div class="stbox"><button type="button" class="stx" aria-label="Close">&times;</button><h2>CHOOSE A STATION</h2>' + ST.filter(function (s) { return !s.group || (UNLOCKED && s.group !== 'portal'); }).map(function (s) {
+    box.innerHTML = '<div class="stbox"><button type="button" class="stx" aria-label="Close">&times;</button><h2>CHOOSE A STATION</h2>' + ST.filter(function (s) { return !s.group; }).map(function (s) {
       return '<button type="button" class="stcard' + (s.group ? ' stgrp' : '') + (s.id === cur.id ? ' on' : '') + (s.soon && !(s.locked && UNLOCKED) ? ' soon' : '') + (s.locked && !UNLOCKED ? ' lockd' : '') + '" data-id="' + s.id + '"' + (s.group ? ' data-g="' + s.group + '"' : '') + (s.soon && !s.locked ? ' disabled' : '') + '><img src="' + s.art + '" alt="" width="64" height="64"><span><b>' + s.name + '</b><small>' + s.sub + '</small></span><i>' + (s.soon && !(s.locked && UNLOCKED) ? 'COMING SOON' : s.id === cur.id ? 'ON AIR' : 'TUNE IN') + '</i></button>';
     }).join('') + '</div>';
     document.body.appendChild(box);
