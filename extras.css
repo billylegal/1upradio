@@ -231,3 +231,6 @@ html[data-skin] .ctl .play{margin:0}
 .stgbox{margin:0 0 8px}
 .stgbox[hidden]{display:none}
 #npBpm{color:var(--g,#ffd34d);font-weight:700;letter-spacing:.14em}
+
+/* BPM beside the songs in Up Next / Just Played */
+.rbpm{font-style:normal;font-size:11px;font-weight:600;white-space:nowrap;opacity:.8;margin-left:6px;padding:1px 7px;border-radius:99px;border:1px solid rgba(var(--gr,255,255,255),.4);color:var(--g,inherit);vertical-align:1px}

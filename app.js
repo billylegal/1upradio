@@ -33,10 +33,12 @@
   function paintBpm(p) {
     var lab = document.querySelector('.player .lab') || document.querySelector('.lab'); if (!lab) return;
     var el = document.getElementById('npBpm'); if (!el) { el = document.createElement('span'); el.id = 'npBpm'; lab.appendChild(el); }
-    if (!BPMS) { BPMS = {}; fetch('data/bpm.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { BPMS = j || {}; paintBpm(curP || S.plays[idx] || p); }).catch(function () {}); }
+    if (!BPMS) { BPMS = {}; fetch('data/bpm.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { BPMS = j || {}; paintBpm(curP || S.plays[idx] || p); try { paintLists(); } catch (e) {} }).catch(function () {}); }
     var b = p && BPMS[p.id];
     el.textContent = b ? ' \u00b7 ' + (b % 1 ? b.toFixed(1) : b) + ' BPM' : '';
   }
+  function loadBpm() { if (BPMS) return; BPMS = {}; fetch('data/bpm.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { BPMS = j || {}; try { paintLists(); } catch (e) {} try { paintBpm(curP || S.plays[idx]); } catch (e) {} }).catch(function () { BPMS = null; }); }   // loaded as soon as the lists show, not only once a song plays
+  function bpmTag(p) { var b = BPMS && p && BPMS[p.id]; return b ? ' <em class="rbpm">' + (b % 1 ? b.toFixed(1) : b) + ' BPM</em>' : ''; }   // the BPM beside a song in Up Next / Just Played
   function paintNP() { window.UP1_NOW = curP || (S.plays && S.plays[idx]) || null; try { paintArtLinks(window.UP1_NOW); } catch (e) {}
     var p = curP || S.plays[idx]; if (!p) return; var a = split(p.title); try { paintBpm(p); } catch (e) {}
     $('npTitle').textContent = a[1] || p.title; $('npArtist').textContent = a[0]; try { linkArtistLine(); } catch (e) {}
@@ -49,7 +51,8 @@
   function hb(p) { var on = isSaved(p); return '<button class="hb' + (on ? ' on' : '') + '" type="button" data-t="' + p.t + '" aria-pressed="' + on + '" title="' + (on ? 'Remove from saved songs' : 'Save song') + '">' + (on ? '♥' : '♡') + '</button>'; }
   function paintHearts() { document.querySelectorAll('.hb').forEach(function (b) { var p = S.plays.find(function (x) { return x.t === +b.dataset.t; }), on = isSaved(p); b.classList.toggle('on', on); b.textContent = on ? '♥' : '♡'; b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.title = on ? 'Remove from saved songs' : 'Save song'; }); }
   function paintLists() {
-    var row = function (p, cls) { var a = split(p.title); return '<li class="' + (cls || '') + '"><time>' + fmtT(p.t) + '</time><span>' + esc(a[0] ? a[0] + ' — ' + a[1] : a[1]) + '</span>' + hb(p) + '</li>'; };
+    loadBpm();
+    var row = function (p, cls) { var a = split(p.title); return '<li class="' + (cls || '') + '"><time>' + fmtT(p.t) + '</time><span>' + esc(a[0] ? a[0] + ' — ' + a[1] : a[1]) + bpmTag(p) + '</span>' + hb(p) + '</li>'; };
     var ref = idx >= 0 ? idx : (S.plays.length ? findNow() : -1);
     $('next').innerHTML = ref >= 0 ? S.plays.slice(ref + 1, ref + 7).map(function (p) { return row(p); }).join('') : '';
     $('prev').innerHTML = ref >= 0 ? S.plays.slice(Math.max(0, ref - 6), ref).reverse().map(function (p) { return row(p); }).join('') : '';
