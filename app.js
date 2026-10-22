@@ -35,11 +35,11 @@
     var el = document.getElementById('npBpm'); if (!el) { el = document.createElement('span'); el.id = 'npBpm'; lab.appendChild(el); }
     if (!BPMS) { BPMS = {}; fetch('data/bpm.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { BPMS = j || {}; paintBpm(curP || S.plays[idx] || p); try { paintLists(); } catch (e) {} }).catch(function () {}); }
     var b = p && BPMS[p.id];
-    el.textContent = b ? fmtB(b) + ' BPM' : '';
+    el.textContent = b ? fmtB(b) + ' BPM' : ''; el.className = typeof b === 'string' ? 'est' : ''; el.title = typeof b === 'string' ? 'Measured from the audio: about this tempo' : '';
   }
-  function fmtB(b) { return typeof b === 'string' ? b : (b % 1 ? b.toFixed(1) : b); }   // a number is a tempo from a store or a database; "~123" is our own measured estimate
+  function fmtB(b) { return typeof b === 'string' ? b.replace('~', '') : (b % 1 ? b.toFixed(1) : b); }   // a number is a tempo from a store or a database; "~123" is our own measured estimate
   function loadBpm() { if (BPMS) return; BPMS = {}; fetch('data/bpm.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { BPMS = j || {}; try { paintLists(); } catch (e) {} try { paintBpm(curP || S.plays[idx]); } catch (e) {} }).catch(function () { BPMS = null; }); }   // loaded as soon as the lists show, not only once a song plays
-  function bpmTag(p) { var b = BPMS && p && BPMS[p.id]; return b ? ' <em class="rbpm">' + fmtB(b) + ' BPM</em>' : ''; }   // the BPM beside a song in Up Next / Just Played
+  function bpmTag(p) { var b = BPMS && p && BPMS[p.id]; return b ? ' <em class="rbpm' + (typeof b === 'string' ? ' est' : '') + '" title="' + (typeof b === 'string' ? 'Measured from the audio: about this tempo' : '') + '">' + fmtB(b) + ' BPM</em>' : ''; }   // the BPM beside a song in Up Next / Just Played
   function paintNP() { window.UP1_NOW = curP || (S.plays && S.plays[idx]) || null; try { paintArtLinks(window.UP1_NOW); } catch (e) {}
     var p = curP || S.plays[idx]; if (!p) return; var a = split(p.title); try { paintBpm(p); } catch (e) {}
     $('npTitle').textContent = a[1] || p.title; $('npArtist').textContent = a[0]; try { linkArtistLine(); } catch (e) {}
@@ -930,7 +930,7 @@
       var d = yt.getDuration(), c = yt.getCurrentTime(), rem = d ? d - c : null, fill = d ? c / d : null, pc = S.plays[idx], pn = S.plays[idx + 1];
       if (blendOn() && pc && pn) { var now = Date.now() / 1000 - S.delay, tot = pn.t - pc.t; rem = pn.t - now; if (tot > 0) fill = (now - pc.t) / tot; }
       if (fill !== null) $('npFill').style.width = Math.max(0, Math.min(100, fill * 100)) + '%';
-      if (el) el.textContent = rem !== null && rem > 0 ? '\u2212' + fmtLeft(rem) : '';
+      if (el) el.textContent = rem !== null && rem > 0 ? fmtLeft(rem) : '';
     } catch (x) {}
   }, 500);
 
