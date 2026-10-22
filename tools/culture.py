@@ -19,14 +19,15 @@ STATIONS = {
     'tdot6after': {'uploads': '', 'videos': 'data/tdot6-after-videos.json', 'plays': 'data/tdot6after-plays.json', 'history': 'data/tdot6after-history.json', 'out': 'schedule-tdot6after.json'},   # T.DOT 6 sub-genre
     'tdot6slow': {'uploads': '', 'videos': 'data/tdot6-slow-videos.json', 'plays': 'data/tdot6slow-plays.json', 'history': 'data/tdot6slow-history.json', 'out': 'schedule-tdot6slow.json'},   # T.DOT 6 sub-genre
     'tdot6hh': {'uploads': '', 'videos': 'data/tdot6-hh-videos.json', 'plays': 'data/tdot6hh-plays.json', 'history': 'data/tdot6hh-history.json', 'out': 'schedule-tdot6hh.json'},   # T.DOT 6 sub-genre
+    'playground': {'uploads': '', 'videos': 'data/playground-videos.json', 'plays': 'data/playground-plays.json', 'history': 'data/playground-history.json', 'out': 'schedule-playground.json'},   # every track the PLAYGRND SERIES DJs play (set chapters)
     'hiphopvinyl': {'uploads': '', 'videos': 'data/hiphopvinyl-videos.json', 'plays': 'data/hiphopvinyl-plays.json', 'history': 'data/hiphopvinyl-history.json', 'out': 'schedule-hiphopvinyl.json'},
 }
 # The Portal's genre channels: one station per chart genre (id -> chart slug); each plays only that genre's songs
 PORTAL_GENRES = {'pgpeaktechno': 'techno-peak-time-driving', 'pgrawtechno': 'techno-raw-deep-hypnotic', 'pghardtechno': 'hard-techno', 'pgtechhouse': 'tech-house', 'pgdeephouse': 'deep-house',
                  'pgminimal': 'minimal-deep-tech', 'pgmelodic': 'melodic-house-techno', 'pgprogressive': 'progressive-house', 'pgafro': 'afro-house', 'pgorganic': 'organic-house',
-                 'pgdnb': 'drum-bass', 'pgukg': 'uk-garage-bassline', 'pgindiedance': 'indie-dance', 'pgnudisco': 'nu-disco-disco', 'pgamapiano': 'amapiano'}
+                 'pgtechmix': 'tech-house', 'pgdnb': 'drum-bass', 'pgukg': 'uk-garage-bassline', 'pgindiedance': 'indie-dance', 'pgnudisco': 'nu-disco-disco', 'pgamapiano': 'amapiano'}
 for _id, _slug in PORTAL_GENRES.items():
-    STATIONS[_id] = {'uploads': '', 'videos': 'data/portal-%s-videos.json' % _slug, 'plays': 'data/portal-%s-plays.json' % _id, 'history': 'data/portal-%s-history.json' % _id, 'out': 'schedule-%s.json' % _id}
+    STATIONS[_id] = {'tempo': 'data/portal-%s-bpm.json' % _slug, **({'grid': 'data/portal-%s-grid.json' % _slug.replace('-', '')} if _id == 'pgtechmix' else {}), 'uploads': '', 'videos': 'data/portal-%s-videos.json' % _slug, 'plays': 'data/portal-%s-plays.json' % _id, 'history': 'data/portal-%s-history.json' % _id, 'out': 'schedule-%s.json' % _id}
 NAME = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] in STATIONS else 'culture'
 ST = dict(STATIONS[NAME])
 try:   # a source channel can live in a private file on this PC instead of in the public repo
@@ -77,6 +78,23 @@ def load(p, default):
     except Exception: return default
 
 
+def plan(gA, soA, A_dur, gB):
+    """How song B comes in over song A. Returns (mo, so, xi, aligned): A's position where B starts, B's start position, the overlap in seconds, whether the bars are locked.
+    With a beat grid for both songs: B starts L bars before its groove begins, exactly when A is L bars before its groove ends, so A's outro and B's intro sit on the same bar lines.
+    The overlap is shortened when the two tempos differ (the bars would drift apart): at most ~40 ms of drift over the overlap."""
+    if gA and gB:
+        barA, barB = gA['bar'], gB['bar']; dB = abs(gA['bpm'] - gB['bpm'])
+        maxsec = 999.0 if dB < 0.03 else 0.08 * gA['bpm'] / dB   # YouTube's player only changes speed in 5 % steps, so B cannot be tempo-matched: the site lines the bars up at the middle of the overlap, and the overlap is capped so the bars drift apart by under ~40 ms either side
+        intro = int((gB['gin'] - gB['d0']) / barB + 0.01)
+        O = min(16, intro) if intro >= 4 else 4                 # bars of overlap: B's whole intro, at least 4 (these are mostly radio edits with little or no intro)
+        while O > 4 and O * barA > maxsec: O -= 1
+        if O * barA <= maxsec:
+            so = gB['gin'] - O * barB if intro >= 4 else gB['d0']
+            mo = gA['gout'] - O * barA
+            if so >= 0 and mo > soA + 20 and mo + O * barA <= gA['dur'] + 0.5: return mo, so, O * barA, 1
+    return A_dur - XF, 0, XF, 0
+
+
 def main():
     now = int(time.time())
     try:
@@ -98,15 +116,33 @@ def main():
     t = plays[-1]['t'] + plays[-1]['dur'] - XF if plays else now - now % 60
     rng = random.Random(now // 3600)
     seen = set(hist)
+    BPM = load(os.path.join(HERE, ST['tempo']), {}) if ST.get('tempo') and os.path.exists(os.path.join(HERE, ST['tempo'])) else {}
+    GRID = load(os.path.join(HERE, ST['grid']), {}) if ST.get('grid') else {}
+    for _i, _g in GRID.items(): BPM[_i] = _g['bpm']
+    if BPM: vids = [v for v in vids if 124 <= BPM.get(v['id'], 128) <= 134]   # a tight set: outliers far from the groove are left out
+    cur_bpm = BPM.get(hist[-1]) if hist else None
     while t < now + HORIZON:
         fresh = sorted((v for v in vids if v['id'] not in seen), key=lambda v: v['pub'])       # never-played videos first, oldest upload first
-        if fresh: pick = fresh[0]
+        if fresh and not BPM: pick = fresh[0]
         else:
             block = set(hist[-int(len(vids) * 0.6):])
-            pool = [v for v in vids if v['id'] not in block] or vids
-            pick = rng.choice(pool)
-        hist.append(pick['id']); seen.add(pick['id'])
-        plays.append({'t': t, 'id': pick['id'], 'title': pick['title'], 'dur': pick['dur']})
+            pool = (fresh if (fresh and BPM) else [v for v in vids if v['id'] not in block]) or vids
+            if BPM and cur_bpm:   # tempo glide: the next song is one of the closest in tempo to the last one (a DJ's set drifts, it does not jump)
+                known = [v for v in pool if v['id'] in BPM]
+                if known:
+                    want = cur_bpm + rng.choice((-0.4, 0, 0, 0, 0.4))   # club DJs hold a tempo for minutes and move 0.2-0.5 BPM at a time (measured on 20 full sets)
+                    known.sort(key=lambda v: abs(BPM[v['id']] - want)); pick = rng.choice(known[:2])
+                else: pick = rng.choice(pool)
+            else: pick = rng.choice(pool)
+        hist.append(pick['id']); seen.add(pick['id']); cur_bpm = BPM.get(pick['id'], cur_bpm)
+        entry = {'t': t, 'id': pick['id'], 'title': pick['title'], 'dur': pick['dur']}
+        if GRID.get(pick['id']): entry['bpm'] = round(GRID[pick['id']]['bpm'], 3)
+        if GRID and plays:
+            pa = plays[-1]; mo, so, xi, al = plan(GRID.get(pa['id']), pa.get('so', 0), pa['dur'], GRID.get(pick['id']))
+            pa['mo'] = round(mo, 3); pa['len'] = round(mo - pa.get('so', 0) + xi, 3)
+            entry['t'] = t = round(pa['t'] + mo - pa.get('so', 0), 3)
+            if al: entry['so'] = round(so, 3); entry['xi'] = round(xi, 3); entry['al'] = 1
+        plays.append(entry)
         t += pick['dur'] - XF
     json.dump(plays, open(PLAYS, 'w'), ensure_ascii=False, separators=(',', ':'))
     json.dump(hist[-5000:], open(os.path.join(HERE, ST['history']), 'w'), separators=(',', ':'))
