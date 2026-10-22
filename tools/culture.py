@@ -12,6 +12,12 @@ import json, os, random, re, sys, time, urllib.parse, urllib.request
 STATIONS = {
     'culture': {'uploads': 'UUcS-Gz7tDZmJbsi5M-DLsQw', 'videos': 'data/culture-videos.json', 'plays': 'data/culture-plays.json', 'history': 'data/culture-history.json', 'out': 'schedule-culture.json'},
     'movement': {'uploads': '', 'videos': 'data/movement-videos.json', 'plays': 'data/movement-plays.json', 'history': 'data/movement-history.json', 'out': 'schedule-movement.json'},   # hand-picked folder: no channel to follow
+    'tdot6': {'uploads': '', 'videos': 'data/tdot6-videos.json', 'plays': 'data/tdot6-plays.json', 'history': 'data/tdot6-history.json', 'out': 'schedule-tdot6.json'},   # T.DOT 6 (hand-picked)
+    'tdot6old': {'uploads': '', 'videos': 'data/tdot6-old-videos.json', 'plays': 'data/tdot6old-plays.json', 'history': 'data/tdot6old-history.json', 'out': 'schedule-tdot6old.json'},   # T.DOT 6 (hand-picked)
+    'tdot6dark': {'uploads': '', 'videos': 'data/tdot6-dark-videos.json', 'plays': 'data/tdot6dark-plays.json', 'history': 'data/tdot6dark-history.json', 'out': 'schedule-tdot6dark.json'},   # T.DOT 6 (hand-picked)
+    'tdot6after': {'uploads': '', 'videos': 'data/tdot6-after-videos.json', 'plays': 'data/tdot6after-plays.json', 'history': 'data/tdot6after-history.json', 'out': 'schedule-tdot6after.json'},   # T.DOT 6 (hand-picked)
+    'tdot6slow': {'uploads': '', 'videos': 'data/tdot6-slow-videos.json', 'plays': 'data/tdot6slow-plays.json', 'history': 'data/tdot6slow-history.json', 'out': 'schedule-tdot6slow.json'},   # T.DOT 6 (hand-picked)
+    'tdot6hh': {'uploads': '', 'videos': 'data/tdot6-hh-videos.json', 'plays': 'data/tdot6hh-plays.json', 'history': 'data/tdot6hh-history.json', 'out': 'schedule-tdot6hh.json'},   # T.DOT 6 (hand-picked)
     'hiphopvinyl': {'uploads': '', 'videos': 'data/hiphopvinyl-videos.json', 'plays': 'data/hiphopvinyl-plays.json', 'history': 'data/hiphopvinyl-history.json', 'out': 'schedule-hiphopvinyl.json'},
 }
 NAME = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] in STATIONS else 'culture'

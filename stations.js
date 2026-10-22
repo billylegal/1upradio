@@ -5,7 +5,12 @@
     { id: 'cultureshock', name: 'Culture Shock', sub: 'Roots reggae and dub, all day', sched: 'schedule-culture.json', art: 'assets/cultureshock.svg?v=2', mark: 'assets/cultureshock-mark.svg?v=3', tag: 'Roots · reggae · dub', artmap: 'data/culture-art.json', skins: ['culture', 'shock', 'dubby'] },
     { id: 'vault', name: 'The Vault', sub: 'Hip hop vinyl: 90s underground demos, boom bap archives, digging in the crates', sched: 'schedule-hiphopvinyl.json', art: 'assets/vault-art.png?v=2', mark: 'assets/vault-mark.svg?v=3', tag: 'Hip hop vinyl · underground · boom bap', artmap: 'data/hiphopvinyl-art.json', start: 'vault', short: 'THE VAULT' },
     { id: 'movement', name: 'The Movement', sub: 'Hand-selected house and Afro tracks', sched: 'schedule-movement.json', art: 'assets/movement-art.png?v=2', mark: 'assets/movement-mark.svg?v=3', tag: 'House · Afro', artmap: 'data/movement-art.json', start: 'house', short: 'THE MOVEMENT' },
-    { id: 'tdot6', name: 'T.DOT 6', sub: 'All Toronto music: slow, late-night R&B and rap', sched: 'schedule-tdot6.json', art: 'assets/tdot6-art.png?v=2', mark: 'assets/tdot6-mark.svg?v=2', tag: 'Toronto · R&B · late night', start: 'space', short: 'T.DOT 6', soon: 1, locked: 1 },
+    { id: 'tdot6', name: 'T.DOT 6', sub: 'All Toronto music: slow, late-night R&B and rap', sched: 'schedule-tdot6.json', art: 'assets/tdot6-art.png?v=3', mark: 'assets/tdot6-art.png?v=3', tag: 'Toronto · R&B · late night', start: 'space', short: 'T.DOT 6', soon: 1, locked: 1 },
+    { id: 'tdot6dark', name: 'T.DOT 6 \u00b7 Dark R&B', sub: 'T.DOT 6, the dark R&B sound: The Weeknd, PARTYNEXTDOOR, dvsn, Majid Jordan and more', sched: 'schedule-tdot6dark.json', art: 'assets/tdot6-art.png?v=3', mark: 'assets/tdot6-art.png?v=3', tag: 'Dark R&B', start: 'space', short: 'T.DOT 6 \u00b7 DARK R&B', soon: 1, locked: 1, group: 'tdot6' },
+    { id: 'tdot6after', name: 'T.DOT 6 \u00b7 After Hours', sub: 'T.DOT 6, late night: the moodiest tracks, slow and dark', sched: 'schedule-tdot6after.json', art: 'assets/tdot6-art.png?v=3', mark: 'assets/tdot6-art.png?v=3', tag: 'After Hours', start: 'space', short: 'T.DOT 6 \u00b7 AFTER HOURS', soon: 1, locked: 1, group: 'tdot6' },
+    { id: 'tdot6slow', name: 'T.DOT 6 \u00b7 Slow Jams', sub: 'T.DOT 6, slow jams: Drake and mellow Toronto R&B', sched: 'schedule-tdot6slow.json', art: 'assets/tdot6-art.png?v=3', mark: 'assets/tdot6-art.png?v=3', tag: 'Slow Jams', start: 'space', short: 'T.DOT 6 \u00b7 SLOW JAMS', soon: 1, locked: 1, group: 'tdot6' },
+    { id: 'tdot6old', name: 'T.DOT 6 \u00b7 Old School Toronto', sub: 'T.DOT 6, old school Toronto R&B and soul', sched: 'schedule-tdot6old.json', art: 'assets/tdot6-art.png?v=3', mark: 'assets/tdot6-art.png?v=3', tag: 'Old School Toronto', start: 'space', short: 'T.DOT 6 \u00b7 OLD SCHOOL', soon: 1, locked: 1, group: 'tdot6' },
+    { id: 'tdot6hh', name: 'T.DOT 6 \u00b7 90s & 2000s Hip Hop', sub: 'T.DOT 6, 90s and early 2000s Toronto hip hop', sched: 'schedule-tdot6hh.json', art: 'assets/tdot6-art.png?v=3', mark: 'assets/tdot6-art.png?v=3', tag: 'Toronto hip hop \u00b7 90s & 2000s', start: 'space', short: 'T.DOT 6 \u00b7 TORONTO HIP HOP', soon: 1, locked: 1, group: 'tdot6' },
     { id: 'portal', name: 'The Portal', sub: 'Every genre, one door: house, tech house, techno, bass, drum & bass and more, straight from the charts', sched: 'schedule-portal.json', art: 'assets/portal-art.png?v=2', mark: 'assets/portal-mark.svg?v=2', tag: 'Every beat · every genre', start: 'portal', short: 'THE PORTAL', soon: 1, locked: 1 },
     { id: 'pgpeaktechno', name: 'Portal · Techno · Peak Time', sub: 'The Portal, Techno · Peak Time chart only', sched: 'schedule-pgpeaktechno.json', art: 'assets/portal-art.png?v=2', mark: 'assets/portal-mark.svg?v=2', tag: 'Techno · Peak Time', start: 'portal', short: 'PORTAL · TECHNO · PEAK TIME', vfile: 'portal-techno-peak-time-driving', soon: 1, locked: 1, group: 'portal' },
     { id: 'pgrawtechno', name: 'Portal · Techno · Raw & Hypnotic', sub: 'The Portal, Techno · Raw & Hypnotic chart only', sched: 'schedule-pgrawtechno.json', art: 'assets/portal-art.png?v=2', mark: 'assets/portal-mark.svg?v=2', tag: 'Techno · Raw & Hypnotic', start: 'portal', short: 'PORTAL · TECHNO · RAW & HYPNOTIC', vfile: 'portal-techno-raw-deep-hypnotic', soon: 1, locked: 1, group: 'portal' },
@@ -112,17 +117,20 @@
     logo.setAttribute('aria-haspopup', 'dialog'); logo.insertAdjacentHTML('beforeend', '<span class="stcaret" aria-hidden="true">&#9662;</span>');
     box = document.createElement('div'); box.id = 'stations'; box.hidden = true; box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', 'Choose a station');
     box.innerHTML = '<div class="stbox"><button type="button" class="stx" aria-label="Close">&times;</button><h2>CHOOSE A STATION</h2>' + ST.filter(function (s) { return !s.group || UNLOCKED; }).map(function (s) {
-      return '<button type="button" class="stcard' + (s.group ? ' stgrp' : '') + (s.id === cur.id ? ' on' : '') + (s.soon && !(s.locked && UNLOCKED) ? ' soon' : '') + (s.locked && !UNLOCKED ? ' lockd' : '') + '" data-id="' + s.id + '"' + (s.soon && !s.locked ? ' disabled' : '') + '><img src="' + s.art + '" alt="" width="64" height="64"><span><b>' + s.name + '</b><small>' + s.sub + '</small></span><i>' + (s.soon && !(s.locked && UNLOCKED) ? 'COMING SOON' : s.id === cur.id ? 'ON AIR' : 'TUNE IN') + '</i></button>';
+      return '<button type="button" class="stcard' + (s.group ? ' stgrp' : '') + (s.id === cur.id ? ' on' : '') + (s.soon && !(s.locked && UNLOCKED) ? ' soon' : '') + (s.locked && !UNLOCKED ? ' lockd' : '') + '" data-id="' + s.id + '"' + (s.group ? ' data-g="' + s.group + '"' : '') + (s.soon && !s.locked ? ' disabled' : '') + '><img src="' + s.art + '" alt="" width="64" height="64"><span><b>' + s.name + '</b><small>' + s.sub + '</small></span><i>' + (s.soon && !(s.locked && UNLOCKED) ? 'COMING SOON' : s.id === cur.id ? 'ON AIR' : 'TUNE IN') + '</i></button>';
     }).join('') + '</div>';
     document.body.appendChild(box);
-    (function () {   // the Portal's genre channels live in a menu under The Portal: tap "Genres" to open or close it
-      var gs = box.querySelectorAll('.stcard.stgrp'); if (!gs.length) return;
-      var wrap = document.createElement('div'), tg = document.createElement('button'), inCur = cur.group === 'portal';
-      wrap.className = 'stgbox'; wrap.hidden = !inCur;
-      tg.type = 'button'; tg.className = 'stgtoggle'; tg.setAttribute('aria-expanded', inCur ? 'true' : 'false');
-      tg.innerHTML = '<span>Portal genres \u00b7 ' + gs.length + '</span><i aria-hidden="true">' + (inCur ? '\u25B4' : '\u25BE') + '</i>';
-      gs[0].parentNode.insertBefore(tg, gs[0]); tg.parentNode.insertBefore(wrap, gs[0]);
-      Array.prototype.forEach.call(gs, function (g) { wrap.appendChild(g); });
+    (function () {   // grouped channels (the Portal's genres, T.DOT 6's sub-genres) live in a menu under their channel: tap the bar to open or close it
+      var LBL = { tdot6: 'T.DOT 6 sub-genres', portal: 'Portal genres' };
+      Object.keys(LBL).forEach(function (g) {
+        var gs = box.querySelectorAll('.stcard.stgrp[data-g="' + g + '"]'); if (!gs.length) return;
+        var wrap = document.createElement('div'), tg = document.createElement('button'), inCur = cur.group === g;
+        wrap.className = 'stgbox'; wrap.hidden = !inCur;
+        tg.type = 'button'; tg.className = 'stgtoggle'; tg.setAttribute('aria-expanded', inCur ? 'true' : 'false');
+        tg.innerHTML = '<span>' + LBL[g] + ' \u00b7 ' + gs.length + '</span><i aria-hidden="true">' + (inCur ? '\u25B4' : '\u25BE') + '</i>';
+        gs[0].parentNode.insertBefore(tg, gs[0]); tg.parentNode.insertBefore(wrap, gs[0]);
+        Array.prototype.forEach.call(gs, function (c) { wrap.appendChild(c); });
+      });
     })();
     function askCode(id) {
       var f = box.querySelector('.stcode'); if (f) f.remove();
@@ -154,7 +162,7 @@
       if (e.target === box || e.target.closest('.stx')) return open(false);
       if (e.target.closest('.stcode')) return;
       var tgb = e.target.closest('.stgtoggle');
-      if (tgb) { var gb = box.querySelector('.stgbox'), op = gb.hidden; gb.hidden = !op; tgb.setAttribute('aria-expanded', op ? 'true' : 'false'); tgb.querySelector('i').textContent = op ? '\u25B4' : '\u25BE'; if (op) tgb.scrollIntoView({ block: 'nearest' }); return; }
+      if (tgb) { var gb = tgb.nextElementSibling, op = gb.hidden; gb.hidden = !op; tgb.setAttribute('aria-expanded', op ? 'true' : 'false'); tgb.querySelector('i').textContent = op ? '\u25B4' : '\u25BE'; if (op) tgb.scrollIntoView({ block: 'nearest' }); return; }
       var c = e.target.closest('.stcard'); if (!c || c.disabled) return;
       if (c.classList.contains('lockd')) { askCode(c.dataset.id); return; }   // still coming soon for everyone else: ask for the code
       open(false); if (c.dataset.id !== cur.id) switchTo(byId(c.dataset.id), true);
