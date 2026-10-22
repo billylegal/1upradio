@@ -259,3 +259,6 @@ html[data-skin] .ctl .play{margin:0}
 /* no space shuttles on any channel (Billy) */
 .sh,.shx,.shy,.bigs,.bigst.bigs{display:none!important}
 #npBpm{margin-left:14px}
+/* the time left now sits at the top right of the song block (it was a line above the sleep timer) */
+.player .lab{position:relative}
+.npleft{position:absolute;right:0;top:0;margin:0;text-align:right}

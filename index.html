@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="style.css?v=1792534009">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Permanent+Marker&family=Black+Ops+One&family=Special+Elite&display=swap">
 <link rel="stylesheet" href="chat.css?v=12">
-<link rel="stylesheet" href="extras.css?v=43">
+<link rel="stylesheet" href="extras.css?v=44">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#050805"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="1UP Radio"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
@@ -39,11 +39,11 @@
     <div class="eq" id="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <div class="np">
       <div class="npart" id="npArtWrap" hidden><img id="npArt" alt="" referrerpolicy="no-referrer"></div>
-      <div class="lab">NOW PLAYING</div>
+      <div class="lab">NOW PLAYING<span class="npleft" id="npLeft" aria-label="Time left in this song"></span></div>
       <div class="title" id="npTitle">Press play to tune in</div>
       <div class="artist" id="npArtist">Deep house · melodic · electronic, all day</div>
       <div class="btnrow"><button id="saveBtn" class="savebtn" type="button" disabled aria-pressed="false">♡ Save Song</button><button id="lyrBtn" class="savebtn lyrbtn" type="button" disabled aria-pressed="false">♪ Lyrics</button></div>
-      <div class="bar"><div class="fill" id="npFill"></div></div><div class="npleft" id="npLeft" aria-label="Time left in this song"></div>
+      <div class="bar"><div class="fill" id="npFill"></div></div>
     </div>
     <div class="ctl">
       <button id="play" class="play" aria-label="Play 1UP Radio"><svg class="ip" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg><svg class="ia" viewBox="0 0 24 24"><path d="M6 4.5h4v15H6zM14 4.5h4v15h-4z"/></svg></button>
