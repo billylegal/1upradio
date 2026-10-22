@@ -38,11 +38,12 @@
     var au = DATA.auto ? Promise.resolve() : fetch('data/artist-auto.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { DATA.auto = j || {}; }).catch(function () { DATA.auto = {}; });
     var hr = Math.floor(Date.now() / 3600000);
     var w = DATA.wiki ? Promise.resolve() : fetch('data/artist-wiki.json?t=' + hr).then(function (r) { return r.json(); }).then(function (j) { DATA.wiki = j || {}; }).catch(function () { DATA.wiki = {}; });
+    var dp = DATA.deep ? Promise.resolve() : fetch('data/artist-deep.json?t=' + hr).then(function (r) { return r.json(); }).then(function (j) { DATA.deep = j || {}; }).catch(function () { DATA.deep = {}; });
     var mo = DATA.more ? Promise.resolve() : fetch('data/artist-more.json?t=' + hr).then(function (r) { return r.json(); }).then(function (j) { DATA.more = j || {}; }).catch(function () { DATA.more = {}; });
     var bp = DATA.bpm ? Promise.resolve() : fetch('data/bpm.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { DATA.bpm = j || {}; }).catch(function () { DATA.bpm = {}; });
     var lb = DATA.labels ? Promise.resolve() : fetch('data/labels.json?t=' + hr).then(function (r) { return r.json(); }).then(function (j) { DATA.labels = j || {}; }).catch(function () { DATA.labels = {}; });
     var ai = DATA.azIdx ? Promise.resolve() : fetch('data/artists/index.json?t=' + hr).then(function (r) { return r.json(); }).then(function (j) { DATA.azIdx = j || {}; }).catch(function () { DATA.azIdx = {}; });
-    return Promise.all([g, f, a, au, w, bp, lb, ai, mo]);
+    return Promise.all([g, f, a, au, w, bp, lb, ai, mo, dp]);
   }
 
   // ---- better facts: a line about the artist from Wikipedia, how many of their songs we play, the label, the tempo; the generic filler (YouTube view counts, "Original Mix" explained, bare release years) only if nothing else is left ----
@@ -65,6 +66,7 @@
     var wk = DATA.wiki && (DATA.wiki[key] || (segs[1] && DATA.wiki[nrm(mainArtist(segs[1])).trim()]));
     if (wk && wk.x) top.push(wk.x + ' — Wikipedia');
     artistFacts(p.title, st).forEach(function (x) { top.push(x); });
+    var dpl = DATA.deep && (DATA.deep[key] || (segs[1] && DATA.deep[nrm(mainArtist(segs[1])).trim()])); if (dpl) dpl.forEach(function (x) { top.push(x + ' \u2014 Wikipedia'); });   // story lines from the artist's Wikipedia article (how they work, what they did before, aliases, quotes): a different one each time
     var more = DATA.more && (DATA.more[key] || (segs[1] && DATA.more[nrm(mainArtist(segs[1])).trim()])); if (more) more.forEach(function (x) { mid.push(x); });   // from Deezer: fans, releases, best-known song, who their fans also listen to
     autoFacts(p.title, st).forEach(function (x) { mid.push(x); });
     var lab = DATA.labels && DATA.labels[p.id]; if (lab) mid.push('“' + String(parts[1] || parts[0]).replace(/\s*[\(\[].*$/, '').trim() + '” is released on ' + lab + '.');
