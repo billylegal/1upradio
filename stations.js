@@ -89,23 +89,7 @@
     if (!el) {
       el = document.createElement('section'); el.className = 'card pgsel'; el.id = 'pgsel'; cols.parentNode.insertBefore(el, cols);
       el.addEventListener('click', function (e) {
-        if (e.target.closest('.pgsoon')) {   // DJ Mixed: special access, asks for the code right here
-          if (el.querySelector('.stcode')) return;
-          var f = document.createElement('form'); f.className = 'stcode pgcode'; f.autocomplete = 'off';
-          f.innerHTML = '<label>Special access. Enter the code.</label><input type="password" name="c" autocomplete="off" aria-label="Access code" placeholder="Enter code"><button type="submit">Open</button><em></em>';
-          el.appendChild(f); f.querySelector('input').focus();
-          f.addEventListener('submit', function (ev) {
-            ev.preventDefault(); var v = f.querySelector('input').value.trim().toLowerCase(), msg = f.querySelector('em');
-            if (!v || !(window.crypto && crypto.subtle)) { msg.textContent = 'Not yet.'; return; }
-            crypto.subtle.digest('SHA-256', new TextEncoder().encode('up1gate:' + v)).then(function (bf) {
-              var h = Array.prototype.map.call(new Uint8Array(bf), function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
-              if (h !== GATES.tdot6) { msg.textContent = 'Not yet.'; f.querySelector('input').select(); return; }
-              try { localStorage.setItem('up1-unlock-tdot6', GATES.tdot6); } catch (er) {}
-              location.href = location.pathname + '?station=pgtechmix';
-            });
-          });
-          return;
-        }
+        if (e.target.closest('.pgsoon')) { if (window.UP1_ASKCODE) window.UP1_ASKCODE('pgtechmix'); return; }   // DJ Mixed: special access, the same code box as the station list
         var b = e.target.closest('button[data-id]'); if (b && b.dataset.id !== cur.id) switchTo(byId(b.dataset.id), true); });
     }
     el.hidden = false; var G = GROUPS[g];
@@ -193,6 +177,7 @@
         });
       });
     }
+    window.UP1_ASKCODE = function (id) { open(true); askCode(id); };
     function open(o) { box.hidden = !o; if (!o) { var f = box.querySelector('.stcode'); if (f) f.remove(); } }
     // "tap here" nudge: until a visitor has opened the station list once, the logo pulses and a small bubble points at it
     var SEEN = 'up1-st-seen', seenIt = false; try { seenIt = localStorage.getItem(SEEN) === '1'; } catch (e) {}
