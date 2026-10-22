@@ -67,7 +67,7 @@
   }
 
   // ---------- song of the week (data/featured.json: {"1up": {"id": "VIDEOID", "title": "Artist - Song", "note": "why"}, "movement": {...}}) ----------
-  var feat = {}, fcard, auto = {}, FILES = { '1up': 'main', movement: 'movement', cultureshock: 'culture', vault: 'hiphopvinyl' };
+  var feat = {}, fcard, auto = {}, FILES = { '1up': 'main', movement: 'movement', cultureshock: 'culture', vault: 'hiphopvinyl', tdot6: 'tdot6', portal: 'portal' };
   function featAuto() {   // a channel without a hand-picked song gets one that changes every week (the same for everyone, picked from that channel's own songs)
     var st = station(), f = FILES[st]; if (!f || auto[st] === 0) return; auto[st] = 0;
     fetch('data/' + f + '-videos.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (v) {

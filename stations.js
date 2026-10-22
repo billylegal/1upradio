@@ -5,10 +5,13 @@
     { id: 'cultureshock', name: 'Culture Shock', sub: 'Roots reggae and dub, all day', sched: 'schedule-culture.json', art: 'assets/cultureshock.svg?v=2', mark: 'assets/cultureshock-mark.svg?v=3', tag: 'Roots · reggae · dub', artmap: 'data/culture-art.json', skins: ['culture', 'shock', 'dubby'] },
     { id: 'vault', name: 'The Vault', sub: 'Hip hop vinyl: 90s underground demos, boom bap archives, digging in the crates', sched: 'schedule-hiphopvinyl.json', art: 'assets/vault-art.png?v=2', mark: 'assets/vault-mark.svg?v=3', tag: 'Hip hop vinyl · underground · boom bap', artmap: 'data/hiphopvinyl-art.json', start: 'vault', short: 'THE VAULT' },
     { id: 'movement', name: 'The Movement', sub: 'Hand-selected house and Afro tracks', sched: 'schedule-movement.json', art: 'assets/movement-art.png?v=2', mark: 'assets/movement-mark.svg?v=3', tag: 'House · Afro', artmap: 'data/movement-art.json', start: 'house', short: 'THE MOVEMENT' },
+    { id: 'tdot6', name: 'T.DOT 6', sub: 'All Toronto music: slow, late-night R&B and rap', sched: 'schedule-tdot6.json', art: 'assets/tdot6-art.png?v=2', mark: 'assets/tdot6-mark.svg?v=2', tag: 'Toronto · R&B · late night', start: 'space', short: 'T.DOT 6', soon: 1, locked: 1 },
+    { id: 'portal', name: 'The Portal', sub: 'Every genre, one door: house, tech house, techno, bass, drum & bass and more, straight from the charts', sched: 'schedule-portal.json', art: 'assets/portal-art.png?v=2', mark: 'assets/portal-mark.svg?v=2', tag: 'Every beat · every genre', start: 'portal', short: 'THE PORTAL', soon: 1, locked: 1 },
     { id: 'trap', name: 'Trap', sub: 'Heavy 808s and hard-hitting trap', soon: 1, art: 'assets/logo.png' }
   ];
-  var KEY = 'up1-station', cur = ST[0], m, root = document.documentElement;
-  function byId(id) { for (var i = 0; i < ST.length; i++) if (ST[i].id === id && !ST[i].soon) return ST[i]; return null; }
+  var KEY = 'up1-station', cur = ST[0], m, root = document.documentElement, GATE = 'f07920cc9f7fc3d04df3cb58f3f5b89fed273118e2403874dd381911345e1edd', UNLOCKED = false;
+  try { UNLOCKED = localStorage.getItem('up1-unlock') === GATE; } catch (e) {}   // a private preview: stations marked locked stay 'coming soon' until the code is entered on this device
+  function byId(id) { for (var i = 0; i < ST.length; i++) if (ST[i].id === id && (!ST[i].soon || (ST[i].locked && UNLOCKED))) return ST[i]; return null; }
   try { m = /[?&]station=([a-z0-9]+)/.exec(location.search); var want = m ? m[1] : localStorage.getItem(KEY); cur = byId(want) || ST[0]; } catch (e) {}
   if (/[?&]ailocal=1/.test(location.search)) window.UP1_AI_URL = 'ai/';   // preview: read the AI lyrics from this PC instead of the live site
   // which skin a station opens in: Culture Shock = one of its three own (a different one each time), the others = their own look, the main station = Nebula
@@ -57,7 +60,7 @@
   }
   function stationFromUrl() { var mm = /[?&]station=([a-z0-9]+)/.exec(location.search); return byId(mm ? mm[1] : '1up') || ST[0]; }
   function switchTo(st, push) {   // change station without reloading the page, so the music never stops
-    if (!st || st.soon || st.id === cur.id) return;
+    if (!st || (st.soon && !(st.locked && UNLOCKED)) || st.id === cur.id) return;
     cur = st; globals(st, false);
     try { localStorage.setItem(KEY, st.id); } catch (e) {}
     if (push) { try { history.pushState({ st: st.id }, '', location.pathname + (st.id === '1up' ? '' : '?station=' + st.id)); } catch (e) {} }
@@ -94,10 +97,26 @@
     logo.setAttribute('aria-haspopup', 'dialog'); logo.insertAdjacentHTML('beforeend', '<span class="stcaret" aria-hidden="true">&#9662;</span>');
     box = document.createElement('div'); box.id = 'stations'; box.hidden = true; box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', 'Choose a station');
     box.innerHTML = '<div class="stbox"><button type="button" class="stx" aria-label="Close">&times;</button><h2>CHOOSE A STATION</h2>' + ST.map(function (s) {
-      return '<button type="button" class="stcard' + (s.id === cur.id ? ' on' : '') + (s.soon ? ' soon' : '') + '" data-id="' + s.id + '"' + (s.soon ? ' disabled' : '') + '><img src="' + s.art + '" alt="" width="64" height="64"><span><b>' + s.name + '</b><small>' + s.sub + '</small></span><i>' + (s.soon ? 'COMING SOON' : s.id === cur.id ? 'ON AIR' : 'TUNE IN') + '</i></button>';
+      return '<button type="button" class="stcard' + (s.id === cur.id ? ' on' : '') + (s.soon && !(s.locked && UNLOCKED) ? ' soon' : '') + (s.locked && !UNLOCKED ? ' lockd' : '') + '" data-id="' + s.id + '"' + (s.soon && !s.locked ? ' disabled' : '') + '><img src="' + s.art + '" alt="" width="64" height="64"><span><b>' + s.name + '</b><small>' + s.sub + '</small></span><i>' + (s.soon && !(s.locked && UNLOCKED) ? 'COMING SOON' : s.id === cur.id ? 'ON AIR' : 'TUNE IN') + '</i></button>';
     }).join('') + '</div>';
     document.body.appendChild(box);
-    function open(o) { box.hidden = !o; }
+    function askCode(id) {
+      var f = box.querySelector('.stcode'); if (f) f.remove();
+      f = document.createElement('form'); f.className = 'stcode'; f.autocomplete = 'off';
+      f.innerHTML = '<label>Coming soon. Have a code?</label><input type="password" name="c" autocomplete="off" aria-label="Access code" placeholder="Enter code"><button type="submit">Open</button><em></em>';
+      box.querySelector('.stbox').appendChild(f); f.querySelector('input').focus();
+      f.addEventListener('submit', function (ev) {
+        ev.preventDefault(); var v = f.querySelector('input').value.trim().toLowerCase(), msg = f.querySelector('em');
+        if (!v || !(window.crypto && crypto.subtle)) { msg.textContent = 'Not yet.'; return; }
+        crypto.subtle.digest('SHA-256', new TextEncoder().encode('up1gate:' + v)).then(function (b) {
+          var h = Array.prototype.map.call(new Uint8Array(b), function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
+          if (h !== GATE) { msg.textContent = 'Not yet.'; f.querySelector('input').select(); return; }
+          try { localStorage.setItem('up1-unlock', GATE); } catch (e) {}
+          location.href = location.pathname + '?station=' + id;
+        });
+      });
+    }
+    function open(o) { box.hidden = !o; if (!o) { var f = box.querySelector('.stcode'); if (f) f.remove(); } }
     // "tap here" nudge: until a visitor has opened the station list once, the logo pulses and a small bubble points at it
     var SEEN = 'up1-st-seen', seenIt = false; try { seenIt = localStorage.getItem(SEEN) === '1'; } catch (e) {}
     var nudge = null;
@@ -109,7 +128,9 @@
     logo.addEventListener('click', function (e) { e.preventDefault(); dropNudge(); open(box.hidden); });
     box.addEventListener('click', function (e) {
       if (e.target === box || e.target.closest('.stx')) return open(false);
+      if (e.target.closest('.stcode')) return;
       var c = e.target.closest('.stcard'); if (!c || c.disabled) return;
+      if (c.classList.contains('lockd')) { askCode(c.dataset.id); return; }   // still coming soon for everyone else: ask for the code
       open(false); if (c.dataset.id !== cur.id) switchTo(byId(c.dataset.id), true);
     });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') open(false); });

@@ -253,7 +253,7 @@
       h += '<div class="acacc" id="acacc">' + profAccounts(name) + '</div><div class="aclinks" id="aclinks">' + profPills(known, []) + '</div>';
       h += '<div class="aclabs" id="aclabs"></div>';
       var npn = window.UP1_NOW && alNorm((credits(window.UP1_NOW.title)[0]) || '') === key;
-      if (npn && /^(1up|movement)$/.test(window.UP1_STATION || '1up')) { var sp = split(window.UP1_NOW.title), bq = encodeURIComponent(sp[0] ? sp[0] + ' ' + sp[1] : sp[1]); h += '<div class="aclr"><b>This track</b>' + sico('beatport', 'https://www.beatport.com/search?q=' + bq, 'Find this track on Beatport') + '</div>'; }
+      if (npn && /^(1up|movement|portal)$/.test(window.UP1_STATION || '1up')) { var sp = split(window.UP1_NOW.title), bq = encodeURIComponent(sp[0] ? sp[0] + ' ' + sp[1] : sp[1]); h += '<div class="aclr"><b>This track</b>' + sico('beatport', 'https://www.beatport.com/search?q=' + bq, 'Find this track on Beatport') + '</div>'; }
       h += '<a class="azlink acaz" href="#">All artists A\u2013Z \u203a</a>';
       var cr = []; if (dz && dz.link && !own) cr.push('Photo and fans: <a href="' + esc(dz.link) + '" target="_blank" rel="noopener">Deezer</a>');
       if (wk && wk.url && !own) cr.push('Text: <a href="' + esc(wk.url) + '" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA)');
@@ -358,7 +358,7 @@
       var lk = 'label:' + alNorm(lab); if (ALINKS[lk] === undefined) liveLinks(lab, 'label');
       var LL = ALINKS[lk]; if (LL && (LL.x || LL.ig || LL.tt || LL.yt)) html += grp('Label', lab, alIcons(LL, lab));
     }
-    if (/^(1up|movement)$/.test(window.UP1_STATION || '1up')) {   // house tunes are mostly on Beatport: a button for the playing track itself (a Beatport search for it)
+    if (/^(1up|movement|portal)$/.test(window.UP1_STATION || '1up')) {   // house tunes are mostly on Beatport: a button for the playing track itself (a Beatport search for it)
       var sp = split(p.title), bq = encodeURIComponent(sp[0] ? sp[0] + ' ' + sp[1] : sp[1]);
       html += grp('Track', 'Find on Beatport', sico('beatport', 'https://www.beatport.com/search?q=' + bq, 'Find this track on Beatport'));
     }
@@ -371,7 +371,7 @@
     $('savedhint').style.display = saved.length ? 'none' : '';
     el.innerHTML = saved.map(function (s, i) {
       var a = split(s.title), q = encodeURIComponent(a[0] ? a[0] + ' ' + a[1] : a[1]), L = s.links || null, lk = '';
-      var dance = /^(1up|movement)$/.test(window.UP1_STATION || '1up'), sid = encodeURIComponent(s.id);   // the house stations: Beatport comes right after YouTube
+      var dance = /^(1up|movement|portal)$/.test(window.UP1_STATION || '1up'), sid = encodeURIComponent(s.id);   // the house stations: Beatport comes right after YouTube
       var yt = sico('youtube', 'https://www.youtube.com/watch?v=' + sid, 'Open on YouTube'), bp = sico('beatport', 'https://www.beatport.com/search?q=' + q, 'Search on Beatport');
       lk += yt + (dance ? bp : '');
       if (L && L.apple) lk += sico('apple', L.apple, 'Open on Apple Music');
@@ -606,7 +606,7 @@
 
   // ---- color themes: every tap on THEME switches to the next of 8 colors ----
   var THEMES = ['#39ff14', '#ffb000', '#ff3b3b', '#00e5ff', '#b4ff3c', '#ffe066', '#ff6a00', '#d946ff'], themeI = 0;
-  var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash', 'space', 'marquee', 'blueprint', 'candy', 'glitch', 'press', 'meters', 'wormhole', 'nebula', 'culture', 'shock', 'dubby', 'vault', 'house'], skinI = 0;
+  var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash', 'space', 'marquee', 'blueprint', 'candy', 'glitch', 'press', 'meters', 'wormhole', 'nebula', 'culture', 'shock', 'dubby', 'vault', 'house','portal'], skinI = 0;
   var SKIN_NAMES = ['Retro', 'Stream', 'Glass', 'Mono', 'Synth', 'Vinyl', 'Terminal', 'Brutal', 'Aegean', 'GameBoy', 'Cassette', 'Dash', 'Space', 'Marquee', 'Blueprint', 'Candy', 'Glitch', 'Press', 'Meters', 'Wormhole', 'Nebula', 'Culture', 'Shock', 'Dubby', 'Vault', 'House'];
   var LIGHT = { glass: 1, aegean: 1, cassette: 1, candy: 1, press: 1 }, NATIVE_OK = { retro: 0, stream: 0 };   // light skins get a darker tint of the colour; every other skin can also go back to its own native colours (-1)
   // Place the SKIN button right after the THEME button whatever the skin's font makes of their widths (desktop; phones lay them out in a row via CSS).
@@ -998,7 +998,7 @@
 
 // Nebula meter bars: thin bars that run across the whole player (the other skins use 12 wide bars)
 (function () {
-  var fit = function () { var e = document.getElementById('eq'); if (!e) return; var n = ['nebula', 'culture', 'shock', 'dubby', 'house'].indexOf(document.documentElement.getAttribute('data-skin')) >= 0 ? 44 : 12; while (e.children.length < n) e.appendChild(document.createElement('i')); while (e.children.length > n) e.removeChild(e.lastChild); };
+  var fit = function () { var e = document.getElementById('eq'); if (!e) return; var n = ['nebula', 'culture', 'shock', 'dubby', 'house','portal'].indexOf(document.documentElement.getAttribute('data-skin')) >= 0 ? 44 : 12; while (e.children.length < n) e.appendChild(document.createElement('i')); while (e.children.length > n) e.removeChild(e.lastChild); };
   var go = function () { fit(); new MutationObserver(fit).observe(document.documentElement, { attributes: true, attributeFilter: ['data-skin'] }); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
 })();

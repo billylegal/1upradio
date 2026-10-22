@@ -214,3 +214,12 @@ html[data-skin] .ctl .play{margin:0}
   .featured .flinks{align-items:center;gap:16px}
   .featured .flinks .chip.fall{display:inline-flex;padding:6px 14px;border:1px solid rgba(255,255,255,.3);border-radius:999px;background:transparent;font-size:12px;letter-spacing:.06em;text-transform:none;border-bottom:1px solid rgba(255,255,255,.3)}
 }
+/* the big Omarchy Store shuttle sticker is off on the computer layout */
+.bigst.bigs{display:none!important}
+/* private preview: the code box under the station list */
+.stcard.lockd{opacity:.8}
+.stcode{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.18)}
+.stcode label{flex:1 0 100%;font-size:12px;letter-spacing:.08em;opacity:.8}
+.stcode input{flex:1 1 140px;min-width:0;padding:9px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.07);color:inherit;font:inherit}
+.stcode button{padding:9px 18px;border-radius:999px;border:0;background:var(--g,#ffd34d);color:#111;font-weight:700;cursor:pointer}
+.stcode em{flex:1 0 100%;font-style:normal;font-size:12px;color:#ff9a9a;min-height:1em}

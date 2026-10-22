@@ -1283,3 +1283,46 @@ a.logo.attn img{animation:logoping 1.3s ease-out infinite}
 .stnudge.calm{animation:none;opacity:.8}
 @keyframes nudgebob{from{transform:translateY(0)}to{transform:translateY(5px)}}
 @media(prefers-reduced-motion:reduce){a.logo.attn img,.stnudge{animation:none}}
+/* PORTAL skin: black + green (copy of the house skin, recoloured) */
+html[data-skin=portal]{--bg:#020804;--bg2:rgba(0,255,102,.07)!important;--line:rgba(120,255,170,.28)!important;--txt:#DDFFEA;--dim:#6FA088;--g:#00FF66;--gr:0,255,102;--g2:#8DFFB3;--red:#F0517A}
+html[data-skin=portal]{background:#020804 radial-gradient(900px 520px at 50% -5%,rgba(0,255,102,.16),transparent 70%),radial-gradient(700px 420px at 90% 110%,rgba(0,255,102,.10),transparent 70%)}
+html[data-skin=portal] body{background:transparent;color:#DDFFEA}
+html[data-skin=portal] *{font-family:'Barlow','Barlow Condensed',system-ui,sans-serif!important}
+html[data-skin=portal] .top{background:rgba(1,8,4,.45);border-bottom:1px solid rgba(255,255,255,.12);backdrop-filter:blur(12px)}
+html[data-skin=portal] .one{color:var(--g);font-weight:700;font-size:26px!important;letter-spacing:.06em;text-shadow:0 0 18px rgba(var(--gr),.8)!important}html[data-skin=portal] .rad{font-weight:300;letter-spacing:.5em;font-size:16px;color:#eaf2ff}
+html[data-skin=portal] .tag{color:var(--dim);letter-spacing:.3em;font-size:12px;text-transform:uppercase;font-weight:300}
+html[data-skin=portal] .logo img{border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,.4),0 0 24px rgba(var(--gr),.6)}
+html[data-skin=portal] .themebtn,html[data-skin=portal] .skinbtn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.3);color:#eaf2ff;border-radius:999px;font-weight:600;font-size:11px;letter-spacing:.22em;padding:8px 14px;backdrop-filter:blur(6px)}
+html[data-skin=portal] .themebtn i{border-radius:50%;box-shadow:0 0 10px var(--g)}html[data-skin=portal] .themebtn:hover,html[data-skin=portal] .skinbtn:hover{background:rgba(var(--gr),.25);color:#fff;border-color:var(--g)}html[data-skin=portal] .themebtn:hover i{background:var(--g)}
+html[data-skin=portal] .onair{font-size:11px;letter-spacing:.25em;font-weight:600}html[data-skin=portal] .onair i{border-radius:50%;background:#2f6b4a;box-shadow:none}html[data-skin=portal] .onair.on{color:#8dffc7}html[data-skin=portal] .onair.on i{background:#8dffc7;box-shadow:0 0 14px #8dffc7}
+html[data-skin=portal] .player{border:1px solid rgba(255,255,255,.2);border-radius:28px;background:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.015));box-shadow:0 0 60px rgba(var(--gr),.14),inset 0 0 40px rgba(255,255,255,.03);backdrop-filter:blur(7px);padding:32px 30px 24px;animation:nebulafloat 11s ease-in-out infinite alternate}
+html[data-skin=portal] .player::before{display:none}
+html[data-skin=portal] .eq i{background:linear-gradient(0deg,var(--g),transparent);box-shadow:0 0 10px rgba(var(--gr),.7);opacity:.9;border-radius:2px;width:3px;flex:0 0 3px}html[data-skin=portal] .eq{justify-content:space-between}
+html[data-skin=portal] .lab{color:var(--dim);font-weight:600;font-size:11px;letter-spacing:.45em}
+html[data-skin=portal] .title{font-weight:300;text-transform:uppercase;font-size:clamp(26px,5vw,52px);letter-spacing:.07em;line-height:1.1;color:#fff;text-shadow:0 0 24px rgba(var(--gr),.55)}
+html[data-skin=portal] .artist{color:var(--g2);font-weight:400;letter-spacing:.2em;text-transform:uppercase;font-size:14px}
+html[data-skin=portal] .savebtn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.3);color:#eaf2ff;border-radius:999px;font-weight:600;font-size:12px;letter-spacing:.2em;padding:9px 18px}
+html[data-skin=portal] .savebtn:hover:not(:disabled){background:rgba(var(--gr),.22);border-color:var(--g);color:#fff}html[data-skin=portal] .savebtn.on{background:rgba(var(--gr),.35);border-color:var(--g);color:#fff}
+html[data-skin=portal] .bar{height:2px;background:rgba(255,255,255,.18)}html[data-skin=portal] .fill{background:var(--g);box-shadow:0 0 12px var(--g)}
+html[data-skin=portal] .play{position:relative;width:74px;height:74px;border-radius:50%;background:rgba(var(--gr),.12);color:var(--g);border:1px solid rgba(var(--gr),.7);box-shadow:0 0 30px rgba(var(--gr),.45),inset 0 0 18px rgba(var(--gr),.25);backdrop-filter:blur(4px)}
+html[data-skin=portal] .play::after{content:"";position:absolute;inset:-13px;border:1px dashed rgba(var(--gr),.45);border-radius:50%;animation:nebulaspin 16s linear infinite;pointer-events:none}@keyframes nebulaspin{to{transform:rotate(360deg)}}
+html[data-skin=portal] .vol span,html[data-skin=portal] .vol b{font-size:11px;font-weight:600;letter-spacing:.25em;color:var(--g)}html[data-skin=portal] .vol input{accent-color:var(--g)}
+html[data-skin=portal] .hint,html[data-skin=portal] .note{color:var(--dim);font-weight:300;letter-spacing:.04em}
+html[data-skin=portal] .card{border:1px solid rgba(255,255,255,.16);border-radius:24px;background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.01));box-shadow:0 0 44px rgba(var(--gr),.09);backdrop-filter:blur(7px);animation:nebulafloat 14s ease-in-out infinite alternate}
+html[data-skin=portal] .cols .card:nth-child(2){animation-duration:17s;animation-delay:-5s}html[data-skin=portal] .card.saved{animation-duration:15s;animation-delay:-3s}html[data-skin=portal] .card.sched{animation-duration:19s;animation-delay:-8s}
+html[data-skin=portal] h2{color:var(--g2);font-size:13px;font-weight:600;letter-spacing:.4em;text-transform:uppercase}
+html[data-skin=portal] .list li{border-bottom:1px solid rgba(255,255,255,.08);align-items:center;color:#eaf2ff;font-weight:300}html[data-skin=portal] .list li time{color:var(--dim);font-size:10px;font-weight:600}html[data-skin=portal] .list li.now{color:var(--g);text-shadow:0 0 12px rgba(var(--gr),.7);font-weight:600}
+html[data-skin=portal] .list li .hb{border:1px solid rgba(255,255,255,.28);border-radius:50%;color:var(--g);background:transparent}html[data-skin=portal] .list li .hb.on{background:rgba(var(--gr),.3);border-color:var(--g);color:#fff}
+html[data-skin=portal] .days button{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.2);border-radius:999px;color:#eaf2ff;font-weight:600;font-size:12px;letter-spacing:.16em}html[data-skin=portal] .days button.on{background:rgba(var(--gr),.3);border-color:var(--g);color:#fff}
+html[data-skin=portal] footer{border-top:1px solid rgba(255,255,255,.12);color:var(--dim)}html[data-skin=portal] footer a{color:var(--g2)}
+@media(prefers-reduced-motion:reduce){html[data-skin=portal] .player,html[data-skin=portal] .card,html[data-skin=portal] body::before,html[data-skin=portal] body::after,html[data-skin=portal] .play::after{animation:none}}
+html[data-skin=portal] .eq{gap:0;overflow:hidden}
+html[data-skin=portal]{--bg:#020804;--bg2:rgba(0,255,102,.07)!important;--line:rgba(120,255,170,.36)!important;--txt:#eafff2;--dim:#86c9a0;--g:#00ff66;--gr:255,61,160;--g2:#7dff9b;--red:#34ffa0;
+html[data-skin=portal] body{color:#eafff2}
+html[data-skin=portal]::before{content:"";position:fixed;left:-60%;right:-60%;top:-10%;bottom:-120%;z-index:0;pointer-events:none;opacity:.55;transform-origin:50% 100%;
+@media(prefers-reduced-motion:reduce){html[data-skin=portal]::before{animation:none}}
+html[data-skin=portal] .title{text-shadow:0 0 26px rgba(0,255,102,.7)}
+html[data-skin=portal] .eq i{background:linear-gradient(0deg,#7dff9b,#00ff66);box-shadow:0 0 10px rgba(0,255,102,.7)}
+html[data-skin=portal] .artist{color:#7dff9b}
+html[data-skin=portal] .player,html[data-skin=portal] .card{border-color:rgba(120,255,170,.42);box-shadow:0 0 54px rgba(0,255,102,.22),inset 0 0 40px rgba(60,255,140,.05)}
+html[data-skin=portal] .onair.on{color:#34ffa0}html[data-skin=portal] .onair.on i{background:#00e65c;box-shadow:0 0 14px #00e65c}
