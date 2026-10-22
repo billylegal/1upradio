@@ -8,7 +8,7 @@ create table if not exists public.messages (
   hidden boolean not null default false,
   created_at timestamptz not null default now(),
   constraint msg_len check (char_length(body) between 1 and 200 and char_length(nick) between 1 and 20),
-  constraint msg_station check (station in ('1up','cultureshock','vault','movement'))
+  constraint msg_station check (station ~ '^[a-z0-9]{2,24}$')
 );
 create index if not exists messages_station_id on public.messages (station, id desc);
 create table if not exists public.reactions (
@@ -19,7 +19,7 @@ create table if not exists public.reactions (
   cid text not null,
   created_at timestamptz not null default now(),
   constraint react_kind check (kind in ('fire','heart','hands','music','clap')),
-  constraint react_station check (station in ('1up','cultureshock','vault','movement')),
+  constraint react_station check (station ~ '^[a-z0-9]{2,24}$'),
   constraint react_song check (char_length(song) between 1 and 40)
 );
 create index if not exists reactions_song on public.reactions (song, kind);
@@ -72,3 +72,7 @@ grant execute on function public.reaction_counts(text) to anon;
 -- make sure the public (anon) key can do exactly this and nothing more
 grant select, insert on public.messages to anon;
 grant insert on public.reactions to anon;
+
+-- 2026-10-21: any station id (letters+digits) is allowed so new channels (tdot6, portal, ...) can chat. For an existing database run:
+-- alter table public.messages drop constraint if exists msg_station; alter table public.messages add constraint msg_station check (station ~ '^[a-z0-9]{2,24}$');
+-- alter table public.reactions drop constraint if exists react_station; alter table public.reactions add constraint react_station check (station ~ '^[a-z0-9]{2,24}$');

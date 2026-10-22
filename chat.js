@@ -10,22 +10,24 @@
   var cid; try { cid = localStorage.getItem('up1-cid'); if (!cid) { cid = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()); localStorage.setItem('up1-cid', cid); } } catch (e) { cid = String(Math.random()).slice(2); }
   var H = { apikey: C.key, 'Content-Type': 'application/json' }; if (!/^sb_/.test(C.key)) H.Authorization = 'Bearer ' + C.key;   // new-style publishable keys (sb_...) go in apikey only
   function api(path, opt) { return fetch(C.url.replace(/\/$/, '') + '/rest/v1/' + path, Object.assign({ headers: H }, opt || {})).then(function (r) { if (!r.ok) return r.text().then(function (t) { throw new Error(t); }); return r.status === 204 ? null : r.json(); }); }
-  function station() { return window.UP1_STATION || '1up'; }
+  function station() { var s = window.UP1_STATION || '1up'; return /^pg/.test(s) ? 'portal' : s; }   // every Portal genre channel shares the Portal room
   function songId() { var p = window.UP1_NOW; return p && p.id ? String(p.id) : ''; }
   function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {} return null; }
-  var lastId = 0, shown = '', counts = {}, seen = 0;
+  var EMO = {}; KINDS.forEach(function (k) { EMO[k[0]] = k[1]; });
+  var lastId = 0, shown = '', counts = {}, seen = 0, lastRows = [], rxFeed = [];
 
   // ---- name: asked once, then folded away behind a small pencil ----
   function paintNick() { var has = !!nickI.value.trim(); form.classList.toggle('hasnick', has); editB.hidden = !has; msgI.placeholder = has ? 'Comment as ' + nickI.value.trim() + '...' : 'Say something...'; }
   nickI.value = store('up1-nick') || ''; paintNick();
   editB.addEventListener('click', function () { form.classList.remove('hasnick'); editB.hidden = true; nickI.focus(); nickI.select(); });
   nickI.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); if (nickI.value.trim()) { store('up1-nick', nickI.value.trim().slice(0, 20)); paintNick(); msgI.focus(); } } });
+  msgI.addEventListener('keydown', function (e) { e.stopPropagation(); });   // typing in the box never triggers the site's keyboard shortcuts
 
   // ---- chat open / minimised (the bubble in the column) ----
   var chatB = document.createElement('button'); chatB.type = 'button'; chatB.id = 'chatopen'; chatB.className = 'lvchat'; chatB.setAttribute('aria-label', 'Show or hide the chat'); chatB.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg><i id="chatbadge" hidden></i>';
   var badge = chatB.querySelector('i');
   function minimised() { return live.classList.contains('min'); }
-  function setMin(on) { live.classList.toggle('min', on); document.documentElement.classList.toggle('live-open', !on); chatB.setAttribute('aria-pressed', String(!on)); if (!on) { chatB.classList.remove('attn'); store('up1-chat-seen', '1'); } if (!on) { seen = lastId; badge.hidden = true; list.scrollTop = list.scrollHeight; } }
+  function setMin(on) { live.classList.toggle('min', on); document.documentElement.classList.toggle('live-open', !on); chatB.setAttribute('aria-pressed', String(!on)); if (!on) chatB.classList.remove('attn'); else chatB.classList.add('attn'); if (!on) { seen = lastId; badge.hidden = true; list.scrollTop = list.scrollHeight; } }
   var PHONE = window.matchMedia ? matchMedia('(max-width:699px)') : { matches: false };
   function seenIt() { chatB.classList.remove('attn'); store('up1-chat-seen', '1'); }
   chatB.addEventListener('click', function () {
@@ -35,20 +37,28 @@
     else if (rx && minimised()) setMin(false);                                   // tap 2: the chat opens
     else { setMin(true); live.classList.remove('rx'); }                          // tap 3: everything folds back into the one button
   });
-  if (store('up1-chat-seen') !== '1') chatB.classList.add('attn');   // until it has been opened once, the 💬 button pulses so people know to tap it
   setMin(true);   // the chat always starts closed, on every device; only the 💬 button opens it
 
   // ---- comments: the last few float over the bottom-left ----
   function hueOf(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360; return h; }
-  function paintMsgs(rows) {
+  function addRx(kind, n, who) {   // a burst of emoji taps becomes one line in the room: 5 hearts in a row = one line, not five
+    var now = Date.now(), last = rxFeed[rxFeed.length - 1];
+    if (last && last.k === kind && last.who === who && now - last.t < 3500) { last.n += n; last.t = now; } else rxFeed.push({ k: kind, n: n, who: who, t: now });
+    if (rxFeed.length > 12) rxFeed.shift(); paintFeed();
+  }
+  function paintMsgs(rows) { lastRows = rows; paintFeed(); }
+  function paintFeed() {
+    var now = Date.now(); rxFeed = rxFeed.filter(function (r) { return now - r.t < 40000; });
+    var items = lastRows.map(function (m) { return { nick: m.nick, body: m.body }; }).concat(rxFeed.map(function (r) { var e = EMO[r.k] || '', s = ''; for (var i = 0; i < Math.min(r.n, 6); i++) s += e; return { nick: r.who, body: s + (r.n > 6 ? ' \u00d7' + r.n : ''), rx: 1 }; }));
     list.textContent = '';
-    if (!rows.length) { var e = document.createElement('div'); e.className = 'chatempty'; e.textContent = 'No comments yet. Say hi!'; list.appendChild(e); }
-    rows.slice(-SHOW).forEach(function (m) {
-      var hue = hueOf(m.nick), d = document.createElement('div'); d.className = 'chatmsg';
+    if (!items.length) { var e = document.createElement('div'); e.className = 'chatempty'; e.textContent = 'No comments yet. Say hi!'; list.appendChild(e); }
+    items.slice(-SHOW).forEach(function (m) {
+      var hue = hueOf(m.nick), d = document.createElement('div'); d.className = 'chatmsg' + (m.rx ? ' chatrx' : '');
       var av = document.createElement('span'); av.className = 'av'; av.textContent = m.nick.charAt(0); av.style.background = 'hsl(' + hue + ',55%,42%)';
       var w = document.createElement('div'), n = document.createElement('b'); n.textContent = m.nick; n.style.color = 'hsl(' + hue + ',80%,78%)';
       var t = document.createElement('span'); t.className = 't'; t.textContent = m.body; w.appendChild(n); w.appendChild(t); d.appendChild(av); d.appendChild(w); list.appendChild(d);
     });
+    list.scrollTop = list.scrollHeight;
   }
   function pollMsgs() {
     var st = station();
@@ -71,7 +81,6 @@
       if (sid !== songId()) return; counts = {}; rows.forEach(function (r) { counts[r.kind] = Number(r.n); }); paintReact();
     }).catch(function () {});
   }
-  var EMO = {}; KINDS.forEach(function (k) { EMO[k[0]] = k[1]; });
   var REDUCE = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
   function burst(kind, big) {   // an emoji leaves the bottom of the screen and rises all the way up beside the column
     if (!EMO[kind] || fx.childNodes.length > 40) return;
@@ -79,7 +88,7 @@
     f.className = 'rfx'; f.textContent = EMO[kind];
     f.style.right = Math.round(8 + Math.random() * (big ? 56 : 70)) + 'px';
     f.style.fontSize = (big ? 44 + Math.round(Math.random() * 26) : 34 + Math.round(Math.random() * 22)) + 'px';
-    f.style.setProperty('--rise', '-' + (h - 20) + 'px'); f.style.setProperty('--dx', (Math.round(Math.random() * 90) - 60) + 'px');
+    f.style.setProperty('--rise', '-' + (PHONE.matches ? h - 20 : Math.min(h - 20, 340)) + 'px'); f.style.setProperty('--dx', (Math.round(Math.random() * 90) - 60) + 'px');
     f.style.animationDuration = (REDUCE ? 1.4 : 2.6 + Math.random() * 1.4) + 's';
     fx.appendChild(f); setTimeout(function () { f.remove(); }, 4200);
   }
@@ -89,7 +98,8 @@
     if (head === null) { api('rpc/reaction_head', { method: 'POST', body: JSON.stringify({ st: st }) }).then(function (n) { if (st === station() && head === null) head = Number(n) || 0; }).catch(function () {}); return; }
     api('rpc/recent_reactions', { method: 'POST', body: JSON.stringify({ st: st, after_id: head, my_cid: cid }) }).then(function (rows) {
       if (st !== station()) return;
-      rows.forEach(function (r, i) { head = Math.max(head, Number(r.id)); setTimeout(function () { burst(r.kind, false); }, i * 220); });
+      var by = {}; rows.forEach(function (r, i) { head = Math.max(head, Number(r.id)); by[r.kind] = (by[r.kind] || 0) + 1; setTimeout(function () { burst(r.kind, false); }, i * 220); });
+      Object.keys(by).forEach(function (k) { addRx(k, by[k], 'A listener'); });
     }).catch(function () {});
   }
   KINDS.forEach(function (k) {
@@ -97,7 +107,7 @@
     b.innerHTML = '<span>' + k[1] + '</span><i></i>'; bar.appendChild(b);
     b.addEventListener('click', function (e) {
       e.stopPropagation(); var sid = songId(); if (!sid) return;
-      counts[k[0]] = (counts[k[0]] || 0) + 1; paintReact(); for (var j = 0; j < 5; j++) (function (d) { setTimeout(function () { burst(k[0], true); }, d); })(j * 110);
+      counts[k[0]] = (counts[k[0]] || 0) + 1; paintReact(); addRx(k[0], 1, 'You'); for (var j = 0; j < 5; j++) (function (d) { setTimeout(function () { burst(k[0], true); }, d); })(j * 110);
       api('reactions', { method: 'POST', headers: Object.assign({ Prefer: 'return=minimal' }, H), body: JSON.stringify({ station: station(), song: sid, kind: k[0], cid: cid }) }).catch(function () { counts[k[0]] = Math.max(0, (counts[k[0]] || 1) - 1); paintReact(); });
     });
   });

@@ -47,22 +47,22 @@ html.has-live body{padding-bottom:230px}
 .rfx{position:absolute;bottom:-30px;animation:rfxup 3s cubic-bezier(.25,.6,.35,1) forwards;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45));will-change:transform,opacity}
 @keyframes rfxup{0%{transform:translate(0,0) scale(.5);opacity:0}8%{opacity:1;transform:translate(0,-30px) scale(1.15)}30%{transform:translate(calc(var(--dx,0px)*.7),calc(var(--rise,-600px)*.28)) scale(1.05)}65%{transform:translate(calc(var(--dx,0px)*-.4),calc(var(--rise,-600px)*.64)) scale(1)}100%{transform:translate(calc(var(--dx,0px)*.3),var(--rise,-600px)) scale(.8);opacity:0}}
 @media(prefers-reduced-motion:reduce){.rfx{animation-name:rfxfade}@keyframes rfxfade{from{opacity:1}to{opacity:0}}}
-/* computers: a solid, low box in the bottom-right corner (reactions in a row on top, comments, comment bar) */
+/* computers: the same room as on phones (comments bottom-left, reactions beside the bar, the bar along the bottom), just in a narrower strip bottom-right; the 💬 button opens and closes it */
 @media(min-width:700px){
-  #live{left:auto;right:16px;bottom:16px;width:360px;padding:10px 12px 12px;border-radius:16px;background:#0d0f0e;border:1px solid rgba(255,255,255,.18);box-shadow:0 14px 44px rgba(0,0,0,.65);pointer-events:auto}
-  .lvrail{position:static;order:-1;flex-direction:row;justify-content:space-between;gap:6px;margin-bottom:8px}
-  .lvrail button{width:42px;height:42px;font-size:21px;background:rgba(255,255,255,.07);backdrop-filter:none;-webkit-backdrop-filter:none}
-  .lvstream{margin:0 0 8px;height:140px;max-height:none;padding:0 2px;border-radius:0;background:none;-webkit-mask-image:none;mask-image:none}
-  .chatmsg{text-shadow:none}
-  #chatform{background:rgba(255,255,255,.07)}
-  #live.min{padding:8px 12px}
-  #live.min .lvrail{margin-bottom:0}
-  #reactfx{width:200px;right:6px}
+  #live{left:auto;right:18px;bottom:18px;width:440px;padding:0}
+  .lvstream{max-height:190px}
+  #live.min .lvrail button[data-k]{display:none}
   html.has-live body{padding-bottom:0}
+  #reactfx{width:220px;right:6px}
+  .lvchat{width:52px;height:52px}
 }
+/* the room's button is a cross while it is open */
+#live:not(.min) .lvchat svg{display:none}
+#live:not(.min) .lvchat::after{content:"\00d7";font-size:30px;line-height:1;margin-top:-3px}
+.chatrx .t{font-size:18px;letter-spacing:1px}
 /* skins that pin the control row to the bottom of the screen: the room rides above it */
 html[data-skin=meters] #live,html[data-skin=wormhole] #live{bottom:96px}
-/* the 💬 button pulses until the room has been opened once */
+/* the 💬 button pulses whenever the room is closed, so people know that is the one to press */
 .lvchat.attn{animation:lvpulse 1.5s ease-out infinite}
 @keyframes lvpulse{0%{box-shadow:0 0 0 0 rgba(var(--gr,255,211,77),.75);transform:scale(1)}60%{box-shadow:0 0 0 16px rgba(var(--gr,255,211,77),0);transform:scale(1.08)}100%{box-shadow:0 0 0 0 rgba(var(--gr,255,211,77),0);transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){.lvchat.attn{animation:none;box-shadow:0 0 0 4px rgba(var(--gr,255,211,77),.5)}}
