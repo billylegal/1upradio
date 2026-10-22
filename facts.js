@@ -3,7 +3,7 @@
 (function () {
   var cache = {}; try { cache = JSON.parse(sessionStorage.getItem('up1-facts-cache') || '{}'); } catch (e) {}
   function save() { try { sessionStorage.setItem('up1-facts-cache', JSON.stringify(cache)); } catch (e) {} }
-  var DATA = { genre: null, st: {}, artists: null, auto: null, wiki: null, bpm: null, labels: null, az: {}, azIdx: null };
+  var DATA = { genre: null, st: {}, artists: null, auto: null, wiki: null, more: null, bpm: null, labels: null, az: {}, azIdx: null };
   function nrm(s) { return ' ' + String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim() + ' '; }
   function artistFacts(title, st) {   // facts about whoever is playing: a known artist named in the ARTIST part of the title (the first part before a dash; on Culture Shock the last part too, because titles often end with the artist), never in the song's own name
     var parts = String(title || '').replace(/\([^)]*\)|\[[^\]]*\]/g, ' ').split(/\s[-\u2013\u2014]\s/), segs = [parts[0]];
@@ -38,10 +38,11 @@
     var au = DATA.auto ? Promise.resolve() : fetch('data/artist-auto.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { DATA.auto = j || {}; }).catch(function () { DATA.auto = {}; });
     var hr = Math.floor(Date.now() / 3600000);
     var w = DATA.wiki ? Promise.resolve() : fetch('data/artist-wiki.json?t=' + hr).then(function (r) { return r.json(); }).then(function (j) { DATA.wiki = j || {}; }).catch(function () { DATA.wiki = {}; });
+    var mo = DATA.more ? Promise.resolve() : fetch('data/artist-more.json?t=' + hr).then(function (r) { return r.json(); }).then(function (j) { DATA.more = j || {}; }).catch(function () { DATA.more = {}; });
     var bp = DATA.bpm ? Promise.resolve() : fetch('data/bpm.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { DATA.bpm = j || {}; }).catch(function () { DATA.bpm = {}; });
     var lb = DATA.labels ? Promise.resolve() : fetch('data/labels.json?t=' + hr).then(function (r) { return r.json(); }).then(function (j) { DATA.labels = j || {}; }).catch(function () { DATA.labels = {}; });
     var ai = DATA.azIdx ? Promise.resolve() : fetch('data/artists/index.json?t=' + hr).then(function (r) { return r.json(); }).then(function (j) { DATA.azIdx = j || {}; }).catch(function () { DATA.azIdx = {}; });
-    return Promise.all([g, f, a, au, w, bp, lb, ai]);
+    return Promise.all([g, f, a, au, w, bp, lb, ai, mo]);
   }
 
   // ---- better facts: a line about the artist from Wikipedia, how many of their songs we play, the label, the tempo; the generic filler (YouTube view counts, "Original Mix" explained, bare release years) only if nothing else is left ----
@@ -64,6 +65,7 @@
     var wk = DATA.wiki && (DATA.wiki[key] || (segs[1] && DATA.wiki[nrm(mainArtist(segs[1])).trim()]));
     if (wk && wk.x) top.push(wk.x + ' — Wikipedia');
     artistFacts(p.title, st).forEach(function (x) { top.push(x); });
+    var more = DATA.more && (DATA.more[key] || (segs[1] && DATA.more[nrm(mainArtist(segs[1])).trim()])); if (more) more.forEach(function (x) { mid.push(x); });   // from Deezer: fans, releases, best-known song, who their fans also listen to
     autoFacts(p.title, st).forEach(function (x) { mid.push(x); });
     var lab = DATA.labels && DATA.labels[p.id]; if (lab) mid.push('“' + String(parts[1] || parts[0]).replace(/\s*[\(\[].*$/, '').trim() + '” is released on ' + lab + '.');
     var b = DATA.bpm && DATA.bpm[p.id]; if (b) mid.push(tempoFact(b, st));
