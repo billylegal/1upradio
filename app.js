@@ -793,12 +793,43 @@
     })();
   }
 
+  // ---- the blend (all stations except the original 1UP Radio): the schedule overlaps each song with the next by XF seconds; a second hidden player starts the next song while the first one fades out ----
+  var XF = 5, ytMain = null, yt2 = null, ready2 = false, blendT = null, xfT = null, blending = false, blendFlag = false;
+  function blendOn() { return !IOS && (window.UP1_STATION || '1up') !== '1up' && !/[?&]blend=0/.test(location.search); }
+  function ensureP2() {
+    if (yt2 || !blendOn() || !ytMain || !(window.YT && YT.Player)) return;
+    var d = document.createElement('div'); d.id = 'ytp2'; $('yt').appendChild(d);
+    yt2 = new YT.Player('ytp2', { width: 200, height: 200, host: 'https://www.youtube-nocookie.com', playerVars: { playsinline: 1, rel: 0, controls: 0, disablekb: 1, origin: location.origin }, events: {
+      onReady: function () { ready2 = true; },
+      onStateChange: onYtState, onError: onYtError } });
+  }
+  function bvol() { return typeof effVol === 'function' ? effVol() : volNow(); }   // the level the current song should have
+  function crossTo(p) {   // the next song comes in on the other player while the current one fades out (equal-power curves)
+    var old = yt, nu = (old === yt2) ? ytMain : yt2, oldV = 100;
+    try { oldV = old.getVolume(); } catch (e) {}
+    clearInterval(fadeT); clearInterval(xfT); blending = true; yt = nu;
+    try { nu.setVolume(0); nu.loadVideoById({ videoId: p.id, startSeconds: 0 }); } catch (e) {}
+    var target = bvol(), t0 = Date.now(), N = XF * 1000;
+    xfT = setInterval(function () {
+      var f = Math.min(1, (Date.now() - t0) / N);
+      try { nu.setVolume(Math.round(target * Math.sin(f * Math.PI / 2))); old.setVolume(Math.round(oldV * Math.cos(f * Math.PI / 2))); } catch (e) {}
+      if (f >= 1) { clearInterval(xfT); blending = false; try { old.pauseVideo(); } catch (e) {} try { nu.setVolume(bvol()); } catch (e) {} }
+    }, 100);
+  }
+  function schedBlend() {   // at the start of every song: set the moment the next one comes in
+    clearTimeout(blendT); blendT = null;
+    if (!blendOn() || !started) return;
+    var n = idx + 1; if (n >= S.plays.length) return;
+    var wait = (S.plays[n].t + S.delay) - Date.now() / 1000;
+    if (wait < 1 || wait > 7200) return;
+    blendT = setTimeout(function () { blendT = null; if (!started || userPaused || !playing) return; blendFlag = true; playIdx(n, 0); }, wait * 1000);
+  }
   function clearNext() { if (nextTimer) { clearTimeout(nextTimer); nextTimer = null; } }
   // If YouTube will not play a song here, EVERY listener swaps in the same replacement for that slot (picked from the schedule by a fixed rule), so everyone stays in step.
   function altIdx(i, n) { var lo = Math.max(0, i - 900), hi = Math.max(lo + 1, i - 40), len = hi - lo; return lo + ((((i * 2654435761 + n * 40503 + 7) % len) + len) % len); }
   function slotPlay(i, n) { return n === 0 ? S.plays[i] : S.plays[altIdx(i, n)]; }
   function playIdx(i, offset, n) {
-    clearNext(); stopJingle();
+    clearNext(); stopJingle(); clearTimeout(blendT); blendT = null; var bl = blendFlag; blendFlag = false; ensureP2();
     if (!S.plays.length) return;
     if (i >= S.plays.length) { i = Math.max(0, S.plays.length - 40 + Math.floor(Math.random() * 30)); offset = 0; n = 0; }   // out of schedule: loop back over recent music
     n = n || 0; var p = slotPlay(i, n);
@@ -806,7 +837,8 @@
     idx = i; curAlt = n; curP = p; offset = Math.max(0, Math.floor(offset || 0));
     paintNP();
     if (offset > p.dur - 5 && i + 1 < S.plays.length) { next(); return; }       // this song is basically over: wait for the next slot
-    yt.loadVideoById({ videoId: p.id, startSeconds: offset });
+    if (bl && blendOn() && yt2 && ready2 && playing && !userPaused && offset < 3) crossTo(p); else yt.loadVideoById({ videoId: p.id, startSeconds: offset });
+    schedBlend();
   }
   // after a song ends, the next one starts exactly when the schedule says it begins (never early), so every listener hears the same thing
   function next() {
@@ -837,11 +869,13 @@
       fadeT = setInterval(function () { n++; try { yt.setVolume(Math.round(from + (to - from) * n / 8)); } catch (e) {} if (n >= 8) clearInterval(fadeT); }, 90);
     } catch (e) {}
   }
+  function onYtState(e) { if (e && e.target && e.target !== yt) return; var st = YT.PlayerState; if (e.data === st.PLAYING) { if (userPaused) { try { yt.pauseVideo(); } catch (x) {} return; } errs = 0; setOn(true); if (!chimeOn && !blending) applyVol(true); } else if (e.data === st.PAUSED) setOn(false); else if (e.data === st.ENDED) next(); }
+  function onYtError(e) { if (e && e.target && e.target !== yt) return; if (curP) badIds[curP.id] = 1; if (++errs < 8) playIdx(idx, Date.now() / 1000 - S.delay - S.plays[idx].t, curAlt + 1); else { setOn(false); $('hint').textContent = 'Having trouble reaching the music. Please try again in a minute.'; } }
   function init() {
-    yt = new YT.Player('ytp', { width: 200, height: 200, host: 'https://www.youtube-nocookie.com', playerVars: { playsinline: 1, rel: 0, controls: 0, disablekb: 1, origin: location.origin }, events: {
+    ytMain = yt = new YT.Player('ytp', { width: 200, height: 200, host: 'https://www.youtube-nocookie.com', playerVars: { playsinline: 1, rel: 0, controls: 0, disablekb: 1, origin: location.origin }, events: {
       onReady: function () { ready = true; yt.setVolume(+$('vol').value); if (started) playIdx(findNow(), (Date.now() / 1000 - S.delay) - S.plays[findNow()].t); if (gestured) { try { yt.unMute(); } catch (e) {} } },
-      onStateChange: function (e) { var st = YT.PlayerState; if (e.data === st.PLAYING) { if (userPaused) { try { yt.pauseVideo(); } catch (x) {} return; } errs = 0; setOn(true); if (!chimeOn) applyVol(true); } else if (e.data === st.PAUSED) setOn(false); else if (e.data === st.ENDED) next(); },
-      onError: function () { if (curP) badIds[curP.id] = 1; if (++errs < 8) playIdx(idx, Date.now() / 1000 - S.delay - S.plays[idx].t, curAlt + 1); else { setOn(false); $('hint').textContent = 'Having trouble reaching the music. Please try again in a minute.'; } } } });
+      onStateChange: onYtState,
+      onError: onYtError } });
   }
   var unmutedAt = 0, gestured = false, lastKick = 0, apiTag = null;
   function loadApi() { if (apiTag || (window.YT && YT.Player)) return; apiTag = document.createElement('script'); apiTag.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(apiTag); }

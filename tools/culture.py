@@ -12,20 +12,28 @@ import json, os, random, re, sys, time, urllib.parse, urllib.request
 STATIONS = {
     'culture': {'uploads': 'UUcS-Gz7tDZmJbsi5M-DLsQw', 'videos': 'data/culture-videos.json', 'plays': 'data/culture-plays.json', 'history': 'data/culture-history.json', 'out': 'schedule-culture.json'},
     'movement': {'uploads': '', 'videos': 'data/movement-videos.json', 'plays': 'data/movement-plays.json', 'history': 'data/movement-history.json', 'out': 'schedule-movement.json'},   # hand-picked folder: no channel to follow
-    'tdot6': {'uploads': '', 'videos': 'data/tdot6-videos.json', 'plays': 'data/tdot6-plays.json', 'history': 'data/tdot6-history.json', 'out': 'schedule-tdot6.json'},   # T.DOT 6 (hand-picked)
-    'tdot6old': {'uploads': '', 'videos': 'data/tdot6-old-videos.json', 'plays': 'data/tdot6old-plays.json', 'history': 'data/tdot6old-history.json', 'out': 'schedule-tdot6old.json'},   # T.DOT 6 (hand-picked)
-    'tdot6dark': {'uploads': '', 'videos': 'data/tdot6-dark-videos.json', 'plays': 'data/tdot6dark-plays.json', 'history': 'data/tdot6dark-history.json', 'out': 'schedule-tdot6dark.json'},   # T.DOT 6 (hand-picked)
-    'tdot6after': {'uploads': '', 'videos': 'data/tdot6-after-videos.json', 'plays': 'data/tdot6after-plays.json', 'history': 'data/tdot6after-history.json', 'out': 'schedule-tdot6after.json'},   # T.DOT 6 (hand-picked)
-    'tdot6slow': {'uploads': '', 'videos': 'data/tdot6-slow-videos.json', 'plays': 'data/tdot6slow-plays.json', 'history': 'data/tdot6slow-history.json', 'out': 'schedule-tdot6slow.json'},   # T.DOT 6 (hand-picked)
-    'tdot6hh': {'uploads': '', 'videos': 'data/tdot6-hh-videos.json', 'plays': 'data/tdot6hh-plays.json', 'history': 'data/tdot6hh-history.json', 'out': 'schedule-tdot6hh.json'},   # T.DOT 6 (hand-picked)
+    'portal': {'uploads': '', 'videos': 'data/portal-videos.json', 'plays': 'data/portal-plays.json', 'history': 'data/portal-history.json', 'out': 'schedule-portal.json'},   # chart-driven: refreshed daily by portal_charts.py + portal_build.py
+    'tdot6': {'uploads': '', 'videos': 'data/tdot6-videos.json', 'plays': 'data/tdot6-plays.json', 'history': 'data/tdot6-history.json', 'out': 'schedule-tdot6.json'},   # hand-picked: all Toronto music, slow + mellow
+    'tdot6old': {'uploads': '', 'videos': 'data/tdot6-old-videos.json', 'plays': 'data/tdot6old-plays.json', 'history': 'data/tdot6old-history.json', 'out': 'schedule-tdot6old.json'},   # T.DOT 6 sub-genre
+    'tdot6dark': {'uploads': '', 'videos': 'data/tdot6-dark-videos.json', 'plays': 'data/tdot6dark-plays.json', 'history': 'data/tdot6dark-history.json', 'out': 'schedule-tdot6dark.json'},   # T.DOT 6 sub-genre
+    'tdot6after': {'uploads': '', 'videos': 'data/tdot6-after-videos.json', 'plays': 'data/tdot6after-plays.json', 'history': 'data/tdot6after-history.json', 'out': 'schedule-tdot6after.json'},   # T.DOT 6 sub-genre
+    'tdot6slow': {'uploads': '', 'videos': 'data/tdot6-slow-videos.json', 'plays': 'data/tdot6slow-plays.json', 'history': 'data/tdot6slow-history.json', 'out': 'schedule-tdot6slow.json'},   # T.DOT 6 sub-genre
+    'tdot6hh': {'uploads': '', 'videos': 'data/tdot6-hh-videos.json', 'plays': 'data/tdot6hh-plays.json', 'history': 'data/tdot6hh-history.json', 'out': 'schedule-tdot6hh.json'},   # T.DOT 6 sub-genre
     'hiphopvinyl': {'uploads': '', 'videos': 'data/hiphopvinyl-videos.json', 'plays': 'data/hiphopvinyl-plays.json', 'history': 'data/hiphopvinyl-history.json', 'out': 'schedule-hiphopvinyl.json'},
 }
+# The Portal's genre channels: one station per chart genre (id -> chart slug); each plays only that genre's songs
+PORTAL_GENRES = {'pgpeaktechno': 'techno-peak-time-driving', 'pgrawtechno': 'techno-raw-deep-hypnotic', 'pghardtechno': 'hard-techno', 'pgtechhouse': 'tech-house', 'pgdeephouse': 'deep-house',
+                 'pgminimal': 'minimal-deep-tech', 'pgmelodic': 'melodic-house-techno', 'pgprogressive': 'progressive-house', 'pgafro': 'afro-house', 'pgorganic': 'organic-house',
+                 'pgdnb': 'drum-bass', 'pgukg': 'uk-garage-bassline', 'pgindiedance': 'indie-dance', 'pgnudisco': 'nu-disco-disco', 'pgamapiano': 'amapiano'}
+for _id, _slug in PORTAL_GENRES.items():
+    STATIONS[_id] = {'uploads': '', 'videos': 'data/portal-%s-videos.json' % _slug, 'plays': 'data/portal-%s-plays.json' % _id, 'history': 'data/portal-%s-history.json' % _id, 'out': 'schedule-%s.json' % _id}
 NAME = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] in STATIONS else 'culture'
 ST = dict(STATIONS[NAME])
 try:   # a source channel can live in a private file on this PC instead of in the public repo
     ST['uploads'] = json.load(open(os.path.expanduser('~/.config/1upradio/station-sources.json'))).get(NAME, ST['uploads'])
 except Exception: pass
 CHANNEL_UPLOADS = ST['uploads']
+XF = 5                                           # songs overlap by this many seconds: the site blends each song into the next (all stations but the original 1UP Radio)
 HORIZON = 7 * 24 * 3600                          # always schedule a week ahead
 KEEP_PAST = 12 * 3600                            # and keep half a day behind (the Just Played list)
 MIN_DUR, MAX_DUR = 60, 1500
@@ -87,7 +95,7 @@ def main():
     plays = [p for p in old if p['t'] <= now + 3600 and p['t'] + p['dur'] > now - KEEP_PAST]
     for p in reversed([p for p in old if p['t'] > now + 3600]):
         if hist and hist[-1] == p['id']: hist.pop()
-    t = plays[-1]['t'] + plays[-1]['dur'] if plays else now - now % 60
+    t = plays[-1]['t'] + plays[-1]['dur'] - XF if plays else now - now % 60
     rng = random.Random(now // 3600)
     seen = set(hist)
     while t < now + HORIZON:
@@ -99,7 +107,7 @@ def main():
             pick = rng.choice(pool)
         hist.append(pick['id']); seen.add(pick['id'])
         plays.append({'t': t, 'id': pick['id'], 'title': pick['title'], 'dur': pick['dur']})
-        t += pick['dur']
+        t += pick['dur'] - XF
     json.dump(plays, open(PLAYS, 'w'), ensure_ascii=False, separators=(',', ':'))
     json.dump(hist[-5000:], open(os.path.join(HERE, ST['history']), 'w'), separators=(',', ':'))
     json.dump({'built': now, 'delay': 0, 'plays': plays}, open(OUT, 'w'), ensure_ascii=False, separators=(',', ':'))
