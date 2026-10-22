@@ -59,7 +59,12 @@ def measure(vid, g):
 def main():
     limit = int(sys.argv[1]) if len(sys.argv) > 1 else 10 ** 9
     bpm = jl(F, {}); failed = set(jl(BAD, []))
-    todo = [(v, g) for v, g in songs().items() if v not in bpm and v not in failed][:limit]
+    allsongs = songs(); soon = {}; now = time.time()
+    for f in glob.glob(H + '/schedule*.json'):   # what is about to play on any channel (next 36 h) goes first, so the label is there when it airs
+        for pl in (jl(f, {}).get('plays') or []):
+            if now - 600 <= pl['t'] <= now + 36 * 3600: soon.setdefault(pl['id'], pl['t'])
+    order = sorted(allsongs, key=lambda v: soon.get(v, 1e18))
+    todo = [(v, allsongs[v]) for v in order if v not in bpm and v not in failed][:limit]
     print('to measure', len(todo), flush=True); fails = 0; done = 0
     with ThreadPoolExecutor(5) as ex:
         for i in range(0, len(todo), 40):
