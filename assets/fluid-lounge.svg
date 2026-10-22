@@ -1,7 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" width="220" height="220">
-<defs><linearGradient id="fg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0b1f3a"/><stop offset="1" stop-color="#0a6c8a"/></linearGradient></defs>
+<defs><linearGradient id="fg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#06122b"/><stop offset=".6" stop-color="#0a3d6b"/><stop offset="1" stop-color="#0aa5c9"/></linearGradient><linearGradient id="ft" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#8be9ff"/></linearGradient></defs>
 <rect width="220" height="220" fill="url(#fg)"/>
-<g fill="none" stroke="#7ee8ff" stroke-width="3" stroke-linecap="round"><path d="M20 82 q22 -22 45 0 t45 0 t45 0 t45 0"/><path d="M20 104 q22 -22 45 0 t45 0 t45 0 t45 0" opacity=".6"/><path d="M20 126 q22 -22 45 0 t45 0 t45 0 t45 0" opacity=".35"/></g>
-<text x="110" y="182" text-anchor="middle" font-family="'Trebuchet MS',Arial,sans-serif" font-size="40" font-style="italic" font-weight="700" letter-spacing="3" fill="#ffffff">FLUID</text>
-<text x="110" y="203" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" letter-spacing="7" fill="#7ee8ff">LOUNGE · RICHMOND ST</text>
+<g fill="none" stroke="#8be9ff" stroke-linecap="round"><path d="M-6 150q28-26 56 0t56 0t56 0t56 0" stroke-width="3" opacity=".75"/><path d="M-6 170q28-26 56 0t56 0t56 0t56 0" stroke-width="3" opacity=".45"/><path d="M-6 190q28-26 56 0t56 0t56 0t56 0" stroke-width="3" opacity=".25"/></g>
+<path d="M110 22c-14 22-22 34-22 46a22 22 0 0 0 44 0c0-12-8-24-22-46z" fill="#8be9ff" opacity=".9"/>
+<text x="110" y="124" text-anchor="middle" font-family="'Trebuchet MS','Segoe UI',Arial,sans-serif" font-size="50" font-style="italic" font-weight="700" letter-spacing="1" fill="url(#ft)">fluid</text>
+<text x="110" y="145" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" letter-spacing="9" fill="#d9f6ff">LOUNGE</text>
+<text x="110" y="208" text-anchor="middle" font-family="Arial,sans-serif" font-size="8" letter-spacing="2" fill="#bdeaf7">217 RICHMOND ST W · TORONTO</text>
 </svg>

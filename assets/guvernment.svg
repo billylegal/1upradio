@@ -1,7 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" width="220" height="220">
-<rect width="220" height="220" fill="#0a0a0f"/>
-<rect x="0" y="0" width="220" height="10" fill="#e11d2e"/><rect x="0" y="210" width="220" height="10" fill="#e11d2e"/>
-<g fill="none" stroke="#e11d2e" stroke-width="3"><path d="M40 92 L110 48 L180 92 Z"/><path d="M52 98 V150 M82 98 V150 M138 98 V150 M168 98 V150"/><path d="M36 154 H184"/></g>
-<text x="110" y="182" text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="25" letter-spacing="3" fill="#ffffff">THE GUVERNMENT</text>
-<text x="110" y="201" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" letter-spacing="5" fill="#9aa0ab">TORONTO · QUEENS QUAY</text>
+<defs><linearGradient id="sv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#c9ced6"/><stop offset="1" stop-color="#7d8591"/></linearGradient></defs>
+<rect width="220" height="220" fill="#0b0b0e"/>
+<g fill="#c1121f" opacity=".9"><path d="M0 0h220v8H0z"/><path d="M0 212h220v8H0z"/></g>
+<g fill="none" stroke="#c1121f" stroke-width="2.4" stroke-linecap="round" opacity=".85"><path d="M22 60c14-22 34-8 24 10s-30 8-24 26 30 14 38 0"/><path d="M198 60c-14-22-34-8-24 10s30 8 24 26-30 14-38 0"/><path d="M22 170c14 22 34 8 24-10s-30-8-24-26 30-14 38 0"/><path d="M198 170c-14 22-34 8-24-10s30-8 24-26-30-14-38 0"/></g>
+<text x="110" y="80" text-anchor="middle" font-family="'Arial',sans-serif" font-size="15" font-weight="700" letter-spacing="8" fill="#c1121f">THE</text>
+<text x="110" y="124" text-anchor="middle" font-family="'Arial Black','Impact',sans-serif" font-size="30" font-weight="900" letter-spacing="1" fill="url(#sv)" textLength="176" lengthAdjust="spacingAndGlyphs">GUVERNMENT</text>
+<rect x="34" y="136" width="152" height="2" fill="#c1121f"/>
+<text x="110" y="158" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" letter-spacing="3" fill="#9aa0ab">TORONTO · QUEENS QUAY</text>
 </svg>
