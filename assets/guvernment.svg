@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" width="220" height="220">
+<rect width="220" height="220" fill="#0a0a0f"/>
+<rect x="0" y="0" width="220" height="10" fill="#e11d2e"/><rect x="0" y="210" width="220" height="10" fill="#e11d2e"/>
+<g fill="none" stroke="#e11d2e" stroke-width="3"><path d="M40 92 L110 48 L180 92 Z"/><path d="M52 98 V150 M82 98 V150 M138 98 V150 M168 98 V150"/><path d="M36 154 H184"/></g>
+<text x="110" y="182" text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="25" letter-spacing="3" fill="#ffffff">THE GUVERNMENT</text>
+<text x="110" y="201" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" letter-spacing="5" fill="#9aa0ab">TORONTO · QUEENS QUAY</text>
+</svg>
