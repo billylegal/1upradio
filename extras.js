@@ -72,9 +72,9 @@
     var st = station(), f = FILES[st] || window.UP1_VFILE; if (!f || auto[st] === 0) return; auto[st] = 0;
     fetch('data/' + f + '-videos.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (v) {
       var wk = Math.floor(Date.now() / 6048e5), ok = (v || []).filter(function (s) { return s.id && s.title && (s.dur || 300) >= 120 && !/\b(intro|jingle|id|promo)\b/i.test(s.title); });
-      if (!ok.length) return; var s = ok[(wk * 2654435761 >>> 0) % ok.length];
+      if (!ok.length) { featPaint(); return; } var s = ok[(wk * 2654435761 >>> 0) % ok.length];
       auto[st] = { id: s.id, title: s.title, note: 'This week\u2019s pick on the channel.' }; featPaint();
-    }).catch(function () {});
+    }).catch(function () { featPaint(); });
   }
   var faces = {};
   function faceFor(name, img) {   // the artist's picture beside the button (Deezer; Billy Legal uses his own head)
@@ -89,8 +89,13 @@
   }
   function featPaint() {
     var f = feat[station()] || auto[station()];
-    if (!f || !f.id) { fcard.hidden = true; if (!feat[station()] && !auto[station()]) featAuto(); return; }
-    fcard.hidden = false; fcard.querySelector('.ftitle').textContent = f.title || ''; fcard.querySelector('.fnote').textContent = f.note || '';
+    if (!f || !f.id) {
+      var wait = !feat[station()] && auto[station()] === undefined && (FILES[station()] || window.UP1_VFILE);   // this channel's pick is still to be fetched
+      if (wait && !fcard.hidden) fcard.style.visibility = 'hidden';   // keep its place for a moment: hiding it let the genre card stretch and snapped the whole page up and down (the "shake")
+      else { fcard.hidden = true; fcard.style.visibility = ''; }
+      if (!feat[station()] && !auto[station()]) featAuto(); return;
+    }
+    fcard.style.visibility = ''; fcard.hidden = false; fcard.querySelector('.ftitle').textContent = f.title || ''; fcard.querySelector('.fnote').textContent = f.note || '';
     var fp = fcard.querySelector('.fprof'), who = String(f.title || '').split(/\s[-\u2013]\s/)[0].split(/\s*(?:,|&|\bfeat\.?|\bft\.?|\bx\b)\s*/i)[0].trim(); fp.hidden = !who; fp.setAttribute('data-artist', who);   // the week's pick opens the artist's profile card
     faceFor(who, fp.querySelector('.fface'));
   }
