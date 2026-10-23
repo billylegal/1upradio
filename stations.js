@@ -126,7 +126,10 @@
     paintUI(st);
     if (window.UP1_SWITCH) window.UP1_SWITCH(st); else location.reload();
   }
-  window.addEventListener('popstate', function () { switchTo(stationFromUrl(), false); });
+  window.addEventListener('popstate', function () {
+    if (window.UP1_BACKGUARD && UP1_BACKGUARD.willHandle()) return;   // this "back" only closes a pop-up (cover, lyrics, profile, A-Z): never read the address bar as a station change
+    switchTo(stationFromUrl(), false);
+  });
   function ready() {
     var rad = document.querySelector('.logo .rad');
     var lg = document.querySelector('.logo'), one = lg && lg.querySelector('.one');
@@ -219,6 +222,7 @@
 (function () {
   var owners = [], skip = 0;
   window.UP1_BACKGUARD = {
+    willHandle: function () { return skip > 0 || owners.length > 0; },   // is the history step that just happened one of the pop-ups' own?
     opened: function (closeFn) { try { history.pushState({ ov: 1 }, '', location.href); owners.push(closeFn); } catch (e) {} },
     closed: function (closeFn) { var i = owners.lastIndexOf(closeFn); if (i < 0) return; owners.splice(i, 1); try { if (history.state && history.state.ov) { skip++; history.back(); } } catch (e) {} }
   };
