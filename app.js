@@ -197,6 +197,13 @@
     if (!PROF.hand) PROF.hand = fetch('data/artist-facts.json?t=' + u).then(function (r) { return r.json(); }).catch(function () { return []; });
     return Promise.all([PROF.auto, PROF.hand]);
   }
+  var PSH = {};   // data/artist-profile/<letter>.json: what the background job found for each artist on Apple Music, MusicBrainz, Wikipedia, Deezer and YouTube, plus our own station data
+  function profShard(name) {
+    var c = String(name || '').trim().charAt(0).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''), L = /^[A-Z]$/.test(c) ? c.toLowerCase() : 'num', k = alNorm(name);
+    if (!PSH[L]) PSH[L] = fetch('data/artist-profile/' + L + '.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).catch(function () { return {}; });
+    return PSH[L].then(function (j) { return (j && j[k]) || null; });
+  }
+  function shLinks(sh) { var o = []; if (sh && sh.l) Object.keys(sh.l).forEach(function (n) { o.push([n, sh.l[n]]); }); return o; }
   function profDeezer(name) {
     var k = alNorm(name);
     return jsonp('https://api.deezer.com/search/artist?q=' + encodeURIComponent(name) + '&limit=6').then(function (d) {
@@ -222,7 +229,7 @@
     return h;
   }
   // ---- every website and profile we know for an artist (MusicBrainz's curated links), shown as pills in the profile card ----
-  var PL_ORDER = ['Website', 'Wikipedia', 'Spotify', 'Apple Music', 'Deezer', 'Beatport', 'Bandcamp', 'SoundCloud', 'Facebook', 'Resident Advisor', 'Mixcloud', 'Discogs', 'AllMusic', 'Last.fm', 'Genius', 'Tour dates'];
+  var PL_ORDER = ['Website', 'Wikipedia', 'Spotify', 'Apple Music', 'Deezer', 'Beatport', 'Bandcamp', 'SoundCloud', 'Facebook', 'Resident Advisor', 'Mixcloud', 'Discogs', 'AllMusic', 'Last.fm', 'Genius', 'YouTube', 'Tour dates'];
   function plLabel(url) {
     if (/^https?:\/\/en\.wikipedia\.org\/wiki\//i.test(url)) return 'Wikipedia';
     if (/bandcamp\.com/i.test(url)) return 'Bandcamp'; if (/soundcloud\.com/i.test(url)) return 'SoundCloud'; if (/facebook\.com/i.test(url)) return 'Facebook';
@@ -285,18 +292,20 @@
     acardFor = key; if (c.hidden && window.UP1_BACKGUARD) UP1_BACKGUARD.opened(cardShut); c.hidden = false;
     if (ALINKS && ALINKS[key] === undefined) liveLinks(name);
     var lab = (LABELS && window.UP1_NOW && LABELS[window.UP1_NOW.id]) || '';
-    function paint(dz, wk, auto, hand) {
+    function paint(dz, wk, auto, hand, sh) {
+      sh = own ? null : (sh || {});
       var facts = [];
       (hand || []).forEach(function (a) { if (a.n.some(function (n) { return alNorm(n) === key; })) facts = facts.concat(a.f); });
       if (!own) ((auto || {})[key] || []).forEach(function (f) { if (facts.indexOf(f) < 0) facts.push(f); });
-      var pic = own ? 'assets/billy-beatport.jpg' : (dz && dz.pic) || '';
-      var bio = own ? 'Billy Legal, Toronto. The genre killer: house, deep house, afro house, tech house, hip hop, trap, downtempo, electronica and reggae.' : (wk && wk.text) || '';
+      if (sh && sh.f) sh.f.forEach(function (f) { if (facts.indexOf(f) < 0) facts.push(f); });
+      var pic = own ? 'assets/billy-beatport.jpg' : (dz && dz.pic) || (sh && sh.p) || '';
+      var bio = own ? 'Billy Legal, Toronto. The genre killer: house, deep house, afro house, tech house, hip hop, trap, downtempo, electronica and reggae.' : (wk && wk.text) || (sh && sh.b) || '';
       var h = '<div class="acl">1UP Radio · Artist profile</div><div class="achead">' + (pic ? '<img class="acpic" src="' + esc(pic) + '" alt="" referrerpolicy="no-referrer">' : '<div class="acpic ph">' + esc(name.charAt(0)) + '</div>') +
         '<div><h3>' + esc(name) + '</h3>' + (dz && dz.fans ? '<div class="acmeta">' + Number(dz.fans).toLocaleString() + ' fans on Deezer</div>' : '') + '</div></div>';
       if (bio) h += '<p class="acbio">' + esc(bio) + '</p>';
-      facts.slice(0, 3).forEach(function (f) { h += '<p class="acfact">' + esc(f) + '</p>'; });
+      facts.slice(0, bio ? 4 : 5).forEach(function (f) { h += '<p class="acfact">' + esc(f) + '</p>'; });
       if (!bio && !facts.length) h += '<p class="acfact">No profile text for this artist yet.</p>';
-      var known = []; if (own) known = [['Website', 'https://billylegal.com'], ['Apple Music', 'https://music.apple.com/ca/artist/billy-legal/6788113036'], ['Deezer', 'https://www.deezer.com/artist/401877641'], ['Spotify', OWN['billy legal'].sp], ['Beatport', OWN['billy legal'].bp]]; else { if (wk && wk.url) known.push(['Wikipedia', wk.url]); if (dz && dz.link) known.push(['Deezer', dz.link]); }
+      var known = []; if (own) known = [['Website', 'https://billylegal.com'], ['Apple Music', 'https://music.apple.com/ca/artist/billy-legal/6788113036'], ['Deezer', 'https://www.deezer.com/artist/401877641'], ['Spotify', OWN['billy legal'].sp], ['Beatport', OWN['billy legal'].bp]]; else { if (wk && wk.url) known.push(['Wikipedia', wk.url]); if (dz && dz.link) known.push(['Deezer', dz.link]); known = known.concat(shLinks(sh)); }
       h += '<div class="acacc" id="acacc">' + profAccounts(name) + '</div><div class="aclinks" id="aclinks">' + profPills(known, []) + '</div>';
       h += '<div class="aclabs" id="aclabs"></div>';
       var npn = window.UP1_NOW && alNorm((credits(window.UP1_NOW.title)[0]) || '') === key;
@@ -304,16 +313,18 @@
       h += '<a class="azlink acaz" href="#">All artists A\u2013Z \u203a</a>';
       var cr = []; if (dz && dz.link && !own) cr.push('Photo and fans: <a href="' + esc(dz.link) + '" target="_blank" rel="noopener">Deezer</a>');
       if (wk && wk.url && !own) cr.push('Text: <a href="' + esc(wk.url) + '" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA)');
-      if (!own) cr.push('Links: MusicBrainz');
+      if (sh && sh.b && !(wk && wk.text)) cr.push('Text: ' + esc(sh.bs || 'our data'));
+      if (sh && sh.p && !(dz && dz.pic)) cr.push('Photo: ' + (/dzcdn/.test(sh.p) ? 'Deezer' : /wiki/.test(sh.p) ? 'Wikipedia' : 'YouTube'));
+      if (!own) cr.push('Links: ' + ((sh && sh.s) ? sh.s.filter(function (x) { return x !== 'Deezer'; }).join(', ') : 'MusicBrainz'));
       if (own) cr.push('<a href="https://billylegal.com" target="_blank" rel="noopener">BillyLegal.com</a>');
       if (cr.length) h += '<div class="accr">' + cr.join(' · ') + '</div>';
       inn.innerHTML = h;
       azSongsInCard(name, inn);
     }
     inn.innerHTML = '<div class="acl">1UP Radio · Artist profile</div><div class="achead"><div class="acpic ph">' + esc(name.charAt(0)) + '</div><div><h3>' + esc(name) + '</h3><div class="acmeta">Loading…</div></div></div>';
-    Promise.all([own ? null : profDeezer(name), own ? null : profWiki(name), profData()]).then(function (r) {
-      if (acardFor !== key) return; paint(r[0], r[1], r[2][0], r[2][1]);
-      if (!own) profMore(name).then(function (o) { var more = o.l, el = $('aclinks'); paintLabels(o.lb, lab, name); if (acardFor !== key || !el) return; var kn = []; if (r[1] && r[1].url) kn.push(['Wikipedia', r[1].url]); if (r[0] && r[0].link) kn.push(['Deezer', r[0].link]); el.innerHTML = profPills(kn, more); });
+    Promise.all([own ? null : profDeezer(name), own ? null : profWiki(name), profData(), own ? null : profShard(name)]).then(function (r) {
+      if (acardFor !== key) return; paint(r[0], r[1], r[2][0], r[2][1], r[3]);
+      if (!own) profMore(name).then(function (o) { var more = o.l, el = $('aclinks'); paintLabels(o.lb, lab, name); if (acardFor !== key || !el) return; var kn = []; if (r[1] && r[1].url) kn.push(['Wikipedia', r[1].url]); if (r[0] && r[0].link) kn.push(['Deezer', r[0].link]); kn = kn.concat(shLinks(r[3])); el.innerHTML = profPills(kn, more); });
       [1500, 5000, 12000].forEach(function (ms) { setTimeout(function () { var el = $('acc' + 'acc'); if (acardFor === key && el) el.innerHTML = profAccounts(name); }, ms); });   // official accounts found by a live lookup join the card when they arrive
     });
   }
