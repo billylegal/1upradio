@@ -44,7 +44,7 @@
   function byId0(id) { for (var i = 0; i < ST.length; i++) if (ST[i].id === id) return ST[i]; return null; }
   function isOpen(s) { return !s.soon || !!(s.locked && UNL[s.locked]); }
   function byId(id) { for (var i = 0; i < ST.length; i++) if (ST[i].id === id && isOpen(ST[i])) return ST[i]; return null; }
-  try { m = /[?&]station=([a-z0-9]+)/.exec(location.search); var want = m ? m[1] : '1up'; cur = byId(want) || ST[0]; } catch (e) {}   // the main domain is always 1UP Radio: two computers opening it must hear the same station
+  try { m = /[?&]station=([a-z0-9]+)/.exec(location.search); var want = m ? m[1] : localStorage.getItem(KEY); cur = byId(want) || ST[0]; } catch (e) {}
   if (/[?&]ailocal=1/.test(location.search)) window.UP1_AI_URL = 'ai/';   // preview: read the AI lyrics from this PC instead of the live site
   // which skin a station opens in: Culture Shock = one of its three own (a different one each time), the others = their own look, the main station = Nebula
   function chooseSkin(st, first) {
@@ -59,7 +59,7 @@
     return ms ? ms[1] : (st.start || '');
   }
   function globals(st, first) {
-    window.UP1_STNAME = st.name; window.UP1_VFILE = st.vfile || ''; window.UP1_STATION = st.id; window.UP1_SCHEDULE = st.sched; window.UP1_ARTMAP = st.artmap || ''; window.UP1_MARK = st.mark || st.art || 'assets/logo.png'; window.UP1_OWN_SKINS = st.skins || null;
+    window.UP1_VFILE = st.vfile || ''; window.UP1_STATION = st.id; window.UP1_SCHEDULE = st.sched; window.UP1_ARTMAP = st.artmap || ''; window.UP1_MARK = st.mark || st.art || 'assets/logo.png'; window.UP1_OWN_SKINS = st.skins || null;
     window.UP1_START_SKIN = chooseSkin(st, first); root.setAttribute('data-station', st.id);
   }
   globals(cur, true);

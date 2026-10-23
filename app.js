@@ -2,11 +2,6 @@
   var LIVE_HTML = '<span class="live">You are live with the station.<span class="kvu"><br class="mbr"> Keep the volume up.</span></span>';
   var $ = function (id) { return document.getElementById(id); };
   var S = { plays: [], delay: 420 }, yt = null, ready = false, started = false, playing = false, idx = -1, errs = 0, skipped = 0;
-  // Every listener must hear the same second, so the schedule is read against the SERVER clock, not this
-  // computer's clock (two machines are rarely more than a few seconds apart, but a wrong clock is minutes).
-  var SYNC_TOL = 0.18;   // seconds we allow a listener to sit away from air before pulling them back (was 20 when this was called "sync")
-  var SKEW = 0;   // server time minus local time, in ms
-  function nowMs() { return Date.now() + SKEW; }
   // times shown are when each song plays for you: the same clock time it aired in Athens, on your local clock
   var fmtT = function (t) { return new Date((t + S.delay) * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); };
   var dayKey = function (t) { return new Date((t + S.delay) * 1000).toLocaleDateString('en-CA'); };
@@ -30,19 +25,8 @@
       paintLists(); paintDays();
     });
   }
-  // The clock has to come from a response no cache can answer, or a stale copy hands us an old Date and
-  // every listener lands minutes away from air (seen in testing: 80 minutes behind on a cached schedule).
-  function clockProbe() {
-    var t0 = Date.now();
-    return fetch(location.pathname + '?clock=' + t0, { method: 'HEAD', cache: 'no-store' }).then(function (r) {
-      var dh = r.headers.get('date'); if (!dh) return;
-      var srv = Date.parse(dh); if (!srv) return;
-      var sk = srv + (Date.now() - t0) / 2 - Date.now();     // half the round trip
-      if (Math.abs(sk) < 216e5) SKEW = sk;                   // ignore absurd values (bad header)
-    }).catch(function () {});
-  }
   function findNow() {
-    var src = nowMs() / 1000 - S.delay, k = -1;
+    var src = Date.now() / 1000 - S.delay, k = -1;
     for (var i = 0; i < S.plays.length; i++) { if (S.plays[i].t <= src) k = i; else break; }
     return k < 0 ? 0 : k;
   }
@@ -62,7 +46,7 @@
     var p = curP || S.plays[idx]; if (!p) return; var a = split(p.title); try { paintBpm(p); } catch (e) {}
     $('npTitle').textContent = a[1] || p.title; $('npArtist').textContent = a[0]; try { linkArtistLine(); } catch (e) {}
     var aw = $('npArtWrap'), ai = $('npArt'); if (aw && ai) { if (p.id) { var u = (ART[p.id]) ? ART[p.id] : 'https://i.ytimg.com/vi/' + encodeURIComponent(p.id) + '/mqdefault.jpg'; if (ai.getAttribute('src') !== u) ai.src = u; ai.removeAttribute('data-fallback'); aw.hidden = false; } else aw.hidden = true; }   // the spinning record: the real album cover, else the song's YouTube picture (on the vinyl stations that is usually the record label itself)
-    document.title = (playing ? '▶ ' : '') + (a[1] || p.title) + ' · ' + (window.UP1_STNAME || '1UP Radio');   // keep the station visible: genre channels used to look identical to the main one
+    document.title = (playing ? '▶ ' : '') + (a[1] || p.title) + ' · 1UP Radio';
     paintSave();
     paintLists();
     if (typeof msMeta === 'function') msMeta();
@@ -652,7 +636,7 @@
   // ---- color themes: every tap on THEME switches to the next of 8 colors ----
   var THEMES = ['#39ff14', '#ffb000', '#ff3b3b', '#00e5ff', '#b4ff3c', '#ffe066', '#ff6a00', '#d946ff'], themeI = 0;
   var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash', 'space', 'marquee', 'blueprint', 'candy', 'glitch', 'press', 'meters', 'wormhole', 'nebula', 'culture', 'shock', 'dubby', 'vault', 'house','portal','city1','city2','city3'], skinI = 0;
-  var SKIN_NAMES = ['Retro', 'Stream', 'Glass', 'Mono', 'Synth', 'Vinyl', 'Terminal', 'Brutal', 'Aegean', 'GameBoy', 'Cassette', 'Dash', 'Space', 'Marquee', 'Blueprint', 'Candy', 'Glitch', 'Press', 'Meters', 'Wormhole', 'Nebula', 'Culture', 'Shock', 'Dubby', 'Vault', 'House', 'Portal', 'City 1', 'City 2', 'City 3'];
+  var SKIN_NAMES = ['Retro', 'Stream', 'Glass', 'Mono', 'Synth', 'Vinyl', 'Terminal', 'Brutal', 'Aegean', 'GameBoy', 'Cassette', 'Dash', 'Space', 'Marquee', 'Blueprint', 'Candy', 'Glitch', 'Press', 'Meters', 'Wormhole', 'Nebula', 'Culture', 'Shock', 'Dubby', 'Vault', 'House'];
   var LIGHT = { glass: 1, aegean: 1, cassette: 1, candy: 1, press: 1 }, NATIVE_OK = { retro: 0, stream: 0 };   // light skins get a darker tint of the colour; every other skin can also go back to its own native colours (-1)
   // Place the SKIN button right after the THEME button whatever the skin's font makes of their widths (desktop; phones lay them out in a row via CSS).
   function fitBtns() { var t = $('themeBtn'), s = $('skinBtn'); if (!t || !s) return; if (window.innerWidth <= 900) { s.style.left = ''; return; } s.style.left = (t.offsetLeft + t.offsetWidth + 10) + 'px'; }
@@ -841,43 +825,12 @@
   // ---- the blend (all stations except the original 1UP Radio): the schedule overlaps each song with the next by XF seconds; a second hidden player starts the next song while the first one fades out ----
   var XF = 5, ytMain = null, yt2 = null, ready2 = false, blendT = null, xfT = null, blending = false, blendFlag = false;
   function blendOn() { return !IOS && (window.UP1_STATION || '1up') !== '1up' && !/[?&]blend=0/.test(location.search); }
-  function ensureP2(force) {
-    if (yt2 || (!force && !blendOn()) || !ytMain || !(window.YT && YT.Player)) return;
+  function ensureP2() {
+    if (yt2 || !blendOn() || !ytMain || !(window.YT && YT.Player)) return;
     var d = document.createElement('div'); d.id = 'ytp2'; $('yt').appendChild(d);
     yt2 = new YT.Player('ytp2', { width: 200, height: 200, host: 'https://www.youtube-nocookie.com', playerVars: { playsinline: 1, rel: 0, controls: 0, disablekb: 1, origin: location.origin }, events: {
       onReady: function () { ready2 = true; },
       onStateChange: onYtState, onError: onYtError } });
-  }
-  var switching = false;
-  function switchToTrack(k, off) {   // change station without a hole in the audio: the new track loads on the idle player and we fade into it
-    var p = S.plays[k]; if (!p) return;
-    ensureP2(true);
-    var old = yt, nu = (old === yt2) ? ytMain : yt2;
-    if (!nu || nu === old || !ready2) { playIdx(k, off); return; }          // no second player: behave as before
-    switching = true;
-    var oldV = 100; try { oldV = old.getVolume(); } catch (e) {}
-    try { nu.setVolume(0); nu.loadVideoById({ videoId: p.id, startSeconds: Math.max(0, off) }); }
-    catch (e) { switching = false; playIdx(k, off); return; }
-    var t0 = Date.now(), faded = false, iv = setInterval(function () {
-      var st = -1; try { st = nu.getPlayerState(); } catch (e) {}
-      if (!faded && (st === 1 || Date.now() - t0 > 3500)) {                  // playing, or give up waiting and fade anyway
-        faded = true; clearInterval(iv);
-        yt = nu; blending = true;
-        var target = bvol(), t1 = Date.now(), N = p.xi ? p.xi * 1000 : 1200;
-        var fv = setInterval(function () {
-          var f = Math.min(1, (Date.now() - t1) / N);
-          try { nu.setVolume(Math.round(target * Math.sin(f * Math.PI / 2))); old.setVolume(Math.round(oldV * Math.cos(f * Math.PI / 2))); } catch (e) {}
-          if (f >= 1) {
-            clearInterval(fv); blending = false; switching = false; try { old.pauseVideo(); } catch (e) {} try { nu.setVolume(bvol()); } catch (e) {}
-            setTimeout(function () {   // if the new station never actually started, put the music back on the main player instead of leaving silence
-              var st2 = -1; try { st2 = nu.getPlayerState(); } catch (e) {}
-              if (st2 !== 1 && yt === nu) { try { playIdx(k, nowMs() / 1000 - S.delay - p.t); } catch (e) {} }
-            }, 2000);
-          }
-        }, 80);
-      }
-      if (!faded && Date.now() - t0 > 8000) { clearInterval(iv); switching = false; playIdx(k, off); }
-    }, 120);
   }
   function bvol() { return typeof effVol === 'function' ? effVol() : volNow(); }   // the level the current song should have
   function crossTo(p) {   // the next song comes in on the other player while the current one fades out (equal-power curves)
@@ -1018,27 +971,11 @@
       fadeT = setInterval(function () { n++; try { yt.setVolume(Math.round(from + (to - from) * n / 8)); } catch (e) {} if (n >= 8) clearInterval(fadeT); }, 90);
     } catch (e) {}
   }
-  function onYtState(e) {
-    if (e && e.target && e.target !== yt) return;
-    var st = YT.PlayerState;
-    if (e.data === st.PLAYING) {
-      if (userPaused) { try { yt.pauseVideo(); } catch (x) {} return; }
-      errs = 0; setOn(true); if (!chimeOn && !blending) applyVol(true);
-      // joined mid-song: land exactly where air is
-      if (started && !userPaused && !blending && idx >= 0 && S.plays[idx]) {
-        try {
-          var ex = nowMs() / 1000 - S.delay - S.plays[idx].t + (S.plays[idx].so || 0), cu = yt.getCurrentTime();
-          if (ex > 0 && Math.abs(cu - ex) > SYNC_TOL) { yt.seekTo(ex, true); lastSeek = Date.now(); }
-        } catch (x2) {}
-      }
-    }
-    else if (e.data === st.PAUSED) setOn(false);
-    else if (e.data === st.ENDED) next();
-  }
+  function onYtState(e) { if (e && e.target && e.target !== yt) return; var st = YT.PlayerState; if (e.data === st.PLAYING) { if (userPaused) { try { yt.pauseVideo(); } catch (x) {} return; } errs = 0; setOn(true); if (!chimeOn && !blending) applyVol(true); } else if (e.data === st.PAUSED) setOn(false); else if (e.data === st.ENDED) next(); }
   function onYtError(e) { if (e && e.target && e.target !== yt) return; if (curP) badIds[curP.id] = 1; if (++errs < 8) playIdx(idx, Date.now() / 1000 - S.delay - S.plays[idx].t, curAlt + 1); else { setOn(false); $('hint').textContent = 'Having trouble reaching the music. Please try again in a minute.'; } }
   function init() {
     ytMain = yt = new YT.Player('ytp', { width: 200, height: 200, host: 'https://www.youtube-nocookie.com', playerVars: { playsinline: 1, rel: 0, controls: 0, disablekb: 1, origin: location.origin }, events: {
-      onReady: function () { ready = true; yt.setVolume(+$('vol').value); if (started) playIdx(findNow(), (nowMs() / 1000 - S.delay) - S.plays[findNow()].t); if (gestured) { try { yt.unMute(); } catch (e) {} } },
+      onReady: function () { ready = true; yt.setVolume(+$('vol').value); if (started) playIdx(findNow(), (Date.now() / 1000 - S.delay) - S.plays[findNow()].t); if (gestured) { try { yt.unMute(); } catch (e) {} } },
       onStateChange: onYtState,
       onError: onYtError } });
   }
@@ -1051,7 +988,7 @@
     if (!S.plays.length) return;
     if (!started) {
       started = true; $('hint').innerHTML = LIVE_HTML; $('npTitle').textContent = 'Tuning in…';
-      if (window.YT && YT.Player) { if (!yt) init(); else if (ready) { var k = findNow(); playIdx(k, nowMs() / 1000 - S.delay - S.plays[k].t); } }   // not ready yet: onReady starts it
+      if (window.YT && YT.Player) { if (!yt) init(); else if (ready) { var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } }   // not ready yet: onReady starts it
       else { window.onYouTubeIframeAPIReady = function () { if (!yt) init(); }; loadApi(); }
       return;
     }
@@ -1059,28 +996,21 @@
     var eff = (btnIntent !== null && Date.now() - btnAt < 2500) ? btnIntent : playing;      // what the button shows right now, even if YouTube has not reported it yet
     btnAt = Date.now();
     if (eff) { btnIntent = false; userPaused = true; try { yt.pauseVideo(); } catch (x) {} setOn(false); }
-    else { btnIntent = true; userPaused = false; try { var kl = findNow(); playIdx(kl, nowMs() / 1000 - S.delay - S.plays[kl].t); } catch (x) { try { yt.playVideo(); } catch (y) {} } }   // radio, not a tape: playing again joins what is on air NOW, never the spot where it was paused
+    else { btnIntent = true; userPaused = false; try { var kl = findNow(); playIdx(kl, Date.now() / 1000 - S.delay - S.plays[kl].t); } catch (x) { try { yt.playVideo(); } catch (y) {} } }   // radio, not a tape: playing again joins what is on air NOW, never the spot where it was paused
   });
   $('vol').addEventListener('input', function (e) { $('volv').textContent = e.target.value; if (yt && ready) yt.setVolume(+e.target.value); if (jingOn) jing.volume = jingVol(); try { localStorage.setItem('up1-vol', e.target.value); } catch (x) {} });
   try { var v = localStorage.getItem('up1-vol'); if (v) { $('vol').value = v; $('volv').textContent = v; } } catch (x) {}
   // keep exactly in step with the live schedule: after a pause, a stall or a schedule change, jump back to the live position
-  setInterval(clockProbe, 600000);
-  var lastSync = 0, lastSeek = 0, dbgEl = null;
-  var SYNC_DEBUG = /[?&]syncdebug=1/.test(location.search);   // add ?syncdebug=1 to see the offset from air
-  if (SYNC_DEBUG) window.__switchNow = function () { var k = findNow(); switchToTrack(k, nowMs() / 1000 - S.delay - S.plays[k].t); return k; };
+  var lastSync = 0;
   setInterval(function () {
-    if (switching || !started || !playing || !yt || !ready || idx < 0 || !S.plays[idx] || nextTimer || Date.now() - lastSync < 400) return;
+    if (!started || !playing || !yt || !ready || idx < 0 || !S.plays[idx] || nextTimer || Date.now() - lastSync < 20000) return;
     try {
-      var now = nowMs() / 1000 - S.delay, k = findNow();
+      var now = Date.now() / 1000 - S.delay, k = findNow();
       if (k !== idx && !(blendOn() && k === idx + 1 && (blending || now - S.plays[k].t < 30))) { lastSync = Date.now(); playIdx(k, now - S.plays[k].t); return; }          // wrong song for this moment: jump to what is on air (unless the blend into it is under way)
       var expected = now - S.plays[idx].t + (S.plays[idx].so || 0), cur = yt.getCurrentTime(), dur = yt.getDuration();
-      if (!dur || expected >= dur - 3 || !(expected > 0)) return;
-      if (yt.getPlayerState && yt.getPlayerState() !== 1) return;                    // buffering or stalled: wait, do not stutter-seek
-      var off = cur - expected;
-      if (typeof SYNC_DEBUG !== 'undefined' && SYNC_DEBUG) { try { if (!dbgEl) { dbgEl = document.createElement('div'); dbgEl.style.cssText = 'position:fixed;left:12px;top:12px;z-index:2147483001;background:#000c;color:#3f6;font:12px/1.4 monospace;padding:6px 8px;pointer-events:none'; document.body.appendChild(dbgEl); } dbgEl.textContent = 'air offset ' + (off >= 0 ? '+' : '') + off.toFixed(2) + 's (band ' + SYNC_TOL + 's)'; } catch (e) {} }
-      if (Math.abs(off) > SYNC_TOL && Date.now() - lastSeek > 1000) { lastSeek = Date.now(); lastSync = Date.now(); yt.seekTo(expected, true); }   // at most one correction a second, so it converges instead of stuttering   // a second out of step with air: catch up
+      if (dur && expected < dur - 5 && Math.abs(cur - expected) > 20) { lastSync = Date.now(); yt.seekTo(expected, true); }   // paused or stalled: catch up to live
     } catch (x) {}
-  }, 500);
+  }, 6000);
   function fmtLeft(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
   // the meter and the time counting down: on the blended channels it runs to the moment the next song comes in (the schedule), on the original 1UP Radio to the end of the video
   setInterval(function () {
@@ -1153,13 +1083,13 @@
     if (tap) { unlockChime(); unlockJingle(); if (typeof keepSync === 'function') keepSync(); }
     if (tap && yt && ready) {                                   // phones only allow sound inside a real tap: unmute / (re)start right here, in the tap
       try { if (yt.isMuted()) { yt.unMute(); yt.setVolume(+$('vol').value); } } catch (e) {}
-      if (started && !playing && !userPaused && Date.now() - lastKick > 1500) { lastKick = Date.now(); try { yt.unMute(); var k = findNow(); playIdx(k, nowMs() / 1000 - S.delay - S.plays[k].t); } catch (e) {} }
+      if (started && !playing && !userPaused && Date.now() - lastKick > 1500) { lastKick = Date.now(); try { yt.unMute(); var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } catch (e) {} }
     }
     if (!mutedAuto) { if (started && ready && !playing && !tap && !userPaused) { try { yt.playVideo(); } catch (e) {} } return; }
     mutedAuto = false; unmutedAt = Date.now(); try { yt.unMute(); yt.setVolume(+$('vol').value); if (yt.getPlayerState() !== 1) yt.playVideo(); } catch (e) {} $('hint').innerHTML = LIVE_HTML;
   }
   ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click', 'keydown'].forEach(function (ev) { addEventListener(ev, unmuteNow, { passive: true, capture: true }); });
-  clockProbe().then(function () { return load(); }).then(function () {
+  load().then(function () {
     var k = findNow(); idx = -1; paintLists();
     function begin() {   // nothing plays until the TAP TO START gate has been tapped; then start right inside that tap
       $('play').click();
@@ -1176,14 +1106,14 @@
   // ---- the station picker / the browser's Back button change station right here, without reloading: the music carries on ----
   window.UP1_SWITCH = function (st) {
     var wasPlaying = playing;
-    clearNext(); stopJingle(); selDay = null;
+    clearNext(); stopJingle(); selDay = null; curP = null; idx = -1; S = { plays: [], delay: 0 };
     loadArt();
     try { applySkin(Math.max(0, SKINS.indexOf(window.UP1_START_SKIN || 'nebula'))); } catch (e) {}
-    return load().then(function () {   // the old schedule stays in place until the new one arrives, so nothing goes silent meanwhile
+    return load().then(function () {
       if (!S.plays.length) return;
-      var k = findNow(), off = nowMs() / 1000 - S.delay - S.plays[k].t;
-      idx = k; curP = S.plays[k]; paintNP(); paintLists();
-      if (started && ready && wasPlaying) { userPaused = false; switchToTrack(k, off); }
+      var k = findNow();
+      if (started && ready && wasPlaying) { userPaused = false; playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); }
+      else { idx = k; curP = S.plays[k]; paintNP(); paintLists(); }
     });
   };
 })();
@@ -1215,38 +1145,6 @@
 // Nebula meter bars: thin bars that run across the whole player (the other skins use 12 wide bars)
 (function () {
   var fit = function () { var e = document.getElementById('eq'); if (!e) return; var n = ['nebula', 'culture', 'shock', 'dubby', 'house','portal','city1','city2','city3'].indexOf(document.documentElement.getAttribute('data-skin')) >= 0 ? 44 : 12; while (e.children.length < n) e.appendChild(document.createElement('i')); while (e.children.length > n) e.removeChild(e.lastChild); };
-  var go = function () { fit(); new MutationObserver(fit).observe(document.documentElement, { attributes: true, attributeFilter: ['data-skin'] }); var t = 0; window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(fit, 180); }); };
+  var go = function () { fit(); new MutationObserver(fit).observe(document.documentElement, { attributes: true, attributeFilter: ['data-skin'] }); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
-})();
-
-// Full screen for the meter skins (desktop): the player's button, or the F key.
-(function () {
-  var btn = document.getElementById('fsBtn');
-  if (!btn) return;
-  var walls = { meters: 1 };
-  var onWall = function () { return !!walls[document.documentElement.getAttribute('data-skin')]; };
-  var fsEl = function () { return document.fullscreenElement || document.webkitFullscreenElement || null; };
-  function sync() {
-    var on = !!fsEl();
-    btn.classList.toggle('on', on);
-    btn.setAttribute('aria-label', on ? 'Exit full screen' : 'Full screen meters');
-    btn.title = on ? 'Exit full screen (Esc)' : 'Full screen (F)';
-  }
-  function toggle() {
-    if (fsEl()) { (document.exitFullscreen || document.webkitExitFullscreen || function () {}).call(document); return; }
-    var el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
-    if (!req) return;
-    var p = req.call(el);
-    if (p && p.catch) p.catch(function () {});
-  }
-  btn.addEventListener('click', function (e) { e.preventDefault(); toggle(); });
-  document.addEventListener('fullscreenchange', sync);
-  document.addEventListener('webkitfullscreenchange', sync);
-  document.addEventListener('keydown', function (e) {
-    if (!onWall() || e.metaKey || e.ctrlKey || e.altKey) return;
-    var t = ((e.target && e.target.tagName) || '').toLowerCase();
-    if (t === 'input' || t === 'textarea' || (e.target && e.target.isContentEditable)) return;
-    if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggle(); }
-  });
-  sync();
 })();
