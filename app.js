@@ -241,7 +241,8 @@
     }).join('');
   }
   function cardShut() { var c = $('acard'); if (c) c.hidden = true; acardFor = ''; }
-  function closeArtistCard() { cardShut(); if (window.UP1_BACKGUARD) UP1_BACKGUARD.closed(cardShut); }
+  function closeArtistCard() { cardShut(); if (AZ.back) { AZ.back = false; if (AZ.el) { AZ.el.hidden = false; document.body.classList.add('azopen'); azRender(); } } if (window.UP1_BACKGUARD) UP1_BACKGUARD.closed(cardShut); }
+  function openArtistFromAZ(name) { AZ.back = true; azShut(); openArtistCard(name); }   // one panel at a time: no profile stacked on top of the A-Z list
   function openArtistCard(name) {
     var c = $('acard');
     if (!c) {
@@ -321,7 +322,7 @@
       }
     });
   }
-  function azShut() { if (AZ.el) AZ.el.hidden = true; }
+  function azShut() { if (AZ.el) { AZ.el.hidden = true; document.body.classList.remove('azopen'); } }
   function azClose() { azShut(); if (window.UP1_BACKGUARD) UP1_BACKGUARD.closed(azShut); }
   function azRender() {
     var list = AZ.el.querySelector('.azlist'), q = AZ.q.trim().toLowerCase(), L = q.length >= 2 ? azLetter(q) : AZ.L;
@@ -333,7 +334,7 @@
       var names = (AZ.idx && AZ.idx.stations) || [];
       list.innerHTML = out.length ? out.slice(0, 400).map(function (r) {
         var u = azUniq(r[1]), st = []; r[1].forEach(function (s) { if (st.indexOf(s[0]) < 0) st.push(s[0]); });
-        return '<button type="button" class="azrow" data-artist="' + esc(r[0]) + '"><b>' + esc(r[0]) + '</b><span>' + esc(azStn(st, names)) + ' \u00b7 ' + u.length + (u.length === 1 ? ' song' : ' songs') + '</span></button>';
+        return '<button type="button" class="azrow" data-artist="' + esc(r[0]) + '"><b>' + esc(r[0]) + '</b><span>' + esc(azStn(st.slice(0, 2), names)) + ' \u00b7 ' + u.length + (u.length === 1 ? ' song' : ' songs') + '</span></button>';
       }).join('') + (out.length > 400 ? '<div class="azempty">Showing the first 400. Type a name to narrow it down.</div>' : '') : '<div class="azempty">No artists here.</div>';
       list.scrollTop = 0;
     });
@@ -347,16 +348,18 @@
         if (e.target === el || e.target.closest('.acx')) { azClose(); return; }
         var lb = e.target.closest('.azl button'); if (lb) { AZ.L = lb.dataset.l; AZ.q = ''; el.querySelector('.azq').value = ''; azRender(); return; }
         var sb = e.target.closest('.azst button'); if (sb) { AZ.stn = +sb.dataset.s; el.querySelectorAll('.azst button').forEach(function (b) { b.classList.toggle('on', b === sb); }); azRender(); return; }
-        var rw = e.target.closest('.azrow'); if (rw) openArtistCard(rw.dataset.artist);
+        var rw = e.target.closest('.azrow'); if (rw) openArtistFromAZ(rw.dataset.artist);
       });
       el.querySelector('.azq').addEventListener('input', function (e) { AZ.q = e.target.value; azRender(); });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && AZ.el && !AZ.el.hidden && (!$('acard') || $('acard').hidden)) azClose(); });
       el.querySelector('.azl').innerHTML = '#ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(function (c) { return '<button type="button" data-l="' + c + '">' + c + '</button>'; }).join('');
     }
-    var wasHidden = AZ.el.hidden; AZ.el.hidden = false; if (wasHidden && window.UP1_BACKGUARD) UP1_BACKGUARD.opened(azShut);
+    var wasHidden = AZ.el.hidden; AZ.el.hidden = false; document.body.classList.add('azopen'); if (wasHidden && window.UP1_BACKGUARD) UP1_BACKGUARD.opened(azShut);
+    var qel = AZ.el.querySelector('.azq'); if (qel) { try { qel.focus({ preventScroll: true }); } catch (e) {} }
     fetch('data/artists/index.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) {
       AZ.idx = j; var s = AZ.el.querySelector('.azst'); AZ.stn = -1;
-      s.innerHTML = '<button type="button" data-s="-1" class="on">All stations</button>' + j.stations.map(function (n, i) { return '<button type="button" data-s="' + i + '">' + esc(n) + '</button>'; }).join('');
+      s.innerHTML = '<label class="azslab" for="azsel">Station</label><select id="azsel" class="azsel"><option value="-1">All ' + j.stations.length + ' stations</option>' + j.stations.map(function (n, i) { return '<option value="' + i + '">' + esc(n) + '</option>'; }).join('') + '</select>';
+      s.querySelector('.azsel').addEventListener('change', function (e) { AZ.stn = +e.target.value; azRender(); });
       azRender();
     }).catch(function () { azRender(); });
   }

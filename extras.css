@@ -91,12 +91,16 @@ html[data-skin=meters] .artlinks,html[data-skin=wormhole] .artlinks{display:none
 .alk.trk em{font-style:normal;font-size:9px;letter-spacing:.14em;text-transform:uppercase;opacity:.7;margin-right:2px}
 .alk.trk b{font-weight:500;opacity:.9}
 /* the artist profile card */
-.acard{position:fixed;inset:0;z-index:2147483300;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:16px}
+.acard{position:fixed;inset:0;z-index:2147483300;display:flex;align-items:center;justify-content:center;background:rgba(6,8,8,.78);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding:16px}
 .acard[hidden]{display:none}
-.acbox{position:relative;width:min(420px,100%);max-height:84vh;overflow:auto;background:rgba(12,14,13,.97);color:#eee;border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:18px 18px 14px;box-shadow:0 20px 60px rgba(0,0,0,.65),0 0 0 1px rgba(var(--gr,255,211,77),.18);font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
+.acbox{position:relative;width:min(460px,100%);max-height:84vh;overflow:auto;background:rgba(14,16,15,.985);color:#eee;border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:18px 18px 14px;box-shadow:0 24px 70px rgba(0,0,0,.7),0 0 0 1px rgba(var(--gr,255,211,77),.16);font-family:system-ui,-apple-system,'Segoe UI',sans-serif;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.22) transparent}
+.acbox::-webkit-scrollbar{width:10px}
+.acbox::-webkit-scrollbar-track{background:transparent}
+.acbox::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:99px;border:3px solid transparent;background-clip:padding-box}
+.acbox .azlink{font-size:11px;padding:5px 11px;border:1px solid rgba(255,255,255,.24);border-radius:999px;text-decoration:none;opacity:.9}
 .acx{position:absolute;top:8px;right:10px;width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:inherit;font-size:24px;line-height:1;cursor:pointer}
 .acx:hover{background:rgba(255,255,255,.12)}
-.acl{font:600 10px 'Barlow Condensed',system-ui,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--g,#ffd34d);margin-bottom:12px}
+.acl{font:600 10px 'Barlow Condensed',system-ui,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--g,#ffd34d);margin-bottom:12px;padding-right:44px}
 .achead{display:flex;align-items:center;gap:14px;margin-bottom:10px}
 .acpic{width:92px;height:92px;flex:0 0 92px;border-radius:50%;object-fit:cover;background:#222;box-shadow:0 0 0 2px var(--g,#ffd34d),0 6px 18px rgba(0,0,0,.5)}
 .acpic.ph{display:flex;align-items:center;justify-content:center;font:700 34px system-ui;color:#fff;background:linear-gradient(135deg,#333,#111)}
@@ -110,35 +114,62 @@ html[data-skin=meters] .artlinks,html[data-skin=wormhole] .artlinks{display:none
 .aclab em{font-style:normal;font-size:9px;letter-spacing:.14em;text-transform:uppercase;opacity:.7}
 .accr{margin-top:12px;font-size:10px;opacity:.6}
 .accr a{color:inherit}
-@media(max-width:600px){.acard{align-items:flex-end;padding:0}.acbox{width:100%;border-radius:18px 18px 0 0;max-height:78vh}}
+@media(max-width:600px){.acard{align-items:flex-end;padding:0}.acbox{width:100%;border-radius:18px 18px 0 0;max-height:88vh;padding-bottom:max(16px,env(safe-area-inset-bottom))}.acsg{flex-direction:column;gap:1px;padding:6px 0}.acsg em{white-space:normal;font-size:10.5px;opacity:.5}}
 /* Artists A-Z */
 .azbtn{margin-top:8px}
 .azlink{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:inherit;opacity:.75;text-decoration:none;border-bottom:1px dotted currentColor}
 .azlink:hover{opacity:1}
-.azov{position:fixed;inset:0;z-index:2147483200;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72);padding:16px}
+.azov{position:fixed;inset:0;z-index:2147483200;display:flex;align-items:center;justify-content:center;background:rgba(6,8,8,.9);-webkit-backdrop-filter:blur(14px) saturate(.85);backdrop-filter:blur(14px) saturate(.85);padding:16px}
+body.azopen{overflow:hidden}
 .azov[hidden]{display:none}
-.azbox{position:relative;width:min(720px,100%);height:min(86vh,760px);display:flex;flex-direction:column;background:rgba(12,14,13,.98);color:#eee;border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:16px 16px 10px;box-shadow:0 20px 60px rgba(0,0,0,.65);font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
-.azq{width:100%;box-sizing:border-box;margin:0 0 10px;padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:inherit;font:inherit;font-size:14px}
+.azbox{position:relative;width:min(760px,100%);height:min(88vh,820px);display:flex;flex-direction:column;background:rgba(14,16,15,.985);color:#eee;border:1px solid rgba(255,255,255,.14);border-radius:20px;padding:0 0 4px;box-shadow:0 28px 80px rgba(0,0,0,.7);font-family:system-ui,-apple-system,'Segoe UI',sans-serif;overflow:hidden}
+.azbox .acl{margin:0;padding:18px 52px 12px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.azbox>.acl,.azbox>.azq,.azbox>.azst,.azbox>.azl{flex:0 0 auto}
+.azq{width:calc(100% - 40px);box-sizing:border-box;margin:12px 20px 0;padding:11px 15px;border-radius:11px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:inherit;font:inherit;font-size:14px}
+.azq::placeholder{color:rgba(238,238,238,.45)}
 .azq:focus{outline:2px solid rgba(var(--gr,255,211,77),.6);border-color:transparent}
-.azst{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;max-height:96px;overflow-y:auto}
-.azst button{border:1px solid rgba(255,255,255,.22);background:transparent;color:inherit;border-radius:999px;padding:5px 11px;font-size:12px;cursor:pointer}
-.azst button.on{background:var(--g,#ffd34d);color:#111;border-color:transparent}
-.azl{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:6px}
-.azl button{width:28px;height:28px;border:0;border-radius:8px;background:transparent;color:inherit;font-weight:700;font-size:13px;cursor:pointer}
+/* station filter: one tidy dropdown instead of 35 wrapped chips (they collapsed to a 3px sliver) */
+.azst{display:flex;align-items:center;gap:10px;margin:10px 20px 0;max-height:none;overflow:visible}
+.azslab{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;opacity:.55;white-space:nowrap;flex:0 0 auto}
+.azsel{flex:1 1 auto;min-width:0;appearance:none;-webkit-appearance:none;cursor:pointer;padding:9px 34px 9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background-color:rgba(255,255,255,.06);background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23eeeeee' stroke-opacity='.6' stroke-width='1.6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;color:inherit;font:inherit;font-size:13px;text-overflow:ellipsis}
+.azsel:hover{border-color:rgba(255,255,255,.3)}
+.azsel:focus{outline:2px solid rgba(var(--gr,255,211,77),.55);outline-offset:1px}
+.azsel option{background:#141614;color:#eee}
+/* letter index: scrollable strip on touch sizes, 27 equal columns only when there is real width */
+.azl{display:flex;gap:4px;margin:10px 20px 0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scroll-snap-type:x proximity}
+.azl::-webkit-scrollbar{display:none}
+.azl button{flex:0 0 40px;width:40px;height:40px;border:1px solid transparent;border-radius:9px;background:rgba(255,255,255,.045);color:inherit;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;transition:background .12s ease,color .12s ease}
 .azl button:hover{background:rgba(255,255,255,.12)}
-.azl button.on{background:rgba(var(--gr,255,211,77),.3);color:#fff}
-.azlist{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;border-top:1px solid rgba(255,255,255,.1)}
-.azrow{display:block;width:100%;text-align:left;padding:10px 6px;border:0;border-bottom:1px solid rgba(255,255,255,.07);background:transparent;color:inherit;cursor:pointer;font:inherit}
+.azl button:focus-visible{outline:2px solid rgba(var(--gr,255,211,77),.6);outline-offset:1px}
+.azl button.on{background:rgba(var(--gr,255,211,77),.24);border-color:rgba(var(--gr,255,211,77),.55);color:#fff}
+@media(min-width:901px){
+  .azl{display:grid;grid-template-columns:repeat(27,minmax(0,1fr));gap:3px;overflow:visible;scroll-snap-type:none}
+  .azl button{flex:1 1 auto;width:100%;height:32px;font-size:12px}
+}
+/* touch devices keep the 40px scrolling strip even on a wide screen: 24px grid cells are a mouse target */
+@media(pointer:coarse){
+  .azl{display:flex;overflow-x:auto;scroll-snap-type:x proximity}
+  .azl button{flex:0 0 40px;width:40px;height:40px}
+}
+.azlist{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin-top:12px;border-top:1px solid rgba(255,255,255,.08);padding:4px 12px 12px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.22) transparent}
+.azlist::-webkit-scrollbar{width:10px}
+.azlist::-webkit-scrollbar-track{background:transparent}
+.azlist::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:99px;border:3px solid transparent;background-clip:padding-box}
+.azrow{display:flex;align-items:baseline;gap:10px;width:100%;text-align:left;padding:11px 10px;border:0;border-bottom:1px solid rgba(255,255,255,.055);border-radius:10px;background:transparent;color:inherit;cursor:pointer;font:inherit}
 .azrow:hover{background:rgba(255,255,255,.07)}
-.azrow b{display:block;font-size:15px}
-.azrow span{display:block;font-size:11px;opacity:.65;margin-top:2px}
-.azempty{padding:18px 6px;opacity:.65;font-size:13px}
+.azrow:focus-visible{background:rgba(255,255,255,.09);outline:0}
+.azrow b{font-size:15px;font-weight:600;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.azrow span{font-size:11.5px;opacity:.62;margin-left:auto;max-width:56%;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.azrow::after{content:'\203a';opacity:.3;font-size:16px;line-height:1;margin-left:6px}
+.azempty{padding:22px 10px;opacity:.65;font-size:13px;text-align:center}
 .acsongs{margin-top:12px;border-top:1px solid rgba(255,255,255,.1);padding-top:8px}
 .acsh{font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.7;margin-bottom:4px}
 .acsg{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:3px 0}
 .acsg em{font-style:normal;opacity:.55;white-space:nowrap;font-size:11px}
 .acsm{font-size:11px;opacity:.6;padding-top:2px}
-@media(max-width:600px){.azov{align-items:flex-end;padding:0}.azbox{border-radius:18px 18px 0 0;height:90vh}}
+@media(max-width:600px){.azov{align-items:flex-end;padding:0;overscroll-behavior:contain}.azbox{width:100%;height:92vh;height:92dvh;border-radius:20px 20px 0 0;border-bottom:0;padding-bottom:max(4px,env(safe-area-inset-bottom));-webkit-text-size-adjust:100%;text-size-adjust:100%}.azbox .acl{padding:15px 52px 10px 16px}.azbox .acx,#acard .acx{width:40px;height:40px;top:6px;right:8px;font-size:26px}.azq{width:calc(100% - 32px);margin:10px 16px 0;padding:13px 15px;font-size:16px}.azst{margin:10px 16px 0}.azslab{font-size:9px}.azsel{padding:13px 34px 13px 12px;font-size:16px}.azl{margin:10px 16px 0}.azlist{padding:4px 8px 14px}.azrow{padding:14px 8px}.azrow b{font-size:14.5px}.azrow span{max-width:50%;font-size:11px}}
+/* short viewports (phone landscape, small laptops): shrink the header stack so the list keeps real height */
+@media(max-height:520px){.azov{padding:8px}.azbox{height:96vh;height:96dvh;border-radius:16px}.azbox .acl{padding:9px 50px 7px 14px;font-size:9px;margin:0}.azbox .acx,#acard .acx{width:36px;height:36px;top:4px;right:6px;font-size:24px}.azq{margin:8px 14px 0;padding:9px 12px}.azst{margin:8px 14px 0}.azsel{padding:8px 30px 8px 10px}.azl{margin:8px 14px 0}.azl button{height:32px}.azlist{margin-top:8px}.acbox{max-height:96vh;max-height:96dvh}}
 .aclinks{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px}
 .aclk{font-size:11.5px;padding:4px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.26);color:inherit;text-decoration:none;white-space:nowrap}
 .aclk:hover,.aclk:focus-visible{background:rgba(255,255,255,.14);outline:0}
