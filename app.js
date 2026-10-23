@@ -395,6 +395,7 @@
   }
   document.addEventListener('click', function (e) {
     var t = e.target.closest && e.target.closest('#azBtn, .azlink, #artBtn'); if (!t) return; e.preventDefault();
+    var pc = $('acard'); if (pc && !pc.hidden) { AZ.back = false; closeArtistCard(); }   // from inside an artist profile: close the profile first, it sits above the A-Z list and hid it
     openAZ();
   });
   function paintArtLinks(p) {
