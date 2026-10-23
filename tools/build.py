@@ -47,5 +47,18 @@ for i, q in enumerate(out):
         final.append({'t': cur, 'id': pick['id'], 'title': pick['title'], 'dur': pick['dur'], 'f': 1})
         used.add(pick['id']); cur += pick['dur']; remaining -= pick['dur']; k += 1
 out = final
+
+# --- slots that have already started never change again: every listener, whenever they opened the page, gets the same song for the same moment ---
+import os, time
+if os.path.exists('schedule.json'):
+    try:
+        prev = json.load(open('schedule.json'))['plays']
+        cutoff = time.time() - DELAY                       # a slot airs for listeners at t + DELAY
+        frozen = [q for q in prev if q['t'] <= cutoff and q['t'] >= out[0]['t']]
+        if frozen:
+            last = frozen[-1]['t']
+            out = frozen + [q for q in out if q['t'] > last]
+    except Exception as e:
+        print('freeze skipped:', e)
 json.dump({'built': int(datetime.datetime.now().timestamp()), 'delay': DELAY, 'plays': out}, open('schedule.json', 'w'), ensure_ascii=False, separators=(',', ':'))
 print(len(out), 'scheduled;', skipped, 'same-day repeats dropped;', miss, 'unresolved skipped')
