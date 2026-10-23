@@ -229,7 +229,7 @@
     return h;
   }
   // ---- every website and profile we know for an artist (MusicBrainz's curated links), shown as pills in the profile card ----
-  var PL_ORDER = ['Website', 'Wikipedia', 'Spotify', 'Apple Music', 'Deezer', 'Beatport', 'Bandcamp', 'SoundCloud', 'Facebook', 'Resident Advisor', 'Mixcloud', 'Discogs', 'AllMusic', 'Last.fm', 'Genius', 'YouTube', 'Tour dates'];
+  var PL_ORDER = ['Website', 'Wikipedia', 'Spotify', 'Apple Music', 'Deezer', 'Beatport', 'Bandcamp', 'SoundCloud', 'Facebook', 'Resident Advisor', 'Mixcloud', 'Discogs', 'AllMusic', 'Last.fm', 'Genius', 'Tidal', 'Amazon Music', 'Traxsource', 'Juno Download', 'Songkick', 'Bandsintown', 'Linktree', 'IMDb', 'Wikidata', 'Instagram', 'X', 'TikTok', 'YouTube', 'Tour dates'];
   function plLabel(url) {
     if (/^https?:\/\/en\.wikipedia\.org\/wiki\//i.test(url)) return 'Wikipedia';
     if (/bandcamp\.com/i.test(url)) return 'Bandcamp'; if (/soundcloud\.com/i.test(url)) return 'SoundCloud'; if (/facebook\.com/i.test(url)) return 'Facebook';

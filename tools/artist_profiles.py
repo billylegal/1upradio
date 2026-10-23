@@ -88,14 +88,14 @@ def worker_mb(items):
     P = CD + '/mb.json'; C = load(P, {}); W = load(CD + '/wiki.json', {}); n = 0
     WP = CD + '/wiki.json'
     for k, a in items:
-        if k in C: continue
+        if k in C and (not C[k] or C[k].get('id')): continue      # entries from the first version (no MusicBrainz id) are looked up again for the new fields
         res = 0
         d = jget('https://musicbrainz.org/ws/2/artist?' + urllib.parse.urlencode({'query': 'artist:"%s"' % a['name'].replace('"', ' '), 'limit': 6, 'fmt': 'json'})); time.sleep(1.1)
         ex = [x for x in (d or {}).get('artists', []) if nrm(x.get('name')) == k or any(nrm(al.get('name')) == k for al in x.get('aliases', []))]
         top = sorted(ex, key=lambda x: -x.get('score', 0))
         if top and top[0].get('score', 0) >= 95 and (len(top) == 1 or top[1].get('score', 0) < 90):
             m = top[0]
-            L = jget('https://musicbrainz.org/ws/2/artist/%s?inc=url-rels+tags+genres&fmt=json' % m['id']); time.sleep(1.1)
+            L = jget('https://musicbrainz.org/ws/2/artist/%s?inc=url-rels+tags+genres+annotation&fmt=json' % m['id']); time.sleep(1.1)
             if L:
                 rels = {}
                 for r in L.get('relations', []):
@@ -112,6 +112,16 @@ def worker_mb(items):
                     elif h.endswith('last.fm'): key = 'Last.fm'
                     elif h.endswith('allmusic.com'): key = 'AllMusic'
                     elif h.endswith('mixcloud.com'): key = 'Mixcloud'
+                    elif h.endswith('tidal.com'): key = 'Tidal'
+                    elif 'amazon.' in h: key = 'Amazon Music'
+                    elif h.endswith('traxsource.com'): key = 'Traxsource'
+                    elif h.endswith('junodownload.com'): key = 'Juno Download'
+                    elif h.endswith('songkick.com'): key = 'Songkick'
+                    elif h.endswith('bandsintown.com'): key = 'Bandsintown'
+                    elif h.endswith('genius.com'): key = 'Genius'
+                    elif h.endswith('linktr.ee') or h.endswith('beacons.ai'): key = 'Linktree'
+                    elif h.endswith('wikidata.org'): key = 'Wikidata'; rels['_qid'] = u.rsplit('/', 1)[-1]
+                    elif h.endswith('imdb.com'): key = 'IMDb'
                     elif h.endswith('ra.co') or h.endswith('residentadvisor.net'): key = 'Resident Advisor'
                     elif h.endswith('facebook.com'): key = 'Facebook'
                     elif h.endswith('instagram.com'): key = 'Instagram'
@@ -123,7 +133,9 @@ def worker_mb(items):
                     if key and key not in rels: rels[key] = u
                 tags = [t['name'] for t in sorted(L.get('genres', []) or L.get('tags', []), key=lambda t: -t.get('count', 0))][:4]
                 ar = L.get('area') or {}; ba = L.get('begin-area') or {}
-                res = {'t': L.get('type') or '', 'c': L.get('country') or '', 'ar': ar.get('name') or '', 'ba': ba.get('name') or '', 'y': ((L.get('life-span') or {}).get('begin') or '')[:4],
+                an = re.sub(r'\[\[(?:[^\]|]*\|)?([^\]]*)\]\]', r'\1', re.sub(r"'{2,}", '', (L.get('annotation') or {}).get('text', '') if isinstance(L.get('annotation'), dict) else ''))
+                an = re.sub(r'\s+', ' ', re.sub(r'https?://\S+|\{\{[^}]*\}\}', '', an)).strip()[:600]
+                res = {'id': m['id'], 'an': an, 't': L.get('type') or '', 'c': L.get('country') or '', 'ar': ar.get('name') or '', 'ba': ba.get('name') or '', 'y': ((L.get('life-span') or {}).get('begin') or '')[:4],
                        'e': 1 if (L.get('life-span') or {}).get('ended') else 0, 'g': tags, 'd': L.get('disambiguation') or '', 'r': {a_: b_ for a_, b_ in rels.items() if a_ != '_qid'}}
                 # Wikipedia, only through the link MusicBrainz itself gives (the right person)
                 title = None
@@ -132,6 +144,9 @@ def worker_mb(items):
                     w = jget('https://www.wikidata.org/w/api.php?' + urllib.parse.urlencode({'action': 'wbgetentities', 'ids': rels['_qid'], 'props': 'sitelinks', 'sitefilter': 'enwiki', 'format': 'json'}))
                     sl = (((w or {}).get('entities') or {}).get(rels['_qid']) or {}).get('sitelinks', {}).get('enwiki')
                     if sl: title = sl['title']; res['r']['Wikipedia'] = 'https://en.wikipedia.org/wiki/' + urllib.parse.quote(title.replace(' ', '_'))
+                if rels.get('_qid'):
+                    wd = jget('https://www.wikidata.org/w/api.php?' + urllib.parse.urlencode({'action': 'wbgetentities', 'ids': rels['_qid'], 'props': 'descriptions', 'languages': 'en', 'format': 'json'}))
+                    res['wd'] = ((((wd or {}).get('entities') or {}).get(rels['_qid']) or {}).get('descriptions') or {}).get('en', {}).get('value', '')
                 if title:
                     s = jget('https://en.wikipedia.org/api/rest_v1/page/summary/' + urllib.parse.quote(title.replace(' ', '_'), safe=''))
                     if s and s.get('type') == 'standard' and s.get('extract'):
@@ -143,6 +158,47 @@ def worker_mb(items):
         C[k] = res; n += 1
         if n % 25 == 0: save(P, C); save(WP, W); print('musicbrainz', len(C), 'wiki', len(W), flush=True)
     save(P, C); save(WP, W)
+
+
+BOILER = re.compile(r'(^|\b)(cookie|javascript|log ?in|sign ?up|stream |listen to|listen on|discover |download |follow |buy |shop|official site|welcome to|monthly listeners|404|not found|the world.s (largest|biggest)|free to|all rights|bandcamp$|soundcloud$)', re.I)
+
+
+BAD_BIO = re.compile(r'@|\\b(booking|mgmt|management|contact|enquir|inquir|press kit|e-?mail)\\b|\\breleased \\d|, released\\b|\\bby [^,]{2,40}, released|\\btrack(s)? from\\b|\\bforms? of\\b.*\\bcookie|\\bsubscribe\\b|\\bnew (album|single|ep|release)\\b.*\\b(out now|available)', re.I)
+
+
+def og_text(url):
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (compatible; 1UPRadio-profiles/1.0; +https://1upradio.com)', 'Accept-Language': 'en'})
+        with urllib.request.urlopen(req, timeout=15) as r: html = r.read(250000).decode('utf-8', 'replace')
+    except Exception: return ''
+    best = ''
+    for pat in (r'<meta[^>]+(?:property|name)=["\'](?:og:description|twitter:description|description)["\'][^>]+content=["\']([^"\']{40,900})["\']', r'<meta[^>]+content=["\']([^"\']{40,900})["\'][^>]+(?:property|name)=["\'](?:og:description|twitter:description|description)["\']'):
+        for m in re.finditer(pat, html, re.I):
+            t = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', m.group(1))).replace('&amp;', '&').replace('&quot;', '"').replace('&#39;', "'").replace('&#x27;', "'").strip()
+            if len(t) >= 60 and not BOILER.search(t[:80]) and not BAD_BIO.search(t) and len(t) > len(best): best = t
+    return best[:520]
+
+
+def worker_pages(items):
+    """the artist's own words (Bandcamp, SoundCloud, website, Last.fm, Mixcloud) for everyone MusicBrainz found; waits for MusicBrainz, so it keeps looping until it has caught up"""
+    P = CD + '/pages.json'; C = load(P, {}); n = 0; idle = 0
+    while idle < 3:
+        MB = load(CD + '/mb.json', {}); did = 0
+        for k, a in items:
+            if k in C: continue
+            M = MB.get(k)
+            if not M or not M.get('id'): continue
+            res = {}
+            for kind in ('Bandcamp', 'SoundCloud', 'Website', 'Last.fm', 'Mixcloud'):
+                u = (M.get('r') or {}).get(kind)
+                if u:
+                    t = og_text(u); time.sleep(1.0)
+                    if t: res[kind] = t
+            C[k] = res; n += 1; did += 1
+            if n % 25 == 0: save(P, C); print('pages', len(C), flush=True)
+        save(P, C)
+        if len(MB) >= len(items) and not did: idle += 1
+        elif not did: time.sleep(120)
 
 
 def worker_deezer(items):
@@ -226,7 +282,7 @@ def own_data():
 STN_GENRE_SKIP = ('1UP Radio', 'The Movement', 'Culture Shock', 'The Vault', 'City Culture')
 
 
-def compose(k, a, I, M, W, Dz, Y, own):
+def compose(k, a, I, M, W, Dz, Y, own, PG=None):
     LAB, BPM, NOTE, CH = own
     f = []; links = {}; cred = []; photo = ''; bio = ''; bs = ''
     vids = list(dict.fromkeys(s[2] for s in a['songs']))
@@ -234,9 +290,17 @@ def compose(k, a, I, M, W, Dz, Y, own):
     if Dz and Dz.get('p') and 'default' not in Dz['p'] and '/artist//' not in Dz['p']: photo = Dz['p']; cred.append('Deezer')
     if not photo and W and W.get('p'): photo = W['p']
     if not photo and Y and not Y.get('topic') and Y.get('th'): photo = Y['th']
-    # --- bio
-    if W and W.get('x'): bio = W['x']; bs = 'Wikipedia (CC BY-SA)'; links['Wikipedia'] = W.get('u') or (M or {}).get('r', {}).get('Wikipedia', '')
-    elif Y and not Y.get('topic') and len(Y.get('d', '')) >= 80: bio = Y['d']; bs = 'the artist’s YouTube channel'
+    # --- bio: every source offers its text, the best one wins (an encyclopedia article > the artist's own words > a note by the MusicBrainz editors > the YouTube channel > a generated line)
+    cands = []
+    if W and W.get('x'): cands.append((100 + min(len(W['x']), 520) / 10.0, W['x'], 'Wikipedia (CC BY-SA)')); links['Wikipedia'] = W.get('u') or (M or {}).get('r', {}).get('Wikipedia', '')
+    for kind, t in sorted((PG or {}).items(), key=lambda kv: -len(kv[1])):
+        if len(t) >= 60: cands.append((70 + min(len(t), 520) / 20.0, t, kind if kind != 'Website' else 'the artist\u2019s website'))
+    if M and len(M.get('an', '')) >= 60: cands.append((60 + min(len(M['an']), 520) / 20.0, M['an'], 'MusicBrainz'))
+    if Y and not Y.get('topic') and len(Y.get('d', '')) >= 80: cands.append((55 + min(len(Y['d']), 300) / 25.0, Y['d'], 'the artist\u2019s YouTube channel'))
+    if cands:
+        cands.sort(key=lambda c: -c[0]); bio, bs = cands[0][1], cands[0][2]
+        if len(cands) > 1 and bs != 'Wikipedia (CC BY-SA)' and len(bio) < 160 and cands[1][1][:60] != bio[:60]:   # a short best text gets a second one from another source
+            pass
     # --- about (from MusicBrainz / Apple Music)
     if M:
         T = M.get('t')
@@ -247,11 +311,11 @@ def compose(k, a, I, M, W, Dz, Y, own):
         else: line = a['name'] + (' is from ' + place if place else '')
         if M.get('y'): line += (', ' if (kind or place) else ' ') + ('active since ' if not M.get('e') else 'formed in ') + M['y']
         line += '.'
+        if not bio and M.get('wd'): bio = a['name'] + ' \u2014 ' + M['wd'][:1].upper() + M['wd'][1:] + ('.' if not M['wd'].endswith('.') else ''); bs = 'Wikidata'
         if not bio and (place or M.get('y')): bio = line; bs = 'MusicBrainz'
         elif place or M.get('y'): f.append(line)
         if M.get('g'): f.append('Style: ' + ', '.join(M['g'][:4]) + '.')
         for kk, u in (M.get('r') or {}).items():
-            if kk in ('Instagram', 'TikTok', 'X', 'YouTube'): continue   # official accounts are handled by the card's own account row
             links.setdefault(kk, u)
         cred.append('MusicBrainz')
     if I:
@@ -292,10 +356,10 @@ def compose(k, a, I, M, W, Dz, Y, own):
 
 
 def build():
-    A = artists(); I = load(CD + '/itunes.json', {}); M = load(CD + '/mb.json', {}); W = load(CD + '/wiki.json', {}); Dz = load(CD + '/deezer.json', {}); Y = load(CD + '/youtube.json', {}); own = own_data()
+    A = artists(); I = load(CD + '/itunes.json', {}); M = load(CD + '/mb.json', {}); W = load(CD + '/wiki.json', {}); Dz = load(CD + '/deezer.json', {}); Y = load(CD + '/youtube.json', {}); PGS = load(CD + '/pages.json', {}); own = own_data()
     shards = {}; n = 0
     for k, a in A:
-        r = compose(k, a, I.get(k) or None, M.get(k) or None, W.get(k) or None, Dz.get(k) or None, Y.get(k) or None, own)
+        r = compose(k, a, I.get(k) or None, M.get(k) or None, W.get(k) or None, Dz.get(k) or None, Y.get(k) or None, own, PGS.get(k) or None)
         if not r: continue
         c = a['name'].strip()[:1].upper(); c = unicodedata.normalize('NFD', c)[:1]; c = c.lower() if re.match('[A-Z]', c) else 'num'
         shards.setdefault(c, {})[k] = r; n += 1
@@ -306,7 +370,7 @@ def build():
 def main():
     if '--build' in sys.argv: build(); return
     items = artists(); print('artists', len(items), flush=True)
-    ts = [threading.Thread(target=f, args=(items,), daemon=True) for f in (worker_itunes, worker_mb, worker_deezer, worker_youtube)]
+    ts = [threading.Thread(target=f, args=(items,), daemon=True) for f in (worker_itunes, worker_mb, worker_pages, worker_deezer, worker_youtube)]
     for t in ts: t.start()
     while any(t.is_alive() for t in ts):
         time.sleep(300); build()
