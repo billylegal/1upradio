@@ -841,12 +841,43 @@
   // ---- the blend (all stations except the original 1UP Radio): the schedule overlaps each song with the next by XF seconds; a second hidden player starts the next song while the first one fades out ----
   var XF = 5, ytMain = null, yt2 = null, ready2 = false, blendT = null, xfT = null, blending = false, blendFlag = false;
   function blendOn() { return !IOS && (window.UP1_STATION || '1up') !== '1up' && !/[?&]blend=0/.test(location.search); }
-  function ensureP2() {
-    if (yt2 || !blendOn() || !ytMain || !(window.YT && YT.Player)) return;
+  function ensureP2(force) {
+    if (yt2 || (!force && !blendOn()) || !ytMain || !(window.YT && YT.Player)) return;
     var d = document.createElement('div'); d.id = 'ytp2'; $('yt').appendChild(d);
     yt2 = new YT.Player('ytp2', { width: 200, height: 200, host: 'https://www.youtube-nocookie.com', playerVars: { playsinline: 1, rel: 0, controls: 0, disablekb: 1, origin: location.origin }, events: {
       onReady: function () { ready2 = true; },
       onStateChange: onYtState, onError: onYtError } });
+  }
+  var switching = false;
+  function switchToTrack(k, off) {   // change station without a hole in the audio: the new track loads on the idle player and we fade into it
+    var p = S.plays[k]; if (!p) return;
+    ensureP2(true);
+    var old = yt, nu = (old === yt2) ? ytMain : yt2;
+    if (!nu || nu === old || !ready2) { playIdx(k, off); return; }          // no second player: behave as before
+    switching = true;
+    var oldV = 100; try { oldV = old.getVolume(); } catch (e) {}
+    try { nu.setVolume(0); nu.loadVideoById({ videoId: p.id, startSeconds: Math.max(0, off) }); }
+    catch (e) { switching = false; playIdx(k, off); return; }
+    var t0 = Date.now(), faded = false, iv = setInterval(function () {
+      var st = -1; try { st = nu.getPlayerState(); } catch (e) {}
+      if (!faded && (st === 1 || Date.now() - t0 > 3500)) {                  // playing, or give up waiting and fade anyway
+        faded = true; clearInterval(iv);
+        yt = nu; blending = true;
+        var target = bvol(), t1 = Date.now(), N = p.xi ? p.xi * 1000 : 1200;
+        var fv = setInterval(function () {
+          var f = Math.min(1, (Date.now() - t1) / N);
+          try { nu.setVolume(Math.round(target * Math.sin(f * Math.PI / 2))); old.setVolume(Math.round(oldV * Math.cos(f * Math.PI / 2))); } catch (e) {}
+          if (f >= 1) {
+            clearInterval(fv); blending = false; switching = false; try { old.pauseVideo(); } catch (e) {} try { nu.setVolume(bvol()); } catch (e) {}
+            setTimeout(function () {   // if the new station never actually started, put the music back on the main player instead of leaving silence
+              var st2 = -1; try { st2 = nu.getPlayerState(); } catch (e) {}
+              if (st2 !== 1 && yt === nu) { try { playIdx(k, nowMs() / 1000 - S.delay - p.t); } catch (e) {} }
+            }, 2000);
+          }
+        }, 80);
+      }
+      if (!faded && Date.now() - t0 > 8000) { clearInterval(iv); switching = false; playIdx(k, off); }
+    }, 120);
   }
   function bvol() { return typeof effVol === 'function' ? effVol() : volNow(); }   // the level the current song should have
   function crossTo(p) {   // the next song comes in on the other player while the current one fades out (equal-power curves)
@@ -1036,8 +1067,9 @@
   setInterval(clockProbe, 600000);
   var lastSync = 0, lastSeek = 0, dbgEl = null;
   var SYNC_DEBUG = /[?&]syncdebug=1/.test(location.search);   // add ?syncdebug=1 to see the offset from air
+  if (SYNC_DEBUG) window.__switchNow = function () { var k = findNow(); switchToTrack(k, nowMs() / 1000 - S.delay - S.plays[k].t); return k; };
   setInterval(function () {
-    if (!started || !playing || !yt || !ready || idx < 0 || !S.plays[idx] || nextTimer || Date.now() - lastSync < 400) return;
+    if (switching || !started || !playing || !yt || !ready || idx < 0 || !S.plays[idx] || nextTimer || Date.now() - lastSync < 400) return;
     try {
       var now = nowMs() / 1000 - S.delay, k = findNow();
       if (k !== idx && !(blendOn() && k === idx + 1 && (blending || now - S.plays[k].t < 30))) { lastSync = Date.now(); playIdx(k, now - S.plays[k].t); return; }          // wrong song for this moment: jump to what is on air (unless the blend into it is under way)
@@ -1144,14 +1176,14 @@
   // ---- the station picker / the browser's Back button change station right here, without reloading: the music carries on ----
   window.UP1_SWITCH = function (st) {
     var wasPlaying = playing;
-    clearNext(); stopJingle(); selDay = null; curP = null; idx = -1; S = { plays: [], delay: 0 };
+    clearNext(); stopJingle(); selDay = null;
     loadArt();
     try { applySkin(Math.max(0, SKINS.indexOf(window.UP1_START_SKIN || 'nebula'))); } catch (e) {}
-    return load().then(function () {
+    return load().then(function () {   // the old schedule stays in place until the new one arrives, so nothing goes silent meanwhile
       if (!S.plays.length) return;
-      var k = findNow();
-      if (started && ready && wasPlaying) { userPaused = false; playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); }
-      else { idx = k; curP = S.plays[k]; paintNP(); paintLists(); }
+      var k = findNow(), off = nowMs() / 1000 - S.delay - S.plays[k].t;
+      idx = k; curP = S.plays[k]; paintNP(); paintLists();
+      if (started && ready && wasPlaying) { userPaused = false; switchToTrack(k, off); }
     });
   };
 })();
