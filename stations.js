@@ -91,15 +91,24 @@
       el.addEventListener('click', function (e) {
         if (e.target.closest('.pgsoon')) { if (window.UP1_ASKCODE) window.UP1_ASKCODE('pgtechmix'); return; }   // DJ Mixed: special access, the same code box as the station list
         var b = e.target.closest('button[data-id]'); if (b && b.dataset.id !== cur.id) switchTo(byId(b.dataset.id), true); });
+      ['pointerdown', 'pointerover', 'touchstart'].forEach(function (ev) { el.addEventListener(ev, function (e) { var b = e.target.closest('button[data-id]'), st = b && byId(b.dataset.id); if (st && window.UP1_PREFETCH) window.UP1_PREFETCH(st.sched); }, { passive: true }); });
     }
-    el.hidden = false; var G = GROUPS[g];
+    el.hidden = false; var G = GROUPS[g], gk = g + '|' + (UNL.tdot6 ? 1 : 0);
+    if (el.dataset.gk === gk) { el.querySelectorAll('button[data-id]').forEach(function (b) { b.classList.toggle('on', b.dataset.id === cur.id); }); return; }   // same chips: only move the highlight (no rebuild, no flicker)
+    el.dataset.gk = gk;
     el.innerHTML = '<h2>' + G[0] + '</h2><div class="pgchips">' + [{ id: g, name: G[1] }].concat(ST.filter(function (x) { return x.group === g && (x.id !== 'pgtechmix' || UNL.tdot6); }).sort(function (a, b) { return String(a.name).replace(G[2], '').localeCompare(String(b.name).replace(G[2], ''), 'en', { sensitivity: 'base' }); })).map(function (x) {
       return '<button type="button" data-id="' + x.id + '" class="pgchip' + (x.id === cur.id ? ' on' : '') + '">' + String(x.name).replace(G[2], '') + '</button>';
     }).join('') + (g === 'portal' && !UNL.tdot6 ? '<button type="button" class="pgchip pgsoon" title="A DJ-mixed Tech House set, beat-matched. Coming soon. Tap if you have the special access code.">DJ Mixed \u00b7 coming soon</button>' : '') + '</div>';
   }
+  function warmSiblings() {   // while the listener looks around, quietly fetch the other sub-channels' schedules (one at a time) so every tap starts at once
+    var g = GROUPS[cur.id] ? cur.id : (GROUPS[cur.group] ? cur.group : ''); if (!g || !window.UP1_PREFETCH) return;
+    var c = navigator.connection || {}; if (c.saveData || /(^|-)2g$|3g/.test(c.effectiveType || '')) return;   // never burn a slow or metered connection on guesses
+    var list = ST.filter(function (x) { return x.group === g && isOpen(x); }), i = 0;
+    (function nx() { if (i >= list.length || document.hidden) return; if (Date.now() < (window.UP1_WARMPAUSE || 0)) { setTimeout(nx, 3000); return; } window.UP1_PREFETCH(list[i++].sched).then(function () { setTimeout(nx, 1500); }); })();   // one at a time, each only after the last one finished
+  }
   function paintUI(st) {   // everything on the page that carries the station's name, logo and look
     var rad = document.querySelector('.logo .rad'), img = document.querySelector('.logo img'), isMain = st.id === '1up';
-    document.title = isMain ? origTitle : st.name + ' \u00b7 1UP Radio'; try { paintGenres(); } catch (e) {}
+    document.title = isMain ? origTitle : st.name + ' \u00b7 1UP Radio'; try { paintGenres(); } catch (e) {} setTimeout(function () { try { warmSiblings(); } catch (e) {} }, 2500);
     if (rad) rad.textContent = isMain ? 'RADIO (ORIGINAL)' : (st.short || st.name).toUpperCase();
     if (img) { if (!origImg) origImg = img.getAttribute('src'); img.src = isMain ? origImg : (st.mark || st.art); }
     if (!isMain) { var na = document.getElementById('npArtist'); if (na && !document.getElementById('play').classList.contains('on')) na.textContent = st.tag + ' \u00b7 all day'; }
@@ -109,6 +118,7 @@
   }
   function stationFromUrl() { var mm = /[?&]station=([a-z0-9]+)/.exec(location.search); return byId(mm ? mm[1] : '1up') || ST[0]; }
   function switchTo(st, push) {   // change station without reloading the page, so the music never stops
+    window.UP1_WARMPAUSE = Date.now() + 8000;   // the listener is tapping: no background downloads for a few seconds
     if (!st || !isOpen(st) || st.id === cur.id) return;
     cur = st; globals(st, false);
     try { localStorage.setItem(KEY, st.id); } catch (e) {}

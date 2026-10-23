@@ -2,9 +2,31 @@
   var LIVE_HTML = '<span class="live">You are live with the station.<span class="kvu"><br class="mbr"> Keep the volume up.</span></span>';
   var $ = function (id) { return document.getElementById(id); };
   var S = { plays: [], delay: 420 }, yt = null, ready = false, started = false, playing = false, idx = -1, errs = 0, skipped = 0;
+  // ---- one clock for everybody: this device's clock can be minutes or hours off (and different on every phone/computer), so the song and the second on air come from the SERVER's time ----
+  var SKEW = 0;
+  var nowMs = function () { return Date.now() + SKEW; };
+  function syncClock() {
+    var best = null, tries = 0;
+    function one() {
+      var t0 = Date.now();
+      return fetch('schedule.json?c=' + t0 + '.' + Math.floor(Math.random() * 1e6), { method: 'HEAD', cache: 'no-store' }).then(function (r) {
+        var t1 = Date.now(), d = r.headers.get('date'); if (!d) return;
+        var srv = Date.parse(d) + 500 + (parseInt(r.headers.get('age'), 10) || 0) * 1000, rtt = t1 - t0;   // the Date header counts whole seconds (+0.5 s on average); Age is how long a cache held it
+        if (!best || rtt < best.rtt) best = { rtt: rtt, sk: srv + rtt / 2 - t1 };
+      }).catch(function () {});
+    }
+    function loop() { return one().then(function () { if (++tries < 4) return loop(); }); }
+    return Promise.race([loop(), new Promise(function (res) { setTimeout(res, 3500); })]).then(function () {
+      if (best && best.rtt < 3000) { SKEW = Math.abs(best.sk) < 1200 ? 0 : Math.round(best.sk); }
+      window.__up1skew = SKEW;
+    });
+  }
+  setInterval(function () { syncClock().then(function () { try { if (started && playing && yt && ready) lastSync = 0; } catch (e) {} }); }, 10 * 60 * 1000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) syncClock().then(function () { lastSync = 0; }); });
   // times shown are when each song plays for you: the same clock time it aired in Athens, on your local clock
-  var fmtT = function (t) { return new Date((t + S.delay) * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); };
-  var dayKey = function (t) { return new Date((t + S.delay) * 1000).toLocaleDateString('en-CA'); };
+  var TF = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }), DF = new Intl.DateTimeFormat('en-CA');   // built once: formatting thousands of slots with toLocale*String made every station switch stall
+  var fmtT = function (t) { return TF.format((t + S.delay) * 1000); };
+  var dayKey = function (t) { return DF.format((t + S.delay) * 1000); };
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var SWAP = {};   // Culture Shock: titles that read 'Song - Artist' (data/culture-swap.json, built by tools/culture_swap.py) are shown as Artist + Song
   if (window.UP1_STATION === 'cultureshock') fetch('data/culture-swap.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { SWAP = j || {}; try { paintNP(); } catch (e) {} }).catch(function () {});
@@ -17,8 +39,16 @@
   }
   loadArt();
   window.UP1_COVER = function (id) { return ART[id] || ''; };
-  function load() {
-    return fetch((window.UP1_SCHEDULE || 'schedule.json') + '?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (d) {
+  var SCH = {}, INF = {};   // schedules already downloaded, so tuning to another station needs no wait for the network
+  function getSched(u, useCache) {
+    var c = SCH[u]; if (useCache && c && Date.now() - c.at < 240000) return Promise.resolve(c.d);
+    if (useCache && INF[u]) return INF[u];   // already on its way (a background fetch): wait for that one instead of starting a second
+    var p = fetch(u + '?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (d) { SCH[u] = { d: d, at: Date.now() }; delete INF[u]; return d; }, function (e) { delete INF[u]; throw e; });
+    INF[u] = p; return p;
+  }
+  window.UP1_PREFETCH = function (u) { if (!u || SCH[u]) return Promise.resolve(); return (INF[u] || getSched(u, true)).catch(function () {}); };
+  function load(useCache) {
+    return getSched(window.UP1_SCHEDULE || 'schedule.json', useCache).then(function (d) {
       var cur = idx >= 0 && S.plays[idx] ? S.plays[idx].t : null;
       S = d;
       if (cur !== null) { var k = S.plays.findIndex(function (p) { return p.t === cur; }); if (k >= 0) idx = k; }
@@ -26,7 +56,7 @@
     });
   }
   function findNow() {
-    var src = Date.now() / 1000 - S.delay, k = -1;
+    var src = nowMs() / 1000 - S.delay, k = -1;
     for (var i = 0; i < S.plays.length; i++) { if (S.plays[i].t <= src) k = i; else break; }
     return k < 0 ? 0 : k;
   }
@@ -636,10 +666,10 @@
   // ---- color themes: every tap on THEME switches to the next of 8 colors ----
   var THEMES = ['#39ff14', '#ffb000', '#ff3b3b', '#00e5ff', '#b4ff3c', '#ffe066', '#ff6a00', '#d946ff'], themeI = 0;
   var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash', 'space', 'marquee', 'blueprint', 'candy', 'glitch', 'press', 'meters', 'wormhole', 'nebula', 'culture', 'shock', 'dubby', 'vault', 'house','portal','city1','city2','city3'], skinI = 0;
-  var SKIN_NAMES = ['Retro', 'Stream', 'Glass', 'Mono', 'Synth', 'Vinyl', 'Terminal', 'Brutal', 'Aegean', 'GameBoy', 'Cassette', 'Dash', 'Space', 'Marquee', 'Blueprint', 'Candy', 'Glitch', 'Press', 'Meters', 'Wormhole', 'Nebula', 'Culture', 'Shock', 'Dubby', 'Vault', 'House'];
+  var SKIN_NAMES = ['Retro', 'Stream', 'Glass', 'Mono', 'Synth', 'Vinyl', 'Terminal', 'Brutal', 'Aegean', 'GameBoy', 'Cassette', 'Dash', 'Space', 'Marquee', 'Blueprint', 'Candy', 'Glitch', 'Press', 'Meters', 'Wormhole', 'Nebula', 'Culture', 'Shock', 'Dubby', 'Vault', 'House', 'Portal', 'City 1', 'City 2', 'City 3'];
   var LIGHT = { glass: 1, aegean: 1, cassette: 1, candy: 1, press: 1 }, NATIVE_OK = { retro: 0, stream: 0 };   // light skins get a darker tint of the colour; every other skin can also go back to its own native colours (-1)
   // Place the SKIN button right after the THEME button whatever the skin's font makes of their widths (desktop; phones lay them out in a row via CSS).
-  function fitBtns() { var t = $('themeBtn'), s = $('skinBtn'); if (!t || !s) return; if (window.innerWidth <= 900) { s.style.left = ''; return; } s.style.left = (t.offsetLeft + t.offsetWidth + 10) + 'px'; }
+  function fitBtns() { var s = $('skinBtn'); if (s) s.style.left = ''; }   // the two buttons are fixed-size and fixed-place in CSS now: nothing to measure
   window.addEventListener('resize', fitBtns); if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitBtns);
   function skinName() { return SKINS[skinI]; }
   function themeKey() { return skinName() === 'retro' ? 'up1-theme' : 'up1-theme-' + skinName(); }
@@ -785,7 +815,7 @@
     } else applySkin(skinI + dir);
   });
 
-  window.__up1 = { chimeNow: function (h) { chimeNow(h); }, get chimeOn() { return chimeOn; }, get chimeT() { return chime.currentTime; }, get chimeErr() { return chime.error && chime.error.code; }, get idx() { return idx; }, get curP() { return curP; }, get S() { return S; }, get badIds() { return badIds; }, replay: function () { playIdx(idx, Date.now() / 1000 - S.delay - S.plays[idx].t, 0); } };
+  window.__up1 = { chimeNow: function (h) { chimeNow(h); }, get chimeOn() { return chimeOn; }, get chimeT() { return chime.currentTime; }, get chimeErr() { return chime.error && chime.error.code; }, get idx() { return idx; }, get curP() { return curP; }, get S() { return S; }, get badIds() { return badIds; }, replay: function () { playIdx(idx, nowMs() / 1000 - S.delay - S.plays[idx].t, 0); } };
   var selDay = null;
   function paintDays() {
     var keys = []; S.plays.forEach(function (p) { var k = dayKey(p.t); if (keys.indexOf(k) < 0) keys.push(k); });
@@ -912,14 +942,14 @@
     clearTimeout(blendT); blendT = null;
     if (!blendOn() || !started) return;
     var n = idx + 1; if (n >= S.plays.length) return;
-    var wait = (S.plays[n].t + S.delay) - Date.now() / 1000;
+    var wait = (S.plays[n].t + S.delay) - nowMs() / 1000;
     if (wait < 1 || wait > 7200) return;
     if (S.plays[n].al) {   // beat-locked: start watching the playing song a few seconds early (the second player may still be loading: then the plain blend runs on time)
       preCue(n);
       blendT = setTimeout(function () {
         blendT = null; if (!started || userPaused || !playing) return;
         if (ready2) { alignedBlend(n); return; }
-        var w = (S.plays[n].t + S.delay) - Date.now() / 1000;
+        var w = (S.plays[n].t + S.delay) - nowMs() / 1000;
         blendT = setTimeout(function () { blendT = null; if (!started || userPaused || !playing) return; blendFlag = true; playIdx(n, 0); }, Math.max(0, w) * 1000);
       }, Math.max(0, wait - 3) * 1000);
       return;
@@ -947,7 +977,7 @@
     if (!started) return;
     var n = idx + 1;
     if (n >= S.plays.length) { playIdx(n, 0); return; }
-    var wait = (S.plays[n].t + S.delay) - Date.now() / 1000;
+    var wait = (S.plays[n].t + S.delay) - nowMs() / 1000;
     clearNext();
     if (wait > 3.4) fillGap(wait, n);
     if (wait > 1) nextTimer = setTimeout(function () { nextTimer = null; stopJingle(); if (!userPaused) playIdx(n, 0); }, wait * 1000);
@@ -972,10 +1002,10 @@
     } catch (e) {}
   }
   function onYtState(e) { if (e && e.target && e.target !== yt) return; var st = YT.PlayerState; if (e.data === st.PLAYING) { if (userPaused) { try { yt.pauseVideo(); } catch (x) {} return; } errs = 0; setOn(true); if (!chimeOn && !blending) applyVol(true); } else if (e.data === st.PAUSED) setOn(false); else if (e.data === st.ENDED) next(); }
-  function onYtError(e) { if (e && e.target && e.target !== yt) return; if (curP) badIds[curP.id] = 1; if (++errs < 8) playIdx(idx, Date.now() / 1000 - S.delay - S.plays[idx].t, curAlt + 1); else { setOn(false); $('hint').textContent = 'Having trouble reaching the music. Please try again in a minute.'; } }
+  function onYtError(e) { if (e && e.target && e.target !== yt) return; if (curP) badIds[curP.id] = 1; if (++errs < 8) playIdx(idx, nowMs() / 1000 - S.delay - S.plays[idx].t, curAlt + 1); else { setOn(false); $('hint').textContent = 'Having trouble reaching the music. Please try again in a minute.'; } }
   function init() {
     ytMain = yt = new YT.Player('ytp', { width: 200, height: 200, host: 'https://www.youtube-nocookie.com', playerVars: { playsinline: 1, rel: 0, controls: 0, disablekb: 1, origin: location.origin }, events: {
-      onReady: function () { ready = true; yt.setVolume(+$('vol').value); if (started) playIdx(findNow(), (Date.now() / 1000 - S.delay) - S.plays[findNow()].t); if (gestured) { try { yt.unMute(); } catch (e) {} } },
+      onReady: function () { ready = true; yt.setVolume(+$('vol').value); if (started) playIdx(findNow(), (nowMs() / 1000 - S.delay) - S.plays[findNow()].t); if (gestured) { try { yt.unMute(); } catch (e) {} } },
       onStateChange: onYtState,
       onError: onYtError } });
   }
@@ -988,7 +1018,7 @@
     if (!S.plays.length) return;
     if (!started) {
       started = true; $('hint').innerHTML = LIVE_HTML; $('npTitle').textContent = 'Tuning in…';
-      if (window.YT && YT.Player) { if (!yt) init(); else if (ready) { var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } }   // not ready yet: onReady starts it
+      if (window.YT && YT.Player) { if (!yt) init(); else if (ready) { var k = findNow(); playIdx(k, nowMs() / 1000 - S.delay - S.plays[k].t); } }   // not ready yet: onReady starts it
       else { window.onYouTubeIframeAPIReady = function () { if (!yt) init(); }; loadApi(); }
       return;
     }
@@ -996,7 +1026,7 @@
     var eff = (btnIntent !== null && Date.now() - btnAt < 2500) ? btnIntent : playing;      // what the button shows right now, even if YouTube has not reported it yet
     btnAt = Date.now();
     if (eff) { btnIntent = false; userPaused = true; try { yt.pauseVideo(); } catch (x) {} setOn(false); }
-    else { btnIntent = true; userPaused = false; try { var kl = findNow(); playIdx(kl, Date.now() / 1000 - S.delay - S.plays[kl].t); } catch (x) { try { yt.playVideo(); } catch (y) {} } }   // radio, not a tape: playing again joins what is on air NOW, never the spot where it was paused
+    else { btnIntent = true; userPaused = false; try { var kl = findNow(); playIdx(kl, nowMs() / 1000 - S.delay - S.plays[kl].t); } catch (x) { try { yt.playVideo(); } catch (y) {} } }   // radio, not a tape: playing again joins what is on air NOW, never the spot where it was paused
   });
   $('vol').addEventListener('input', function (e) { $('volv').textContent = e.target.value; if (yt && ready) yt.setVolume(+e.target.value); if (jingOn) jing.volume = jingVol(); try { localStorage.setItem('up1-vol', e.target.value); } catch (x) {} });
   try { var v = localStorage.getItem('up1-vol'); if (v) { $('vol').value = v; $('volv').textContent = v; } } catch (x) {}
@@ -1005,19 +1035,19 @@
   setInterval(function () {
     if (!started || !playing || !yt || !ready || idx < 0 || !S.plays[idx] || nextTimer || Date.now() - lastSync < 20000) return;
     try {
-      var now = Date.now() / 1000 - S.delay, k = findNow();
+      var now = nowMs() / 1000 - S.delay, k = findNow();
       if (k !== idx && !(blendOn() && k === idx + 1 && (blending || now - S.plays[k].t < 30))) { lastSync = Date.now(); playIdx(k, now - S.plays[k].t); return; }          // wrong song for this moment: jump to what is on air (unless the blend into it is under way)
       var expected = now - S.plays[idx].t + (S.plays[idx].so || 0), cur = yt.getCurrentTime(), dur = yt.getDuration();
-      if (dur && expected < dur - 5 && Math.abs(cur - expected) > 20) { lastSync = Date.now(); yt.seekTo(expected, true); }   // paused or stalled: catch up to live
+      if (dur && expected < dur - 5 && Math.abs(cur - expected) > 4 && !blending && now - S.plays[idx].t > 8 && yt.getPlayerState() === 1) { lastSync = Date.now() - 10000; yt.seekTo(expected, true); }   // drifted more than 4 s from the air (or paused/stalled): catch up to live
     } catch (x) {}
-  }, 6000);
+  }, 3000);
   function fmtLeft(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
   // the meter and the time counting down: on the blended channels it runs to the moment the next song comes in (the schedule), on the original 1UP Radio to the end of the video
   setInterval(function () {
     var el = $('npLeft'); if (!playing || !yt || !ready) { if (el && !playing) el.textContent = ''; return; }
     try {
       var d = yt.getDuration(), c = yt.getCurrentTime(), rem = d ? d - c : null, fill = d ? c / d : null, pc = S.plays[idx], pn = S.plays[idx + 1];
-      if (blendOn() && pc && pn) { var now = Date.now() / 1000 - S.delay, tot = pn.t - pc.t; rem = pn.t - now; if (tot > 0) fill = (now - pc.t) / tot; }
+      if (blendOn() && pc && pn) { var now = nowMs() / 1000 - S.delay, tot = pn.t - pc.t; rem = pn.t - now; if (tot > 0) fill = (now - pc.t) / tot; }
       if (fill !== null) $('npFill').style.width = Math.max(0, Math.min(100, fill * 100)) + '%';
       if (el) el.textContent = rem !== null && rem > 0 ? fmtLeft(rem) : '';
     } catch (x) {}
@@ -1034,7 +1064,7 @@
   }
   function chimeEnd() {
     if (!chimeOn) return; chimeOn = false;
-    try { if (IOS) { if (!userPaused) { var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } } else applyVol(true); } catch (e) {}
+    try { if (IOS) { if (!userPaused) { var k = findNow(); playIdx(k, nowMs() / 1000 - S.delay - S.plays[k].t); } } else applyVol(true); } catch (e) {}
   }
   function chimeNow(h) {
     if (chimeOn || !started || !playing || userPaused || !yt || !ready) return;
@@ -1054,7 +1084,7 @@
   var userPaused = false, keep = new Audio('assets/silence.mp3'); keep.loop = true; keep.setAttribute('playsinline', '');
   var btnIntent = null, btnAt = 0;   // see the play button's click handler
   function keepSync() { try { if (started && gestured && !userPaused) { var pr = keep.play(); if (pr && pr.catch) pr.catch(function () {}); } else keep.pause(); } catch (e) {} }
-  function goLive() { if (!started || !ready || !S.plays.length) return; userPaused = false; btnIntent = null; try { var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } catch (e) {} keepSync(); }
+  function goLive() { if (!started || !ready || !S.plays.length) return; userPaused = false; btnIntent = null; try { var k = findNow(); playIdx(k, nowMs() / 1000 - S.delay - S.plays[k].t); } catch (e) {} keepSync(); }
   var MS = 'mediaSession' in navigator ? navigator.mediaSession : null;
   function ART_FOR(p) {   // lock-screen picture: the song's cover when we have one, else its YouTube picture, else the logo
     var list = []; try { if (ART && ART[p.id]) list.push({ src: ART[p.id], sizes: '600x600' }); } catch (e) {}
@@ -1083,13 +1113,13 @@
     if (tap) { unlockChime(); unlockJingle(); if (typeof keepSync === 'function') keepSync(); }
     if (tap && yt && ready) {                                   // phones only allow sound inside a real tap: unmute / (re)start right here, in the tap
       try { if (yt.isMuted()) { yt.unMute(); yt.setVolume(+$('vol').value); } } catch (e) {}
-      if (started && !playing && !userPaused && Date.now() - lastKick > 1500) { lastKick = Date.now(); try { yt.unMute(); var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } catch (e) {} }
+      if (started && !playing && !userPaused && Date.now() - lastKick > 1500) { lastKick = Date.now(); try { yt.unMute(); var k = findNow(); playIdx(k, nowMs() / 1000 - S.delay - S.plays[k].t); } catch (e) {} }
     }
     if (!mutedAuto) { if (started && ready && !playing && !tap && !userPaused) { try { yt.playVideo(); } catch (e) {} } return; }
     mutedAuto = false; unmutedAt = Date.now(); try { yt.unMute(); yt.setVolume(+$('vol').value); if (yt.getPlayerState() !== 1) yt.playVideo(); } catch (e) {} $('hint').innerHTML = LIVE_HTML;
   }
   ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click', 'keydown'].forEach(function (ev) { addEventListener(ev, unmuteNow, { passive: true, capture: true }); });
-  load().then(function () {
+  syncClock().then(load).then(function () {
     var k = findNow(); idx = -1; paintLists();
     function begin() {   // nothing plays until the TAP TO START gate has been tapped; then start right inside that tap
       $('play').click();
@@ -1102,17 +1132,17 @@
     }
     if (document.getElementById('tapgate')) window.addEventListener('up1-start', begin, { once: true }); else begin();
   });
-  setInterval(load, 3 * 60 * 1000);
+  setInterval(function () { load(); }, 3 * 60 * 1000);
   // ---- the station picker / the browser's Back button change station right here, without reloading: the music carries on ----
   window.UP1_SWITCH = function (st) {
     var wasPlaying = playing;
     clearNext(); stopJingle(); selDay = null; curP = null; idx = -1; S = { plays: [], delay: 0 };
     loadArt();
     try { applySkin(Math.max(0, SKINS.indexOf(window.UP1_START_SKIN || 'nebula'))); } catch (e) {}
-    return load().then(function () {
+    return load(true).then(function () {
       if (!S.plays.length) return;
       var k = findNow();
-      if (started && ready && wasPlaying) { userPaused = false; playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); }
+      if (started && ready && wasPlaying) { userPaused = false; playIdx(k, nowMs() / 1000 - S.delay - S.plays[k].t); }
       else { idx = k; curP = S.plays[k]; paintNP(); paintLists(); }
     });
   };

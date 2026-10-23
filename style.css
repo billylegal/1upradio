@@ -1448,3 +1448,24 @@ html[data-skin=city3] .artist{color:#FFB08A}
 html[data-skin=city3] .player,html[data-skin=city3] .card{border-color:rgba(255,140,90,.42);box-shadow:0 0 54px rgba(255,90,31,.2),inset 0 0 40px rgba(255,90,31,.05)}
 html[data-skin=city3] .onair.on{color:#ffb347}html[data-skin=city3] .onair.on i{background:#ff7a1a;box-shadow:0 0 14px #ff7a1a}
 
+
+/* THEME and SKIN buttons: the same box, in the same place, on every skin (desktop). Skins still colour and shape them, but can no longer resize or move them. */
+@media (min-width: 901px) {
+  html { scrollbar-gutter: stable; }   /* skins that hide the page scrollbar no longer shift everything 7px sideways */
+  html .top .wrap .themebtn, html .top .wrap .skinbtn {
+    position: absolute !important; top: 18px !important; right: auto !important; bottom: auto !important; margin: 0 !important; transform: none !important;
+    box-sizing: border-box !important; height: 44px !important; padding: 0 12px !important; line-height: 1 !important;
+    font-size: 11px !important; letter-spacing: .12em !important; justify-content: center !important; white-space: nowrap !important; overflow: hidden !important;
+  }
+  html[data-skin=press] .top .wrap .themebtn, html[data-skin=press] .top .wrap .skinbtn { top: 12px !important; }   /* Press has a 6px rule above the header: cancel it so the buttons sit at the same height */
+  html .top .wrap .themebtn { left: 20px !important; width: 100px !important; }
+  html .top .wrap .skinbtn { left: 130px !important; width: 150px !important; gap: 4px !important; }
+  html .top .wrap .skinbtn .sk-t { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; }
+  html .top .wrap .skinbtn .sk-t small { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9px !important; letter-spacing: .06em !important; }
+  html .top .wrap .skinbtn .sk-b, html .top .wrap .skinbtn .sk-f { flex: 0 0 auto; }
+}
+html[data-skin=mono] .top .wrap .themebtn { display: inline-flex !important; }   /* Mono used to hide THEME, which slid SKIN over to the left (desktop and phone) */
+@media (max-width: 900px) {   /* phones: Mono keeps THEME too, so SKIN stays in its half of the row */
+  html[data-skin=mono] .top .wrap .themebtn { display: flex !important; grid-column: 1 / 7 !important; grid-row: 2 !important; }
+  html[data-skin=mono] .top .wrap .skinbtn { grid-column: 7 / 13 !important; grid-row: 2 !important; }
+}
