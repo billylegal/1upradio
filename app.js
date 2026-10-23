@@ -62,7 +62,7 @@
     var p = curP || S.plays[idx]; if (!p) return; var a = split(p.title); try { paintBpm(p); } catch (e) {}
     $('npTitle').textContent = a[1] || p.title; $('npArtist').textContent = a[0]; try { linkArtistLine(); } catch (e) {}
     var aw = $('npArtWrap'), ai = $('npArt'); if (aw && ai) { if (p.id) { var u = (ART[p.id]) ? ART[p.id] : 'https://i.ytimg.com/vi/' + encodeURIComponent(p.id) + '/mqdefault.jpg'; if (ai.getAttribute('src') !== u) ai.src = u; ai.removeAttribute('data-fallback'); aw.hidden = false; } else aw.hidden = true; }   // the spinning record: the real album cover, else the song's YouTube picture (on the vinyl stations that is usually the record label itself)
-    document.title = (playing ? '▶ ' : '') + (a[1] || p.title) + ' · 1UP Radio';
+    document.title = (playing ? '▶ ' : '') + (a[1] || p.title) + ' · ' + (window.UP1_STNAME || '1UP Radio');   // keep the station visible: genre channels used to look identical to the main one
     paintSave();
     paintLists();
     if (typeof msMeta === 'function') msMeta();
@@ -651,8 +651,8 @@
 
   // ---- color themes: every tap on THEME switches to the next of 8 colors ----
   var THEMES = ['#39ff14', '#ffb000', '#ff3b3b', '#00e5ff', '#b4ff3c', '#ffe066', '#ff6a00', '#d946ff'], themeI = 0;
-  var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash', 'space', 'marquee', 'blueprint', 'candy', 'glitch', 'press', 'meters', 'wormhole', 'nebula', 'culture', 'shock', 'dubby', 'vault', 'house','portal','city1','city2','city3','bridge','bridgeled'], skinI = 0;
-  var SKIN_NAMES = ['Retro', 'Stream', 'Glass', 'Mono', 'Synth', 'Vinyl', 'Terminal', 'Brutal', 'Aegean', 'GameBoy', 'Cassette', 'Dash', 'Space', 'Marquee', 'Blueprint', 'Candy', 'Glitch', 'Press', 'Meters', 'Wormhole', 'Nebula', 'Culture', 'Shock', 'Dubby', 'Vault', 'House', 'Portal', 'City 1', 'City 2', 'City 3', 'Bridge', 'Bridge LED'];
+  var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash', 'space', 'marquee', 'blueprint', 'candy', 'glitch', 'press', 'meters', 'wormhole', 'nebula', 'culture', 'shock', 'dubby', 'vault', 'house','portal','city1','city2','city3'], skinI = 0;
+  var SKIN_NAMES = ['Retro', 'Stream', 'Glass', 'Mono', 'Synth', 'Vinyl', 'Terminal', 'Brutal', 'Aegean', 'GameBoy', 'Cassette', 'Dash', 'Space', 'Marquee', 'Blueprint', 'Candy', 'Glitch', 'Press', 'Meters', 'Wormhole', 'Nebula', 'Culture', 'Shock', 'Dubby', 'Vault', 'House', 'Portal', 'City 1', 'City 2', 'City 3'];
   var LIGHT = { glass: 1, aegean: 1, cassette: 1, candy: 1, press: 1 }, NATIVE_OK = { retro: 0, stream: 0 };   // light skins get a darker tint of the colour; every other skin can also go back to its own native colours (-1)
   // Place the SKIN button right after the THEME button whatever the skin's font makes of their widths (desktop; phones lay them out in a row via CSS).
   function fitBtns() { var t = $('themeBtn'), s = $('skinBtn'); if (!t || !s) return; if (window.innerWidth <= 900) { s.style.left = ''; return; } s.style.left = (t.offsetLeft + t.offsetWidth + 10) + 'px'; }
@@ -1033,7 +1033,7 @@
   $('vol').addEventListener('input', function (e) { $('volv').textContent = e.target.value; if (yt && ready) yt.setVolume(+e.target.value); if (jingOn) jing.volume = jingVol(); try { localStorage.setItem('up1-vol', e.target.value); } catch (x) {} });
   try { var v = localStorage.getItem('up1-vol'); if (v) { $('vol').value = v; $('volv').textContent = v; } } catch (x) {}
   // keep exactly in step with the live schedule: after a pause, a stall or a schedule change, jump back to the live position
-  setInterval(clockProbe, 600000);   // re-anchor the clock now and then (laptops drift when they sleep)
+  setInterval(clockProbe, 600000);
   var lastSync = 0, lastSeek = 0;
   setInterval(function () {
     if (!started || !playing || !yt || !ready || idx < 0 || !S.plays[idx] || nextTimer || Date.now() - lastSync < 1000) return;
@@ -1179,7 +1179,7 @@
 
 // Nebula meter bars: thin bars that run across the whole player (the other skins use 12 wide bars)
 (function () {
-  var fit = function () { var e = document.getElementById('eq'); if (!e) return; var sk = document.documentElement.getAttribute('data-skin'); var narrow = window.innerWidth < 720; var n = sk === 'bridge' ? (narrow ? 64 : 120) : sk === 'bridgeled' ? (narrow ? 48 : 80) : ['nebula', 'culture', 'shock', 'dubby', 'house','portal','city1','city2','city3'].indexOf(sk) >= 0 ? 44 : 12; while (e.children.length < n) e.appendChild(document.createElement('i')); while (e.children.length > n) e.removeChild(e.lastChild); };
+  var fit = function () { var e = document.getElementById('eq'); if (!e) return; var n = ['nebula', 'culture', 'shock', 'dubby', 'house','portal','city1','city2','city3'].indexOf(document.documentElement.getAttribute('data-skin')) >= 0 ? 44 : 12; while (e.children.length < n) e.appendChild(document.createElement('i')); while (e.children.length > n) e.removeChild(e.lastChild); };
   var go = function () { fit(); new MutationObserver(fit).observe(document.documentElement, { attributes: true, attributeFilter: ['data-skin'] }); var t = 0; window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(fit, 180); }); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
 })();
@@ -1188,7 +1188,7 @@
 (function () {
   var btn = document.getElementById('fsBtn');
   if (!btn) return;
-  var walls = { meters: 1, bridge: 1, bridgeled: 1 };
+  var walls = { meters: 1 };
   var onWall = function () { return !!walls[document.documentElement.getAttribute('data-skin')]; };
   var fsEl = function () { return document.fullscreenElement || document.webkitFullscreenElement || null; };
   function sync() {
@@ -1214,42 +1214,4 @@
     if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggle(); }
   });
   sync();
-})();
-
-// Meter bridge skins: many thin bars punching on the beat, tempo from the BPM beside NOW PLAYING.
-(function () {
-  var OK = { bridge: 1, bridgeled: 1, meters: 1 };   // classic meters rides the same beat clock
-  var t0 = performance.now(), lastSkin = '', levels = [];
-  function skin() { return document.documentElement.getAttribute('data-skin') || ''; }
-  function bpmNow() {
-    var el = document.getElementById('npBpm'), m = el && /(\d{2,3})/.exec(el.textContent || '');
-    var b = m ? +m[1] : 0;
-    return (b >= 60 && b <= 200) ? b : 120;
-  }
-  function clearHeights(eq) { if (!eq) return; for (var i = 0; i < eq.children.length; i++) eq.children[i].style.height = ''; }
-  function frame(ts) {
-    requestAnimationFrame(frame);
-    var s = skin(), eq = document.getElementById('eq');
-    if (!OK[s]) { if (lastSkin) { clearHeights(eq); lastSkin = ''; document.documentElement.removeAttribute('data-beat'); } return; }
-    if (document.documentElement.getAttribute('data-beat') !== '1') document.documentElement.setAttribute('data-beat', '1');
-    if (!eq) return;
-    var bars = eq.children, n = bars.length;
-    if (!n) return;
-    if (s !== lastSkin || levels.length !== n) {
-      lastSkin = s; levels = [];
-      for (var i = 0; i < n; i++) levels.push(0.3 + 0.7 * Math.abs(Math.sin(i * 1.37 + 0.8)));
-    }
-    if (!eq.classList.contains('on')) return;
-    eq.style.setProperty('--eqh', eq.clientHeight + 'px');
-    var beat = 60000 / bpmNow();
-    var ph = ((ts - t0) % beat) / beat;
-    var env = Math.pow(1 - ph, 2.2);
-    var accent = (Math.floor((ts - t0) / beat) % 4 === 0) ? 1 : 0.78;
-    for (var j = 0; j < n; j++) {
-      var wob = 0.1 * Math.sin(ts / 420 + j * 0.9);
-      var h = 5 + env * 95 * accent * levels[j] + wob * 100 * levels[j];
-      bars[j].style.height = Math.max(4, Math.min(100, h)).toFixed(1) + '%';
-    }
-  }
-  requestAnimationFrame(frame);
 })();
