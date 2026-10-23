@@ -1218,7 +1218,7 @@
 
 // Meter bridge skins: many thin bars punching on the beat, tempo from the BPM beside NOW PLAYING.
 (function () {
-  var OK = { bridge: 1, bridgeled: 1 };
+  var OK = { bridge: 1, bridgeled: 1, meters: 1 };   // classic meters rides the same beat clock
   var t0 = performance.now(), lastSkin = '', levels = [];
   function skin() { return document.documentElement.getAttribute('data-skin') || ''; }
   function bpmNow() {
@@ -1230,7 +1230,8 @@
   function frame(ts) {
     requestAnimationFrame(frame);
     var s = skin(), eq = document.getElementById('eq');
-    if (!OK[s]) { if (lastSkin) { clearHeights(eq); lastSkin = ''; } return; }
+    if (!OK[s]) { if (lastSkin) { clearHeights(eq); lastSkin = ''; document.documentElement.removeAttribute('data-beat'); } return; }
+    if (document.documentElement.getAttribute('data-beat') !== '1') document.documentElement.setAttribute('data-beat', '1');
     if (!eq) return;
     var bars = eq.children, n = bars.length;
     if (!n) return;

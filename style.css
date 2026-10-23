@@ -660,7 +660,8 @@ html[data-skin=press] .days button{background:transparent;border:2px solid #1a1a
 html[data-skin=press] footer{border-top:3px double #1a1a1a;color:#5b5448}html[data-skin=press] footer a{color:#1a1a1a}
 
 /* --- meters: no panels, no cards — just a full-screen wall of pumping meter bars, in every colour --- */
-html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]){--bg:#000;--bg2:#000!important;--line:#333!important;--txt:#fff;--dim:#bbb;--g:#fff;--gr:255,255,255;--g2:#fff}
+/* the wall stays black, but the bars and their glow come from the theme (this used to be forced white) */
+html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]){--bg:#000;--bg2:#000!important;--dim:#bbb}
 html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) body{background:#000}
 html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) *{font-family:'Archivo Black','Barlow',sans-serif!important}
 html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .top{background:rgba(0,0,0,.72);border-bottom:2px solid #fff;z-index:6;backdrop-filter:blur(6px)}
@@ -693,17 +694,21 @@ html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .ctl{positi
   html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .np>.title{font-size:clamp(20px,2.6vw,34px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;margin:0}
   html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .np>.lab{margin:0 0 6px}
   html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .np>.artist{margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .ctl{left:auto;right:84px;bottom:34px;transform:none;width:min(290px,40vw);max-width:none;background:none;border:0;padding:0;gap:12px;backdrop-filter:none;z-index:46}
-  html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .ctl .vol{flex:1 1 auto;width:auto;min-width:0}
+  html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .ctl{left:auto;right:84px;bottom:34px;transform:none;width:min(440px,46vw);max-width:none;background:none;border:0;padding:0;gap:10px;backdrop-filter:none;z-index:46}
+  html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .ctl .vol{flex:1 1 auto;width:auto;min-width:118px}
   html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .ctl .vol input{min-width:0;width:100%}
-  html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .fsbtn{right:22px;bottom:36px;z-index:47}
+  html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .fsbtn{position:static;width:34px;height:34px;border-color:#fff;color:#fff;z-index:auto}
 }
 @media(max-width:720px){html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .np>.npart{width:56px;height:56px}}
 html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .play{width:56px;height:56px;border-radius:0;background:#fff;color:#000;box-shadow:none;flex:none}
 html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .vol{min-width:0}html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .vol span,html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .vol b{font-size:11px;letter-spacing:.14em;color:#fff}html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .vol input{accent-color:#fff}
 /* full screen meters (desktop only): one button, whole skin goes full bleed */
 .fsbtn{display:none}
-html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .fsbtn{display:grid;position:fixed;right:18px;bottom:18px;z-index:5;width:46px;height:46px;place-items:center;background:#000;border:2px solid #fff;color:#fff;cursor:pointer;border-radius:0}
+@media(min-width:721px){.fsbtn{display:grid;flex:none;width:34px;height:34px;place-items:center;background:transparent;border:2px solid var(--line,#fff);color:var(--txt,#fff);cursor:pointer;border-radius:0;padding:0;line-height:0;opacity:.9}}
+@media(min-width:721px){.fsbtn:hover,.fsbtn.on{background:var(--txt,#fff);color:var(--bg,#000);opacity:1}}
+.fsbtn svg{width:20px;height:20px;display:block}
+.fsbtn:hover,.fsbtn.on{background:var(--txt,#fff);color:var(--bg,#000)}
+html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .fsbtn{display:grid;place-items:center;background:#000;border:2px solid #fff;color:#fff;cursor:pointer;border-radius:0}
 html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .fsbtn svg{width:20px;height:20px;display:block}
 html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .fsbtn:hover,html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]) .fsbtn.on{background:#fff;color:#000}
 html:is([data-skin=meters],[data-skin=bridge],[data-skin=bridgeled]):fullscreen .top{display:none!important}
@@ -1478,6 +1483,9 @@ html[data-skin=city3] .onair.on{color:#ffb347}html[data-skin=city3] .onair.on i{
 
 /* --- meter bridge skins: many thin bars, driven on the beat by app.js (song BPM) --- */
 html:is([data-skin=bridge],[data-skin=bridgeled]) .eq{gap:2px;padding:0 10px;top:56px}
-html[data-skin=bridge] .eq i{background:#fff;background-image:none;height:6%;opacity:1;border-radius:0;box-shadow:0 0 6px rgba(255,255,255,.28);min-width:0;will-change:height;flex:1 1 0}
-html[data-skin=bridgeled] .eq i{background:#000;background-image:linear-gradient(0deg,#2bff6a 0%,#2bff6a 54%,#ffd23a 54%,#ffd23a 76%,#ff3b30 76%,#ff3b30 100%);background-size:100% var(--eqh,420px);background-position:bottom;background-repeat:no-repeat;height:6%;opacity:1;border-radius:0;box-shadow:none;min-width:0;will-change:height;flex:1 1 0}
+html[data-skin=bridge] .eq i{background:var(--g,#fff);background-image:none;height:6%;opacity:1;border-radius:0;box-shadow:0 0 6px rgba(var(--gr,255,255,255),.42);min-width:0;will-change:height;flex:1 1 0}
+html[data-skin=bridgeled] .eq i{background:#000;background-image:linear-gradient(0deg,var(--g,#2bff6a) 0%,var(--g,#2bff6a) 54%,var(--g2,#ffd23a) 54%,var(--g2,#ffd23a) 76%,var(--red,#ff3b30) 76%,var(--red,#ff3b30) 100%);background-size:100% var(--eqh,420px);background-position:bottom;background-repeat:no-repeat;height:6%;opacity:1;border-radius:0;box-shadow:none;min-width:0;will-change:height;flex:1 1 0}
 @media(prefers-reduced-motion:reduce){html:is([data-skin=bridge],[data-skin=bridgeled]) .eq i{height:38%!important}}
+
+/* classic meters: heights come from the beat engine, so the stock animation must not fight it */
+html[data-beat="1"] .eq.on i{animation:none!important}
