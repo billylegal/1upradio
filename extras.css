@@ -50,6 +50,7 @@ html .list li .hb{order:-1;margin-left:0;margin-right:-2px;width:32px;height:30p
   html #lyrics .lh{padding:9px 12px}
   html #lyrics #lyT{font-size:14px}
   html #lyrics .lf{padding:5px 12px}
+  html #lyrics::after{content:'';position:absolute;right:3px;bottom:3px;width:11px;height:11px;background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,.5) 50%);pointer-events:none}   /* grip: pull any edge or corner to resize, drag the title bar to move */
 }
 /* phones only (the computer layout is unchanged): the shuttle is off for now, the did-you-know banner sits in its lane under the top bar, and the save hearts sit at the left of each row, clear of the reaction column */
 @media(max-width:699px){

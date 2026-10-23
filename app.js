@@ -639,6 +639,57 @@
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok, old); else old();
   });
   $('lyX').addEventListener('click', function () { lyShut(); if (window.UP1_BACKGUARD) UP1_BACKGUARD.closed(lyShut); });
+  // ---- computers: the lyrics are a free window. Drag it by its title bar, pull any edge or corner (except the scrollbar side) to resize, and it remembers where you left it. Double-click the title bar to put it back. ----
+  (function () {
+    var box = lyBox, head = box && box.querySelector('.lh'), GK = 'up1-lyr-geo', MQ = window.matchMedia('(min-width: 700px)'), MINW = 240, MINH = 150, drag = null;
+    if (!box || !head) return;
+    head.style.cursor = 'move'; head.style.touchAction = 'none';
+    function clamp(g) {
+      var vw = window.innerWidth, vh = window.innerHeight;
+      g.w = Math.max(MINW, Math.min(g.w, vw - 8)); g.h = Math.max(MINH, Math.min(g.h, vh - 8));
+      g.l = Math.max(4, Math.min(g.l, vw - g.w - 4)); g.t = Math.max(4, Math.min(g.t, vh - g.h - 4)); return g;
+    }
+    function put(g) { g = clamp(g); var st = box.style; st.setProperty('left', g.l + 'px'); st.setProperty('top', g.t + 'px'); st.setProperty('width', g.w + 'px'); st.setProperty('height', g.h + 'px'); st.setProperty('right', 'auto'); st.setProperty('bottom', 'auto'); st.setProperty('transform', 'none'); }
+    function geo() { var r = box.getBoundingClientRect(); return { l: r.left, t: r.top, w: r.width, h: r.height }; }
+    function load() { try { return JSON.parse(localStorage.getItem(GK) || 'null'); } catch (e) { return null; } }
+    function save() { try { localStorage.setItem(GK, JSON.stringify(geo())); } catch (e) {} }
+    function reset() { ['left', 'top', 'width', 'height', 'right', 'bottom', 'transform'].forEach(function (p) { box.style[p] = ''; }); try { localStorage.removeItem(GK); } catch (e) {} }
+    function apply() { if (!MQ.matches) { reset2(); return; } var g = load(); if (g && g.w) put(g); }
+    function reset2() { ['left', 'top', 'width', 'height', 'right', 'bottom', 'transform'].forEach(function (p) { box.style[p] = ''; }); }   // phones keep their own centred layout
+    function edge(e) {   // which edge or corner is the pointer on? (not the right edge: that is the scrollbar; the bottom-right corner resizes from the right)
+      var r = box.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, W = r.width, H = r.height, E = 7, C = 16, d = '';
+      if (y >= H - E || (y >= H - C && x >= W - C) || (y >= H - C && x <= C)) d += 's';
+      else if (y <= 4 && x <= C) d += 'n';
+      if (x <= E || (x <= C && y >= H - C) || (x <= C && y <= 4)) d += 'w';
+      else if (x >= W - C && y >= H - C) d += 'e';
+      return d;
+    }
+    var CUR = { s: 'ns-resize', w: 'ew-resize', sw: 'nesw-resize', se: 'nwse-resize', e: 'ew-resize', n: 'ns-resize', nw: 'nwse-resize', ne: 'nesw-resize' };
+    box.addEventListener('pointermove', function (e) { if (drag || !MQ.matches) return; var d = edge(e); box.style.cursor = d ? (CUR[d] || '') : ''; });
+    box.addEventListener('pointerdown', function (e) {
+      if (!MQ.matches || e.button > 0) return;
+      var d = edge(e), onHead = head.contains(e.target) && !e.target.closest('button');
+      if (!d && !onHead) return;
+      var g = geo(); put(g); g = geo(); drag = { mode: d ? 'size' : 'move', d: d, x: e.clientX, y: e.clientY, g: g };
+      try { box.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); document.body.style.userSelect = 'none';
+    });
+    box.addEventListener('pointermove', function (e) {
+      if (!drag) return; var dx = e.clientX - drag.x, dy = e.clientY - drag.y, g = { l: drag.g.l, t: drag.g.t, w: drag.g.w, h: drag.g.h };
+      if (drag.mode === 'move') { g.l += dx; g.t += dy; }
+      else {
+        if (drag.d.indexOf('e') >= 0) g.w = drag.g.w + dx;
+        if (drag.d.indexOf('s') >= 0) g.h = drag.g.h + dy;
+        if (drag.d.indexOf('w') >= 0) { g.w = Math.max(MINW, drag.g.w - dx); g.l = drag.g.l + drag.g.w - g.w; }
+        if (drag.d.indexOf('n') >= 0) { g.h = Math.max(MINH, drag.g.h - dy); g.t = drag.g.t + drag.g.h - g.h; }
+      }
+      put(g);
+    });
+    function end(e) { if (!drag) return; drag = null; document.body.style.userSelect = ''; try { box.releasePointerCapture(e.pointerId); } catch (x) {} save(); }
+    box.addEventListener('pointerup', end); box.addEventListener('pointercancel', end);
+    box.addEventListener('dblclick', function (e) { var r = head.getBoundingClientRect(); if (e.target.closest('button') || e.clientY < r.top || e.clientY > r.bottom) return; reset(); });   // the box holds the pointer while it is dragged, so listen here and check the title bar by position
+    window.addEventListener('resize', function () { if (MQ.matches && box.style.left) { put(geo()); save(); } else if (!MQ.matches) reset2(); else apply(); });
+    apply();
+  })();
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { lyShut(); if (window.UP1_BACKGUARD) UP1_BACKGUARD.closed(lyShut); } });
   $('lyM').addEventListener('click', function () { lyr.adj -= 0.5; }); $('lyP').addEventListener('click', function () { lyr.adj += 0.5; });
   $('lyB').addEventListener('click', function (e) {   // tap the line you hear -> lock the timing to it
