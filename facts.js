@@ -60,6 +60,21 @@
     var say = n < 80 ? 'a slow, heavy pace that makes you feel every beat' : n < 100 ? 'a laid-back head-nod pace' : n < 118 ? 'a mid-tempo groove that is easy to move to' : n <= 132 ? 'the house-music sweet spot, where most dance floors live' : n <= 150 ? 'a fast, driving pace' : 'a very fast pace that keeps the energy high';
     return 'At about ' + Math.round(n) + ' beats per minute, this song runs at ' + say + '.';
   }
+  function songWiki(p) {   // look the playing song up on Wikipedia (only when its own article exists and names this artist)
+    var parts = String(p.title || '').replace(/\s*[\(\[].*?[\)\]]/g, '').split(/\s[-\u2013\u2014]\s/), artist = mainArtist(parts[0]), song = String(parts[1] || '').replace(/\s*\/.*$/, '').trim();
+    if (!artist || song.length < 3) return Promise.resolve('');
+    var ck = 'sw:' + hash(artist + '|' + song); if (cache[ck] !== undefined) return Promise.resolve(cache[ck]);
+    return fetch('https://en.wikipedia.org/w/api.php?action=query&list=search&srlimit=4&format=json&origin=*&srsearch=' + encodeURIComponent('"' + song + '" ' + artist + ' song')).then(function (r) { return r.json(); }).then(function (j) {
+      var hits = (j.query && j.query.search) || [], ns = nrm(song), na = nrm(artist);
+      var h = hits.filter(function (x) { var t = nrm(x.title), sn = nrm(String(x.snippet || '').replace(/<[^>]+>/g, '')); return t.indexOf(ns) >= 0 && (t.indexOf(na) >= 0 || sn.indexOf(na) >= 0); })[0];
+      if (!h) return '';
+      return fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(h.title.replace(/ /g, '_'))).then(function (r) { return r.json(); }).then(function (s) {
+        var x = String((s && s.extract) || ''); if (!x || s.type !== 'standard' || !/\b(song|single|track|recording|album|ep)\b/i.test(x.slice(0, 320)) || nrm(x.slice(0, 400)).indexOf(na) < 0) return '';
+        var sents = x.match(/[^.!?]+[.!?]+(\s|$)/g) || [x], t = ''; for (var i = 0; i < sents.length; i++) { if (t && (t + sents[i]).length > 340) break; t += sents[i]; }
+        return t.trim() + ' \u2014 Wikipedia';
+      });
+    }).catch(function () { return ''; }).then(function (t) { cache[ck] = t; save(); return t; });
+  }
   function buildFacts(p, st) {
     var parts = String(p.title || '').split(/\s[-–—]\s/), segs = [parts[0]]; if (parts.length > 1 && st === 'cultureshock') segs.push(parts[parts.length - 1]);
     var main = mainArtist(segs[0]), key = nrm(main).trim(), top = [], mid = [], low = [];
@@ -74,13 +89,15 @@
     var rx = remixFact(p.title); if (rx) mid.push(rx);
     var pre = ((DATA.st[st] || {})[p.id] || []); var good = pre.filter(function (x) { return !STALE.test(x); });
     good.forEach(function (x) { low.push(x); });
-    var gen = (DATA.genre || {})[st] || []; if (gen.length) low.push(gen[hash(p.id) % gen.length]);
+    var gen = (DATA.genre || {})[st] || []; gen.slice().sort(function () { return Math.random() - 0.5; }).slice(0, 4).forEach(function (x) { low.push(x); });   // when a song has nothing of its own: a random fact about the channel's music (reggae on the reggae channel, house on the house channel...)
     var stale = pre.filter(function (x) { return STALE.test(x); });
     var shuf = function (l) { return l.slice().sort(function () { return Math.random() - 0.5; }); };
     var out = shuf(top).concat(shuf(mid)).concat(shuf(low)).filter(Boolean);
     var fresh = out.filter(function (x) { return seenF.indexOf(hash(x)) < 0; }); if (fresh.length) out = fresh.concat(out.filter(function (x) { return fresh.indexOf(x) < 0; }));
     if (!out.length) out = stale;
-    return azFor(main).then(function (rows) {   // how many of this artist's songs are on the stations
+    return Promise.all([azFor(main), songWiki(p)]).then(function (pr) {   // how many of this artist's songs are on the stations + what Wikipedia says about this very song
+      var rows = pr[0], sw = pr[1];
+      if (sw && seenF.indexOf(hash(sw)) < 0) out.unshift(sw);
       var row = (rows || []).filter(function (r) { return nrm(r[0]).trim() === key; })[0];
       if (row && row[1].length >= 2) { var names = (DATA.azIdx && DATA.azIdx.stations) || ['1UP Radio', 'The Movement', 'Culture Shock', 'The Vault'], ss = {}; row[1].forEach(function (s) { ss[names[s[0]]] = 1; });
         var where = Object.keys(ss).join(' and '); var t = main + ' has ' + row[1].length + ' songs in our mix' + (where ? ', on ' + where : '') + '.';

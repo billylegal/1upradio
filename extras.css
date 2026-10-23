@@ -323,3 +323,12 @@ html:root:root .list li .hb.pop::after{content:"";position:absolute;inset:4px;bo
 }
 .stcard.lockd i{border:1px dashed var(--g);color:var(--g);letter-spacing:.12em}
 .pgchip.pgsoon{opacity:.65;border-style:dashed;cursor:default;font-style:italic}
+
+/* Artists A-Z: "has a link on ..." buttons and the count line */
+.azbox>.azsv{flex:0 0 auto}
+.azsv{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 20px 0}
+.azsvl{font-size:11px;letter-spacing:.06em;text-transform:uppercase;opacity:.65;margin-right:2px}
+.azsv button{cursor:pointer;padding:5px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.22);background:transparent;color:inherit;font:600 12px system-ui,sans-serif}
+.azsv button:hover{border-color:rgba(255,255,255,.45)}
+.azsv button.on{background:var(--g,#ffd34d);border-color:var(--g,#ffd34d);color:#000}
+.azcount{padding:10px 20px 4px;font-size:12px;opacity:.75}

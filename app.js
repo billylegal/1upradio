@@ -200,8 +200,11 @@
   var PSH = {};   // data/artist-profile/<letter>.json: what the background job found for each artist on Apple Music, MusicBrainz, Wikipedia, Deezer and YouTube, plus our own station data
   function profShard(name) {
     var c = String(name || '').trim().charAt(0).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''), L = /^[A-Z]$/.test(c) ? c.toLowerCase() : 'num', k = alNorm(name);
+    return shardFor(L).then(function (j) { return (j && j[k]) || null; });
+  }
+  function shardFor(L) {   // one letter's profile file, loaded once
     if (!PSH[L]) PSH[L] = fetch('data/artist-profile/' + L + '.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).catch(function () { return {}; });
-    return PSH[L].then(function (j) { return (j && j[k]) || null; });
+    return PSH[L];
   }
   function shLinks(sh) { var o = []; if (sh && sh.l) Object.keys(sh.l).forEach(function (n) { o.push([n, sh.l[n]]); }); return o; }
   function profDeezer(name) {
@@ -334,7 +337,7 @@
   document.addEventListener('click', function (e) { var t = e.target.closest && e.target.closest('a.artlnk'); if (!t) return; e.preventDefault(); openArtistCard(t.getAttribute('data-artist') || t.textContent); });
   // ---- Artists A-Z: every artist on the four stations and their songs (data/artists/<letter>.json, loaded when a letter is opened) ----
   var SNOTES = null, NL = {}, LB = {};
-  var AZ = { idx: null, cache: {}, L: 'A', stn: -1, q: '', el: null };
+  var AZ = { idx: null, cache: {}, L: 'A', stn: -1, q: '', srv: '', el: null };
   function azLetter(n) { var c = String(n || '').trim().charAt(0).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); return /^[A-Z]$/.test(c) ? c : '#'; }
   function azLoad(L) {
     if (AZ.cache[L]) return Promise.resolve(AZ.cache[L]);
@@ -368,8 +371,38 @@
   }
   function azShut() { if (AZ.el) { AZ.el.hidden = true; document.body.classList.remove('azopen'); } }
   function azClose() { azShut(); if (window.UP1_BACKGUARD) UP1_BACKGUARD.closed(azShut); }
+  // ---- search by where an artist can be found: type Beatport, YouTube, Deezer, Apple Music ... (or tap a button) and every artist with a link there is listed ----
+  var AZ_SERV = ['Spotify', 'Apple Music', 'Deezer', 'Beatport', 'YouTube', 'Bandcamp', 'SoundCloud', 'Instagram', 'TikTok', 'X', 'Facebook', 'Discogs', 'Tidal', 'Amazon Music', 'Traxsource', 'Juno Download', 'Genius', 'Last.fm', 'Resident Advisor', 'Mixcloud', 'Songkick', 'Bandsintown', 'Website', 'Wikipedia'];
+  var AZ_ALIAS = { twitter: 'X', ig: 'Instagram', insta: 'Instagram', apple: 'Apple Music', 'apple music': 'Apple Music', itunes: 'Apple Music', amazon: 'Amazon Music', yt: 'YouTube', ra: 'Resident Advisor', lastfm: 'Last.fm', juno: 'Juno Download', web: 'Website', site: 'Website', fb: 'Facebook', tiktok: 'TikTok', youtube: 'YouTube', deezer: 'Deezer', beatport: 'Beatport', spotify: 'Spotify', bandcamp: 'Bandcamp', soundcloud: 'SoundCloud' };
+  function azServOf(q) {   // only a whole service name (or a clear start of one) counts, so a search for an artist called "Banks" still finds Banks
+    q = String(q || '').trim().toLowerCase(); if (q.length < 2) return '';
+    if (AZ_ALIAS[q]) return AZ_ALIAS[q];
+    if (q.length < 5) return '';
+    var hit = AZ_SERV.filter(function (x) { return x.toLowerCase().indexOf(q) === 0; }); return hit.length === 1 ? hit[0] : '';
+  }
+  function azChips() {
+    var box = AZ.el && AZ.el.querySelector('.azsv'); if (!box) return;
+    box.innerHTML = '<span class="azsvl">Has a link on</span>' + ['Spotify', 'Apple Music', 'Deezer', 'Beatport', 'YouTube', 'Bandcamp', 'SoundCloud', 'Instagram', 'TikTok', 'Discogs'].map(function (v) { return '<button type="button" data-v="' + v + '" class="' + (AZ.srv === v ? 'on' : '') + '">' + v + '</button>'; }).join('');
+  }
+  function azServList(sv, q) {
+    var list = AZ.el.querySelector('.azlist'), letters = ['num'].concat('abcdefghijklmnopqrstuvwxyz'.split(''));
+    AZ.el.querySelectorAll('.azl button').forEach(function (b) { b.classList.remove('on'); });
+    list.innerHTML = '<div class="azempty">Looking up every artist with a ' + esc(sv) + ' link\u2026</div>';
+    Promise.all(letters.map(function (l) { return Promise.all([azLoad(l === 'num' ? '#' : l.toUpperCase()), shardFor(l)]); })).then(function (res) {
+      if ((AZ.srv || azServOf(AZ.q)) !== sv) return;
+      var rows = [], names = (AZ.idx && AZ.idx.stations) || [], f = AZ.srv ? AZ.q.trim().toLowerCase() : '';
+      res.forEach(function (r) { var sh = r[1] || {}; (r[0] || []).forEach(function (row) { var e = sh[alNorm(row[0])]; if (e && e.l && e.l[sv] && (AZ.stn < 0 || row[1].some(function (s) { return s[0] === AZ.stn; })) && (!f || row[0].toLowerCase().indexOf(f) >= 0)) rows.push(row); }); });
+      rows.sort(function (a, b) { return alNorm(a[0]) < alNorm(b[0]) ? -1 : 1; });
+      list.innerHTML = '<div class="azcount">' + rows.length.toLocaleString() + (rows.length === 1 ? ' artist has' : ' artists have') + (/^[AEIOU]/i.test(sv) ? ' an ' : ' a ') + esc(sv) + ' link</div>' + (rows.length ? rows.slice(0, 500).map(function (r) {
+        var u = azUniq(r[1]), st = []; r[1].forEach(function (s) { if (st.indexOf(s[0]) < 0) st.push(s[0]); });
+        return '<button type="button" class="azrow" data-artist="' + esc(r[0]) + '"><b>' + esc(r[0]) + '</b><span>' + esc(azStn(st.slice(0, 2), names)) + ' \u00b7 ' + u.length + (u.length === 1 ? ' song' : ' songs') + '</span></button>';
+      }).join('') + (rows.length > 500 ? '<div class="azempty">Showing the first 500. Type a name to narrow it down.</div>' : '') : '<div class="azempty">None yet: more profiles are added all the time.</div>');
+      list.scrollTop = 0;
+    });
+  }
   function azRender() {
     var list = AZ.el.querySelector('.azlist'), q = AZ.q.trim().toLowerCase(), L = q.length >= 2 ? azLetter(q) : AZ.L;
+    var sv = AZ.srv || azServOf(q); if (sv) { azServList(sv, q); return; }
     AZ.el.querySelectorAll('.azl button').forEach(function (b) { b.classList.toggle('on', b.dataset.l === L); });
     list.innerHTML = '<div class="azempty">Loading\u2026</div>';
     azLoad(L).then(function (rows) {
@@ -386,11 +419,12 @@
   function openAZ() {
     if (!AZ.el) {
       var el = document.createElement('div'); el.className = 'azov'; el.hidden = true; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Artists A to Z');
-      el.innerHTML = '<div class="azbox"><button type="button" class="acx" aria-label="Close">\u00d7</button><div class="acl">1UP Radio \u00b7 Artists A\u2013Z</div><input class="azq" type="search" placeholder="Find an artist" aria-label="Find an artist"><div class="azst"></div><div class="azl"></div><div class="azlist" role="list"></div></div>';
+      el.innerHTML = '<div class="azbox"><button type="button" class="acx" aria-label="Close">\u00d7</button><div class="acl">1UP Radio \u00b7 Artists A\u2013Z</div><input class="azq" type="search" placeholder="Find an artist" aria-label="Find an artist"><div class="azst"></div><div class="azsv" aria-label="Show artists that have a link on"></div><div class="azl"></div><div class="azlist" role="list"></div></div>';
       document.body.appendChild(el); AZ.el = el;
       el.addEventListener('click', function (e) {
         if (e.target === el || e.target.closest('.acx')) { azClose(); return; }
-        var lb = e.target.closest('.azl button'); if (lb) { AZ.L = lb.dataset.l; AZ.q = ''; el.querySelector('.azq').value = ''; azRender(); return; }
+        var lb = e.target.closest('.azl button'); if (lb) { AZ.L = lb.dataset.l; AZ.q = ''; AZ.srv = ''; azChips(); el.querySelector('.azq').value = ''; azRender(); return; }
+        var vb = e.target.closest('.azsv button'); if (vb) { AZ.srv = AZ.srv === vb.dataset.v ? '' : vb.dataset.v; el.querySelector('.azq').value = ''; AZ.q = ''; azChips(); azRender(); return; }
         var sb = e.target.closest('.azst button'); if (sb) { AZ.stn = +sb.dataset.s; el.querySelectorAll('.azst button').forEach(function (b) { b.classList.toggle('on', b === sb); }); azRender(); return; }
         var rw = e.target.closest('.azrow'); if (rw) openArtistFromAZ(rw.dataset.artist);
       });
@@ -404,7 +438,7 @@
       AZ.idx = j; var s = AZ.el.querySelector('.azst'); AZ.stn = -1;
       s.innerHTML = '<label class="azslab" for="azsel">Station</label><select id="azsel" class="azsel"><option value="-1">All ' + j.stations.length + ' stations</option>' + j.stations.map(function (n, i) { return '<option value="' + i + '">' + esc(n) + '</option>'; }).join('') + '</select>';
       s.querySelector('.azsel').addEventListener('change', function (e) { AZ.stn = +e.target.value; azRender(); });
-      azRender();
+      azChips(); azRender();
     }).catch(function () { azRender(); });
   }
   document.addEventListener('click', function (e) {
@@ -1095,7 +1129,7 @@
     else { btnIntent = true; userPaused = false; try { var kl = findNow(); playIdx(kl, nowMs() / 1000 - S.delay - S.plays[kl].t); } catch (x) { try { yt.playVideo(); } catch (y) {} } }   // radio, not a tape: playing again joins what is on air NOW, never the spot where it was paused
   });
   $('vol').addEventListener('input', function (e) { $('volv').textContent = e.target.value; if (yt && ready) yt.setVolume(+e.target.value); if (jingOn) jing.volume = jingVol(); try { localStorage.setItem('up1-vol', e.target.value); } catch (x) {} });
-  try { var v = localStorage.getItem('up1-vol'); if (v) { $('vol').value = v; $('volv').textContent = v; } } catch (x) {}
+  $('vol').value = 88; $('volv').textContent = '88';   // every visit starts at 88, whatever the volume was left at last time (so it is never too loud on a phone)
   // keep exactly in step with the live schedule: after a pause, a stall or a schedule change, jump back to the live position
   var lastSync = 0;
   setInterval(function () {

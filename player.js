@@ -62,7 +62,7 @@
     else { wantPlay = true; $('airt').textContent = 'TUNING IN'; if (ready) playNow(); }
   });
   $('vol').addEventListener('input', function (e) { if (yt && ready) yt.setVolume(+e.target.value); try { localStorage.setItem('up1-pvol', e.target.value); } catch (x) {} });
-  try { var v = localStorage.getItem('up1-pvol'); if (v) $('vol').value = v; } catch (e) {}
+  $('vol').value = 88;   // always 88 when it opens
   $('pills').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; cur = pick(b.dataset.id); try { localStorage.setItem('up1-station', cur.id); } catch (x) {} paintStation(); loadArt(); load().then(function () { if (wantPlay) playNow(); }); });
   setInterval(function () {   // stay in step with the live schedule: when the next song's time comes, start it
     if (!S.plays.length) return; var k = findNow();
