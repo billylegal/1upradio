@@ -14,15 +14,15 @@ for p in sorted(plays, key=lambda p: p['t']):
     seen.add((day, p['oid']))
     out.append({'t': p['t'], 'id': tr['id'], 'title': p['title'], 'dur': tr.get('dur') or 240})
 
-# --- every 45 minutes, from ALL of Billy's releases (Toronto and Athens clocks agree on the hour) swap the song nearest the mark for one of Billy Legal's own, lengths permitting so the next slot still starts on time ---
+# --- every hour, from ALL of Billy's releases (Toronto and Athens clocks agree on the hour) swap the song nearest the mark for one of Billy Legal's own, lengths permitting so the next slot still starts on time ---
 GROUPS = json.load(open('tools/billy.json'))   # one list per release (EP/album) of [youtube id, title, seconds]; releases take turns
 out.sort(key=lambda p: p['t']); win = {}
-for i, p in enumerate(out[:-1]): win.setdefault(p['t'] // 2700, []).append(i)
-n = len(GROUPS); swaps = {}; last_t = -10**12   # at least ~35 min between Billy songs
+for i, p in enumerate(out[:-1]): win.setdefault(p['t'] // 3600, []).append(i)
+n = len(GROUPS); swaps = {}; last_t = -10**12   # at least ~50 min between Billy songs
 for k, idxs in sorted(win.items()):
-    g = GROUPS[k % n]; m = g[(k // n) % len(g)]          # this 45-minute turn: groups rotate (a release returns every ~4 h), mixes alternate
-    for i in sorted(idxs, key=lambda i: out[i]['t'] - k * 2700):   # nearest the window start first, but long enough for the song
-        if out[i]['t'] - last_t >= 2100 and out[i + 1]['t'] - out[i]['t'] >= m[2] - 3: swaps[i] = m; last_t = out[i]['t']; break
+    g = GROUPS[k % n]; m = g[(k // n) % len(g)]          # this hourly turn: groups rotate (a release returns every ~4 h), mixes alternate
+    for i in sorted(idxs, key=lambda i: out[i]['t'] - k * 3600):   # nearest the window start first, but long enough for the song
+        if out[i]['t'] - last_t >= 3000 and out[i + 1]['t'] - out[i]['t'] >= m[2] - 3: swaps[i] = m; last_t = out[i]['t']; break
 for i, (vid, ttl, d) in swaps.items():
     out[i] = {'t': out[i]['t'], 'id': vid, 'title': 'Billy Legal - ' + ttl, 'dur': d, 'bl': 1}
 
