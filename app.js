@@ -22,21 +22,23 @@
   loadArt();
   window.UP1_COVER = function (id) { return ART[id] || ''; };
   function load() {
-    var t0 = Date.now();
-    return fetch((window.UP1_SCHEDULE || 'schedule.json') + '?t=' + Date.now()).then(function (r) {
-      try {
-        var dh = r.headers.get('date'), srv = dh ? Date.parse(dh) : 0;
-        // Date is the CDN's clock for THIS request (the cache-buster above makes it a fresh object).
-        // Do not add Age: measured on this site it overstated the time by ~4 minutes.
-        if (srv) { var sk = srv + (Date.now() - t0) / 2 - Date.now(); if (Math.abs(sk) < 216e5) SKEW = sk; }
-      } catch (e) {}
-      return r.json();
-    }).then(function (d) {
+    return fetch((window.UP1_SCHEDULE || 'schedule.json') + '?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (d) {
       var cur = idx >= 0 && S.plays[idx] ? S.plays[idx].t : null;
       S = d;
       if (cur !== null) { var k = S.plays.findIndex(function (p) { return p.t === cur; }); if (k >= 0) idx = k; }
       paintLists(); paintDays();
     });
+  }
+  // The clock has to come from a response no cache can answer, or a stale copy hands us an old Date and
+  // every listener lands minutes away from air (seen in testing: 80 minutes behind on a cached schedule).
+  function clockProbe() {
+    var t0 = Date.now();
+    return fetch(location.pathname + '?clock=' + t0, { method: 'HEAD', cache: 'no-store' }).then(function (r) {
+      var dh = r.headers.get('date'); if (!dh) return;
+      var srv = Date.parse(dh); if (!srv) return;
+      var sk = srv + (Date.now() - t0) / 2 - Date.now();     // half the round trip
+      if (Math.abs(sk) < 216e5) SKEW = sk;                   // ignore absurd values (bad header)
+    }).catch(function () {});
   }
   function findNow() {
     var src = nowMs() / 1000 - S.delay, k = -1;
@@ -1030,6 +1032,7 @@
   $('vol').addEventListener('input', function (e) { $('volv').textContent = e.target.value; if (yt && ready) yt.setVolume(+e.target.value); if (jingOn) jing.volume = jingVol(); try { localStorage.setItem('up1-vol', e.target.value); } catch (x) {} });
   try { var v = localStorage.getItem('up1-vol'); if (v) { $('vol').value = v; $('volv').textContent = v; } } catch (x) {}
   // keep exactly in step with the live schedule: after a pause, a stall or a schedule change, jump back to the live position
+  setInterval(clockProbe, 600000);   // re-anchor the clock now and then (laptops drift when they sleep)
   var lastSync = 0, lastSeek = 0;
   setInterval(function () {
     if (!started || !playing || !yt || !ready || idx < 0 || !S.plays[idx] || nextTimer || Date.now() - lastSync < 3000) return;
@@ -1120,7 +1123,7 @@
     mutedAuto = false; unmutedAt = Date.now(); try { yt.unMute(); yt.setVolume(+$('vol').value); if (yt.getPlayerState() !== 1) yt.playVideo(); } catch (e) {} $('hint').innerHTML = LIVE_HTML;
   }
   ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click', 'keydown'].forEach(function (ev) { addEventListener(ev, unmuteNow, { passive: true, capture: true }); });
-  load().then(function () {
+  clockProbe().then(function () { return load(); }).then(function () {
     var k = findNow(); idx = -1; paintLists();
     function begin() {   // nothing plays until the TAP TO START gate has been tapped; then start right inside that tap
       $('play').click();
