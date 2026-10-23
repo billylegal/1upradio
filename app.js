@@ -297,7 +297,10 @@
       var facts = [];
       (hand || []).forEach(function (a) { if (a.n.some(function (n) { return alNorm(n) === key; })) facts = facts.concat(a.f); });
       if (!own) ((auto || {})[key] || []).forEach(function (f) { if (facts.indexOf(f) < 0) facts.push(f); });
-      if (sh && sh.f) sh.f.forEach(function (f) { if (facts.indexOf(f) < 0) facts.push(f); });
+      if (sh && sh.f) sh.f.forEach(function (f) {
+        if (/fans on Deezer/.test(f) && dz && dz.fans) return;                                                     // the header already says it
+        if (/^.+ is (a|an) [^.]+ from /.test(f) && facts.some(function (x) { return /comes from|is from /.test(x); })) return;   // already told in other words
+        if (facts.indexOf(f) < 0) facts.push(f); });
       var pic = own ? 'assets/billy-beatport.jpg' : (dz && dz.pic) || (sh && sh.p) || '';
       var bio = own ? 'Billy Legal, Toronto. The genre killer: house, deep house, afro house, tech house, hip hop, trap, downtempo, electronica and reggae.' : (wk && wk.text) || (sh && sh.b) || '';
       var h = '<div class="acl">1UP Radio · Artist profile</div><div class="achead">' + (pic ? '<img class="acpic" src="' + esc(pic) + '" alt="" referrerpolicy="no-referrer">' : '<div class="acpic ph">' + esc(name.charAt(0)) + '</div>') +
