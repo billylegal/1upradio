@@ -120,7 +120,7 @@ html[data-skin=meters] .artlinks,html[data-skin=wormhole] .artlinks{display:none
 .azbox{position:relative;width:min(720px,100%);height:min(86vh,760px);display:flex;flex-direction:column;background:rgba(12,14,13,.98);color:#eee;border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:16px 16px 10px;box-shadow:0 20px 60px rgba(0,0,0,.65);font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
 .azq{width:100%;box-sizing:border-box;margin:0 0 10px;padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:inherit;font:inherit;font-size:14px}
 .azq:focus{outline:2px solid rgba(var(--gr,255,211,77),.6);border-color:transparent}
-.azst{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.azst{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;max-height:96px;overflow-y:auto}
 .azst button{border:1px solid rgba(255,255,255,.22);background:transparent;color:inherit;border-radius:999px;padding:5px 11px;font-size:12px;cursor:pointer}
 .azst button.on{background:var(--g,#ffd34d);color:#111;border-color:transparent}
 .azl{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:6px}

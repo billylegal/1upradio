@@ -293,14 +293,23 @@
     if (AZ.cache[L]) return Promise.resolve(AZ.cache[L]);
     return fetch('data/artists/' + (L === '#' ? 'num' : L.toLowerCase()) + '.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { AZ.cache[L] = j; return j; }).catch(function () { return []; });
   }
+  function azUniq(rows) {   // one entry per song: [first station, title, video id, [every station that plays it]]
+    var by = {}, out = [];
+    rows.forEach(function (r) { var e = by[r[2]]; if (!e) { e = by[r[2]] = [r[0], r[1], r[2], []]; out.push(e); } if (e[3].indexOf(r[0]) < 0) e[3].push(r[0]); });
+    return out;
+  }
+  function azStn(ids, names) {   // "A · B · C and 4 more"
+    var n = ids.map(function (i) { return names[i] || ''; }).filter(Boolean);
+    return n.slice(0, 3).join(' \u00b7 ') + (n.length > 3 ? ' and ' + (n.length - 3) + ' more' : '');
+  }
   function azSongsInCard(name, inn) {   // "the music they make": their songs on our stations, inside the profile card
     var nt = SNOTES || (SNOTES = fetch('data/song-notes.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).catch(function () { return {}; }));
     Promise.all([azLoad(azLetter(name)), nt]).then(function (pr) {
       var rows = pr[0], N = pr[1] || {};
       var k = alNorm(name), row = rows.filter(function (r) { return alNorm(r[0]) === k; })[0];
       if (!row || acardFor !== k) return;
-      var names = (AZ.idx && AZ.idx.stations) || ['1UP Radio', 'The Movement', 'Culture Shock', 'The Vault'], songs = row[1];
-      var h = '<div class="acsongs"><div class="acsh">Songs on 1UP Radio (' + songs.length + ')</div>' + songs.slice(0, 8).map(function (s) { var n = N[s[2]] || {}, t = n.n && !/^\d{4}$/.test(n.n) && n.n.length >= 12 ? n.n : (n.y ? 'From ' + n.y : ''); return '<div class="acsg"><span>' + esc(s[1]) + (t ? '<small>' + esc(t) + '</small>' : '') + '</span><em>' + esc(names[s[0]] || '') + '</em></div>'; }).join('') + (songs.length > 8 ? '<div class="acsm">and ' + (songs.length - 8) + ' more</div>' : '') + '</div>';
+      var names = (AZ.idx && AZ.idx.stations) || ['1UP Radio', 'The Movement', 'Culture Shock', 'The Vault'], songs = azUniq(row[1]);
+      var h = '<div class="acsongs"><div class="acsh">Songs on 1UP Radio (' + songs.length + ')</div>' + songs.slice(0, 8).map(function (s) { var n = N[s[2]] || {}, t = n.n && !/^\d{4}$/.test(n.n) && n.n.length >= 12 ? n.n : (n.y ? 'From ' + n.y : ''); return '<div class="acsg"><span>' + esc(s[1]) + (t ? '<small>' + esc(t) + '</small>' : '') + '</span><em>' + esc(azStn(s[3], names)) + '</em></div>'; }).join('') + (songs.length > 8 ? '<div class="acsm">and ' + (songs.length - 8) + ' more</div>' : '') + '</div>';
       var box = inn.querySelector('.acsongs'); if (box) box.remove(); inn.insertAdjacentHTML('beforeend', h);
       NL[k] = []; songs.forEach(function (s) { var l = (N[s[2]] || {}).l; if (l && NL[k].indexOf(l) < 0) NL[k].push(l); });   // labels named in the uploader's notes
       if (LB[k]) paintLabels(LB[k][0], LB[k][1], name);
@@ -321,8 +330,8 @@
       var out = rows.filter(function (r) { return (AZ.stn < 0 || r[1].some(function (s) { return s[0] === AZ.stn; })) && (!q || r[0].toLowerCase().indexOf(q) >= 0); });
       var names = (AZ.idx && AZ.idx.stations) || [];
       list.innerHTML = out.length ? out.slice(0, 400).map(function (r) {
-        var st = {}; r[1].forEach(function (s) { st[s[0]] = 1; });
-        return '<button type="button" class="azrow" data-artist="' + esc(r[0]) + '"><b>' + esc(r[0]) + '</b><span>' + Object.keys(st).map(function (i) { return esc(names[i] || ''); }).join(' \u00b7 ') + ' \u00b7 ' + r[1].length + (r[1].length === 1 ? ' song' : ' songs') + '</span></button>';
+        var u = azUniq(r[1]), st = []; r[1].forEach(function (s) { if (st.indexOf(s[0]) < 0) st.push(s[0]); });
+        return '<button type="button" class="azrow" data-artist="' + esc(r[0]) + '"><b>' + esc(r[0]) + '</b><span>' + esc(azStn(st, names)) + ' \u00b7 ' + u.length + (u.length === 1 ? ' song' : ' songs') + '</span></button>';
       }).join('') + (out.length > 400 ? '<div class="azempty">Showing the first 400. Type a name to narrow it down.</div>' : '') : '<div class="azempty">No artists here.</div>';
       list.scrollTop = 0;
     });
