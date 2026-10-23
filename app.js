@@ -6,7 +6,9 @@
   var fmtT = function (t) { return new Date((t + S.delay) * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); };
   var dayKey = function (t) { return new Date((t + S.delay) * 1000).toLocaleDateString('en-CA'); };
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
-  function split(t) { var i = t.indexOf(' - '); return i > 0 ? [t.slice(0, i), t.slice(i + 3)] : ['', t]; }
+  var SWAP = {};   // Culture Shock: titles that read 'Song - Artist' (data/culture-swap.json, built by tools/culture_swap.py) are shown as Artist + Song
+  if (window.UP1_STATION === 'cultureshock') fetch('data/culture-swap.json?t=' + Math.floor(Date.now() / 1800000)).then(function (r) { return r.json(); }).then(function (j) { SWAP = j || {}; try { paintNP(); } catch (e) {} }).catch(function () {});
+  function split(t) { if (SWAP[t]) return SWAP[t].slice(); var i = t.indexOf(' - '); return i > 0 ? [t.slice(0, i), t.slice(i + 3)] : ['', t]; }
 
   var ART = {};   // song id -> album cover for the station's songs (data/<station>-art.json, built by tools/culture_art.py)
   function loadArt() {
@@ -91,8 +93,8 @@
   var ALINKS = null, LABELS = null, alKey = '';   // LABELS: data/labels.json {video id: record label}
   function alNorm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
   function credits(title) {
-    var t = String(title || ''), parts = t.split(/\s[-\u2013\u2014]\s/), segs = [parts[0]], names = [], seen = {};
-    if (parts.length > 1 && window.UP1_STATION === 'cultureshock') segs.push(parts[parts.length - 1]);
+    var t = String(title || ''), parts = SWAP[t] ? [SWAP[t][0], SWAP[t][1]] : t.split(/\s[-\u2013\u2014]\s/), segs = [parts[0]], names = [], seen = {};
+    if (parts.length > 1 && window.UP1_STATION === 'cultureshock' && !SWAP[t]) segs.push(parts[parts.length - 1]);
     segs.forEach(function (sg) { sg.replace(/\s*[\(\[].*?[\)\]]/g, '').split(/\s*(?:,|&|\band\b|\bx\b|\bvs\.?|\bfeat\.?|\bft\.?|\bfeaturing|\bwith|\/|;)\s*/i).forEach(function (n) { n = n.trim(); if (n) names.push(n); }); });
     var rm = /[\(\[]([^()\[\]]*?)\s+(?:remix|rework|bootleg|edit|flip|vip|refix|mix)\s*[\)\]]/i.exec(t);
     if (rm) { var w = rm[1].split(/['\u2019]s\s/)[0].replace(/['\u2019]s$/i, '').trim(); if (w && !/^(original|extended|radio|club|main|album|instrumental|vocal|dub|full|short|long|new)$/i.test(w)) names.push(w); }
