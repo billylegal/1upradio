@@ -648,8 +648,8 @@
 
   // ---- color themes: every tap on THEME switches to the next of 8 colors ----
   var THEMES = ['#39ff14', '#ffb000', '#ff3b3b', '#00e5ff', '#b4ff3c', '#ffe066', '#ff6a00', '#d946ff'], themeI = 0;
-  var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash', 'space', 'marquee', 'blueprint', 'candy', 'glitch', 'press', 'meters', 'wormhole', 'nebula', 'culture', 'shock', 'dubby', 'vault', 'house','portal','city1','city2','city3'], skinI = 0;
-  var SKIN_NAMES = ['Retro', 'Stream', 'Glass', 'Mono', 'Synth', 'Vinyl', 'Terminal', 'Brutal', 'Aegean', 'GameBoy', 'Cassette', 'Dash', 'Space', 'Marquee', 'Blueprint', 'Candy', 'Glitch', 'Press', 'Meters', 'Wormhole', 'Nebula', 'Culture', 'Shock', 'Dubby', 'Vault', 'House'];
+  var SKINS = ['retro', 'stream', 'glass', 'mono', 'synth', 'vinyl', 'terminal', 'brutal', 'aegean', 'gameboy', 'cassette', 'dash', 'space', 'marquee', 'blueprint', 'candy', 'glitch', 'press', 'meters', 'wormhole', 'nebula', 'culture', 'shock', 'dubby', 'vault', 'house','portal','city1','city2','city3','bridge','bridgeled'], skinI = 0;
+  var SKIN_NAMES = ['Retro', 'Stream', 'Glass', 'Mono', 'Synth', 'Vinyl', 'Terminal', 'Brutal', 'Aegean', 'GameBoy', 'Cassette', 'Dash', 'Space', 'Marquee', 'Blueprint', 'Candy', 'Glitch', 'Press', 'Meters', 'Wormhole', 'Nebula', 'Culture', 'Shock', 'Dubby', 'Vault', 'House', 'Portal', 'City 1', 'City 2', 'City 3', 'Bridge', 'Bridge LED'];
   var LIGHT = { glass: 1, aegean: 1, cassette: 1, candy: 1, press: 1 }, NATIVE_OK = { retro: 0, stream: 0 };   // light skins get a darker tint of the colour; every other skin can also go back to its own native colours (-1)
   // Place the SKIN button right after the THEME button whatever the skin's font makes of their widths (desktop; phones lay them out in a row via CSS).
   function fitBtns() { var t = $('themeBtn'), s = $('skinBtn'); if (!t || !s) return; if (window.innerWidth <= 900) { s.style.left = ''; return; } s.style.left = (t.offsetLeft + t.offsetWidth + 10) + 'px'; }
@@ -1175,7 +1175,76 @@
 
 // Nebula meter bars: thin bars that run across the whole player (the other skins use 12 wide bars)
 (function () {
-  var fit = function () { var e = document.getElementById('eq'); if (!e) return; var n = ['nebula', 'culture', 'shock', 'dubby', 'house','portal','city1','city2','city3'].indexOf(document.documentElement.getAttribute('data-skin')) >= 0 ? 44 : 12; while (e.children.length < n) e.appendChild(document.createElement('i')); while (e.children.length > n) e.removeChild(e.lastChild); };
-  var go = function () { fit(); new MutationObserver(fit).observe(document.documentElement, { attributes: true, attributeFilter: ['data-skin'] }); };
+  var fit = function () { var e = document.getElementById('eq'); if (!e) return; var sk = document.documentElement.getAttribute('data-skin'); var narrow = window.innerWidth < 720; var n = sk === 'bridge' ? (narrow ? 64 : 120) : sk === 'bridgeled' ? (narrow ? 48 : 80) : ['nebula', 'culture', 'shock', 'dubby', 'house','portal','city1','city2','city3'].indexOf(sk) >= 0 ? 44 : 12; while (e.children.length < n) e.appendChild(document.createElement('i')); while (e.children.length > n) e.removeChild(e.lastChild); };
+  var go = function () { fit(); new MutationObserver(fit).observe(document.documentElement, { attributes: true, attributeFilter: ['data-skin'] }); var t = 0; window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(fit, 180); }); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+})();
+
+// Full screen for the meter skins (desktop): the player's button, or the F key.
+(function () {
+  var btn = document.getElementById('fsBtn');
+  if (!btn) return;
+  var walls = { meters: 1, bridge: 1, bridgeled: 1 };
+  var onWall = function () { return !!walls[document.documentElement.getAttribute('data-skin')]; };
+  var fsEl = function () { return document.fullscreenElement || document.webkitFullscreenElement || null; };
+  function sync() {
+    var on = !!fsEl();
+    btn.classList.toggle('on', on);
+    btn.setAttribute('aria-label', on ? 'Exit full screen' : 'Full screen meters');
+    btn.title = on ? 'Exit full screen (Esc)' : 'Full screen (F)';
+  }
+  function toggle() {
+    if (fsEl()) { (document.exitFullscreen || document.webkitExitFullscreen || function () {}).call(document); return; }
+    var el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (!req) return;
+    var p = req.call(el);
+    if (p && p.catch) p.catch(function () {});
+  }
+  btn.addEventListener('click', function (e) { e.preventDefault(); toggle(); });
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+  document.addEventListener('keydown', function (e) {
+    if (!onWall() || e.metaKey || e.ctrlKey || e.altKey) return;
+    var t = ((e.target && e.target.tagName) || '').toLowerCase();
+    if (t === 'input' || t === 'textarea' || (e.target && e.target.isContentEditable)) return;
+    if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggle(); }
+  });
+  sync();
+})();
+
+// Meter bridge skins: many thin bars punching on the beat, tempo from the BPM beside NOW PLAYING.
+(function () {
+  var OK = { bridge: 1, bridgeled: 1 };
+  var t0 = performance.now(), lastSkin = '', levels = [];
+  function skin() { return document.documentElement.getAttribute('data-skin') || ''; }
+  function bpmNow() {
+    var el = document.getElementById('npBpm'), m = el && /(\d{2,3})/.exec(el.textContent || '');
+    var b = m ? +m[1] : 0;
+    return (b >= 60 && b <= 200) ? b : 120;
+  }
+  function clearHeights(eq) { if (!eq) return; for (var i = 0; i < eq.children.length; i++) eq.children[i].style.height = ''; }
+  function frame(ts) {
+    requestAnimationFrame(frame);
+    var s = skin(), eq = document.getElementById('eq');
+    if (!OK[s]) { if (lastSkin) { clearHeights(eq); lastSkin = ''; } return; }
+    if (!eq) return;
+    var bars = eq.children, n = bars.length;
+    if (!n) return;
+    if (s !== lastSkin || levels.length !== n) {
+      lastSkin = s; levels = [];
+      for (var i = 0; i < n; i++) levels.push(0.3 + 0.7 * Math.abs(Math.sin(i * 1.37 + 0.8)));
+    }
+    if (!eq.classList.contains('on')) return;
+    eq.style.setProperty('--eqh', eq.clientHeight + 'px');
+    var beat = 60000 / bpmNow();
+    var ph = ((ts - t0) % beat) / beat;
+    var env = Math.pow(1 - ph, 2.2);
+    var accent = (Math.floor((ts - t0) / beat) % 4 === 0) ? 1 : 0.78;
+    for (var j = 0; j < n; j++) {
+      var wob = 0.1 * Math.sin(ts / 420 + j * 0.9);
+      var h = 5 + env * 95 * accent * levels[j] + wob * 100 * levels[j];
+      bars[j].style.height = Math.max(4, Math.min(100, h)).toFixed(1) + '%';
+    }
+  }
+  requestAnimationFrame(frame);
 })();
