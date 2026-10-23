@@ -2,6 +2,10 @@
   var LIVE_HTML = '<span class="live">You are live with the station.<span class="kvu"><br class="mbr"> Keep the volume up.</span></span>';
   var $ = function (id) { return document.getElementById(id); };
   var S = { plays: [], delay: 420 }, yt = null, ready = false, started = false, playing = false, idx = -1, errs = 0, skipped = 0;
+  // Every listener must hear the same second, so the schedule is read against the SERVER clock, not this
+  // computer's clock (two machines are rarely more than a few seconds apart, but a wrong clock is minutes).
+  var SKEW = 0;   // server time minus local time, in ms
+  function nowMs() { return Date.now() + SKEW; }
   // times shown are when each song plays for you: the same clock time it aired in Athens, on your local clock
   var fmtT = function (t) { return new Date((t + S.delay) * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }); };
   var dayKey = function (t) { return new Date((t + S.delay) * 1000).toLocaleDateString('en-CA'); };
@@ -18,7 +22,16 @@
   loadArt();
   window.UP1_COVER = function (id) { return ART[id] || ''; };
   function load() {
-    return fetch((window.UP1_SCHEDULE || 'schedule.json') + '?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (d) {
+    var t0 = Date.now();
+    return fetch((window.UP1_SCHEDULE || 'schedule.json') + '?t=' + Date.now()).then(function (r) {
+      try {
+        var dh = r.headers.get('date'), srv = dh ? Date.parse(dh) : 0;
+        // Date is the CDN's clock for THIS request (the cache-buster above makes it a fresh object).
+        // Do not add Age: measured on this site it overstated the time by ~4 minutes.
+        if (srv) { var sk = srv + (Date.now() - t0) / 2 - Date.now(); if (Math.abs(sk) < 216e5) SKEW = sk; }
+      } catch (e) {}
+      return r.json();
+    }).then(function (d) {
       var cur = idx >= 0 && S.plays[idx] ? S.plays[idx].t : null;
       S = d;
       if (cur !== null) { var k = S.plays.findIndex(function (p) { return p.t === cur; }); if (k >= 0) idx = k; }
@@ -26,7 +39,7 @@
     });
   }
   function findNow() {
-    var src = Date.now() / 1000 - S.delay, k = -1;
+    var src = nowMs() / 1000 - S.delay, k = -1;
     for (var i = 0; i < S.plays.length; i++) { if (S.plays[i].t <= src) k = i; else break; }
     return k < 0 ? 0 : k;
   }
@@ -971,11 +984,27 @@
       fadeT = setInterval(function () { n++; try { yt.setVolume(Math.round(from + (to - from) * n / 8)); } catch (e) {} if (n >= 8) clearInterval(fadeT); }, 90);
     } catch (e) {}
   }
-  function onYtState(e) { if (e && e.target && e.target !== yt) return; var st = YT.PlayerState; if (e.data === st.PLAYING) { if (userPaused) { try { yt.pauseVideo(); } catch (x) {} return; } errs = 0; setOn(true); if (!chimeOn && !blending) applyVol(true); } else if (e.data === st.PAUSED) setOn(false); else if (e.data === st.ENDED) next(); }
+  function onYtState(e) {
+    if (e && e.target && e.target !== yt) return;
+    var st = YT.PlayerState;
+    if (e.data === st.PLAYING) {
+      if (userPaused) { try { yt.pauseVideo(); } catch (x) {} return; }
+      errs = 0; setOn(true); if (!chimeOn && !blending) applyVol(true);
+      // joined mid-song: land exactly where air is
+      if (started && !userPaused && !blending && idx >= 0 && S.plays[idx]) {
+        try {
+          var ex = nowMs() / 1000 - S.delay - S.plays[idx].t + (S.plays[idx].so || 0), cu = yt.getCurrentTime();
+          if (ex > 0 && Math.abs(cu - ex) > 1.2) { yt.seekTo(ex, true); lastSeek = Date.now(); }
+        } catch (x2) {}
+      }
+    }
+    else if (e.data === st.PAUSED) setOn(false);
+    else if (e.data === st.ENDED) next();
+  }
   function onYtError(e) { if (e && e.target && e.target !== yt) return; if (curP) badIds[curP.id] = 1; if (++errs < 8) playIdx(idx, Date.now() / 1000 - S.delay - S.plays[idx].t, curAlt + 1); else { setOn(false); $('hint').textContent = 'Having trouble reaching the music. Please try again in a minute.'; } }
   function init() {
     ytMain = yt = new YT.Player('ytp', { width: 200, height: 200, host: 'https://www.youtube-nocookie.com', playerVars: { playsinline: 1, rel: 0, controls: 0, disablekb: 1, origin: location.origin }, events: {
-      onReady: function () { ready = true; yt.setVolume(+$('vol').value); if (started) playIdx(findNow(), (Date.now() / 1000 - S.delay) - S.plays[findNow()].t); if (gestured) { try { yt.unMute(); } catch (e) {} } },
+      onReady: function () { ready = true; yt.setVolume(+$('vol').value); if (started) playIdx(findNow(), (nowMs() / 1000 - S.delay) - S.plays[findNow()].t); if (gestured) { try { yt.unMute(); } catch (e) {} } },
       onStateChange: onYtState,
       onError: onYtError } });
   }
@@ -988,7 +1017,7 @@
     if (!S.plays.length) return;
     if (!started) {
       started = true; $('hint').innerHTML = LIVE_HTML; $('npTitle').textContent = 'Tuning in…';
-      if (window.YT && YT.Player) { if (!yt) init(); else if (ready) { var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } }   // not ready yet: onReady starts it
+      if (window.YT && YT.Player) { if (!yt) init(); else if (ready) { var k = findNow(); playIdx(k, nowMs() / 1000 - S.delay - S.plays[k].t); } }   // not ready yet: onReady starts it
       else { window.onYouTubeIframeAPIReady = function () { if (!yt) init(); }; loadApi(); }
       return;
     }
@@ -996,21 +1025,23 @@
     var eff = (btnIntent !== null && Date.now() - btnAt < 2500) ? btnIntent : playing;      // what the button shows right now, even if YouTube has not reported it yet
     btnAt = Date.now();
     if (eff) { btnIntent = false; userPaused = true; try { yt.pauseVideo(); } catch (x) {} setOn(false); }
-    else { btnIntent = true; userPaused = false; try { var kl = findNow(); playIdx(kl, Date.now() / 1000 - S.delay - S.plays[kl].t); } catch (x) { try { yt.playVideo(); } catch (y) {} } }   // radio, not a tape: playing again joins what is on air NOW, never the spot where it was paused
+    else { btnIntent = true; userPaused = false; try { var kl = findNow(); playIdx(kl, nowMs() / 1000 - S.delay - S.plays[kl].t); } catch (x) { try { yt.playVideo(); } catch (y) {} } }   // radio, not a tape: playing again joins what is on air NOW, never the spot where it was paused
   });
   $('vol').addEventListener('input', function (e) { $('volv').textContent = e.target.value; if (yt && ready) yt.setVolume(+e.target.value); if (jingOn) jing.volume = jingVol(); try { localStorage.setItem('up1-vol', e.target.value); } catch (x) {} });
   try { var v = localStorage.getItem('up1-vol'); if (v) { $('vol').value = v; $('volv').textContent = v; } } catch (x) {}
   // keep exactly in step with the live schedule: after a pause, a stall or a schedule change, jump back to the live position
-  var lastSync = 0;
+  var lastSync = 0, lastSeek = 0;
   setInterval(function () {
-    if (!started || !playing || !yt || !ready || idx < 0 || !S.plays[idx] || nextTimer || Date.now() - lastSync < 20000) return;
+    if (!started || !playing || !yt || !ready || idx < 0 || !S.plays[idx] || nextTimer || Date.now() - lastSync < 3000) return;
     try {
-      var now = Date.now() / 1000 - S.delay, k = findNow();
+      var now = nowMs() / 1000 - S.delay, k = findNow();
       if (k !== idx && !(blendOn() && k === idx + 1 && (blending || now - S.plays[k].t < 30))) { lastSync = Date.now(); playIdx(k, now - S.plays[k].t); return; }          // wrong song for this moment: jump to what is on air (unless the blend into it is under way)
       var expected = now - S.plays[idx].t + (S.plays[idx].so || 0), cur = yt.getCurrentTime(), dur = yt.getDuration();
-      if (dur && expected < dur - 5 && Math.abs(cur - expected) > 20) { lastSync = Date.now(); yt.seekTo(expected, true); }   // paused or stalled: catch up to live
+      if (!dur || expected >= dur - 3 || !(expected > 0)) return;
+      if (yt.getPlayerState && yt.getPlayerState() !== 1) return;                    // buffering or stalled: wait, do not stutter-seek
+      if (Math.abs(cur - expected) > 1.2 && Date.now() - lastSeek > 3000) { lastSeek = Date.now(); lastSync = Date.now(); yt.seekTo(expected, true); }   // a second out of step with air: catch up
     } catch (x) {}
-  }, 6000);
+  }, 2000);
   function fmtLeft(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
   // the meter and the time counting down: on the blended channels it runs to the moment the next song comes in (the schedule), on the original 1UP Radio to the end of the video
   setInterval(function () {
@@ -1083,7 +1114,7 @@
     if (tap) { unlockChime(); unlockJingle(); if (typeof keepSync === 'function') keepSync(); }
     if (tap && yt && ready) {                                   // phones only allow sound inside a real tap: unmute / (re)start right here, in the tap
       try { if (yt.isMuted()) { yt.unMute(); yt.setVolume(+$('vol').value); } } catch (e) {}
-      if (started && !playing && !userPaused && Date.now() - lastKick > 1500) { lastKick = Date.now(); try { yt.unMute(); var k = findNow(); playIdx(k, Date.now() / 1000 - S.delay - S.plays[k].t); } catch (e) {} }
+      if (started && !playing && !userPaused && Date.now() - lastKick > 1500) { lastKick = Date.now(); try { yt.unMute(); var k = findNow(); playIdx(k, nowMs() / 1000 - S.delay - S.plays[k].t); } catch (e) {} }
     }
     if (!mutedAuto) { if (started && ready && !playing && !tap && !userPaused) { try { yt.playVideo(); } catch (e) {} } return; }
     mutedAuto = false; unmutedAt = Date.now(); try { yt.unMute(); yt.setVolume(+$('vol').value); if (yt.getPlayerState() !== 1) yt.playVideo(); } catch (e) {} $('hint').innerHTML = LIVE_HTML;
