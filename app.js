@@ -4,6 +4,7 @@
   var S = { plays: [], delay: 420 }, yt = null, ready = false, started = false, playing = false, idx = -1, errs = 0, skipped = 0;
   // Every listener must hear the same second, so the schedule is read against the SERVER clock, not this
   // computer's clock (two machines are rarely more than a few seconds apart, but a wrong clock is minutes).
+  var SYNC_TOL = 0.4;   // seconds we allow a listener to sit away from air before pulling them back
   var SKEW = 0;   // server time minus local time, in ms
   function nowMs() { return Date.now() + SKEW; }
   // times shown are when each song plays for you: the same clock time it aired in Athens, on your local clock
@@ -996,7 +997,7 @@
       if (started && !userPaused && !blending && idx >= 0 && S.plays[idx]) {
         try {
           var ex = nowMs() / 1000 - S.delay - S.plays[idx].t + (S.plays[idx].so || 0), cu = yt.getCurrentTime();
-          if (ex > 0 && Math.abs(cu - ex) > 1.2) { yt.seekTo(ex, true); lastSeek = Date.now(); }
+          if (ex > 0 && Math.abs(cu - ex) > SYNC_TOL) { yt.seekTo(ex, true); lastSeek = Date.now(); }
         } catch (x2) {}
       }
     }
@@ -1035,16 +1036,16 @@
   setInterval(clockProbe, 600000);   // re-anchor the clock now and then (laptops drift when they sleep)
   var lastSync = 0, lastSeek = 0;
   setInterval(function () {
-    if (!started || !playing || !yt || !ready || idx < 0 || !S.plays[idx] || nextTimer || Date.now() - lastSync < 3000) return;
+    if (!started || !playing || !yt || !ready || idx < 0 || !S.plays[idx] || nextTimer || Date.now() - lastSync < 1000) return;
     try {
       var now = nowMs() / 1000 - S.delay, k = findNow();
       if (k !== idx && !(blendOn() && k === idx + 1 && (blending || now - S.plays[k].t < 30))) { lastSync = Date.now(); playIdx(k, now - S.plays[k].t); return; }          // wrong song for this moment: jump to what is on air (unless the blend into it is under way)
       var expected = now - S.plays[idx].t + (S.plays[idx].so || 0), cur = yt.getCurrentTime(), dur = yt.getDuration();
       if (!dur || expected >= dur - 3 || !(expected > 0)) return;
       if (yt.getPlayerState && yt.getPlayerState() !== 1) return;                    // buffering or stalled: wait, do not stutter-seek
-      if (Math.abs(cur - expected) > 1.2 && Date.now() - lastSeek > 3000) { lastSeek = Date.now(); lastSync = Date.now(); yt.seekTo(expected, true); }   // a second out of step with air: catch up
+      if (Math.abs(cur - expected) > SYNC_TOL && Date.now() - lastSeek > 2500) { lastSeek = Date.now(); lastSync = Date.now(); yt.seekTo(expected, true); }   // a second out of step with air: catch up
     } catch (x) {}
-  }, 2000);
+  }, 1000);
   function fmtLeft(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
   // the meter and the time counting down: on the blended channels it runs to the moment the next song comes in (the schedule), on the original 1UP Radio to the end of the video
   setInterval(function () {
